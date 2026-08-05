@@ -97,8 +97,8 @@
     }
   },
   "icons": {
-    "128": "public/Assets/icon-128.png",
     "48": "public/Assets/icon-48.png",
+    "128": "public/Assets/icon-128.png",
     "16": "public/Assets/icon-16.png"
   },
   "optional_permissions": [
