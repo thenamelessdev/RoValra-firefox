@@ -38,7 +38,18 @@ jobs:
           rm -rf public/Assets/DonatorTiers/
 
           # remove draco, this is temporary
-          sed -i "/const dracoSource = /,/}/d" build.js
+          node -e "
+            const fs = require('fs');
+            let content = fs.readFileSync('build.js', 'utf8');
+            // Remove const dracoSource = ... line
+            content = content.replace(/const dracoSource = [\s\S]*?;/, '');
+            // Replace the banner in the esbuild config
+            content = content.replace(
+              /banner: \{\s*js: bannerText \+ '\\n' \+ dracoSource/g,
+              'banner: { js: bannerText'
+            );
+            fs.writeFileSync('build.js', content);
+          "
 
           jq '.name = "RoValra - Firefox Edition" | .description = "An unofficial Firefox version of RoValra (Roblox Improved)"' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
           npm ci
