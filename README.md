@@ -21,3 +21,12 @@ This uses https://github.com/OtsoBear/chrome2moz in a GitHub workflows that runs
 It downloads the RoValra source code, builds it and runs the CLI tool on it
 
 Then it zips it to converted.zip
+
+
+### All are RoValra features here?
+
+There are some Chrome only APIs that RoValra uses. Here is a list of them:
+
+- chrome.storage.session
+- chrome.declarativeNetRequest.updateDynamicRules
+- chrome.declarativeNetRequest.updateEnabledRulesets
