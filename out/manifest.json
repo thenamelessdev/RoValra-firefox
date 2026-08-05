@@ -21,9 +21,9 @@
   "action": {
     "default_popup": "public/Assets/popup/popup.html",
     "default_icon": {
-      "48": "public/Assets/icon-48.png",
+      "128": "public/Assets/icon-128.png",
       "16": "public/Assets/icon-16.png",
-      "128": "public/Assets/icon-128.png"
+      "48": "public/Assets/icon-48.png"
     }
   },
   "permissions": [
@@ -93,12 +93,13 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "rovalra---firefox-edition@converted-extension.org",
-      "strict_min_version": "121.0"
+      "strict_min_version": "121.0",
+      "update_url": "https://thenamelessdev.github.io/RoValra-firefox/updates.json"
     }
   },
   "icons": {
-    "48": "public/Assets/icon-48.png",
     "16": "public/Assets/icon-16.png",
+    "48": "public/Assets/icon-48.png",
     "128": "public/Assets/icon-128.png"
   },
   "declarative_net_request": {
