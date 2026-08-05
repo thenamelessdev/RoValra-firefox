@@ -1,0 +1,58 @@
+name: convert to firefox
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 10 * * *'
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: set up rust
+        uses: dtolnay/rust-toolchain@stable
+      
+      - name: set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - run: git clone https://github.com/OtsoBear/chrome2moz.git
+      
+      - name: build chrome2moz
+        run: |
+          cd chrome2moz
+          cargo build --release
+      
+      - run: |
+          gh repo clone NotValra/RoValra extension
+          cd extension
+          npm ci
+          npm run build
+          cd dist
+          zip -r ../../extension.zip .
+          cd ../..
+          rm -rf extension
+      
+      - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./
+      
+      - name: clean up
+        run: |
+            rm -rf chrome2moz
+            rm -f extension.zip
+      
+      - name: push to repo
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          if git diff --staged --quiet; then
+            echo "no changes"
+          else
+            git commit -m "convert extension"
+            git push
+          fi
