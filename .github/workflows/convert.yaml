@@ -41,13 +41,19 @@ jobs:
           node -e "
             const fs = require('fs');
             let content = fs.readFileSync('build.js', 'utf8');
-            // Remove const dracoSource = ... line
-            content = content.replace(/const dracoSource = [\s\S]*?;/, '');
-            // Replace the banner in the esbuild config
+            
+            // Remove the dracoPath existence check
+            content = content.replace(/if \(!fs\.existsSync\(dracoPath\)\) \{[\s\S]*?process\.exit\(1\);\s*\}\s*/m, '');
+            
+            // Remove the dracoSource definition
+            content = content.replace(/const dracoSource = fs\.readFileSync\(dracoPath, 'utf8'\);\s*/m, '');
+            
+            // Replace the banner usage
             content = content.replace(
-              /banner: \{\s*js: bannerText \+ '\\n' \+ dracoSource/g,
-              'banner: { js: bannerText'
+              /js: bannerText \+ '\\\\\\\\n' \+ dracoSource,/m,
+              'js: bannerText,'
             );
+            
             fs.writeFileSync('build.js', content);
           "
 
