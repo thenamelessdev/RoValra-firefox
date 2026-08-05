@@ -38,17 +38,12 @@ jobs:
           rm -rf extension
       
       - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
-
-      - name: zip extension
-        run: |
-            cd out
-            zip -r ../converted.zip .
       
       - name: clean up
         run: |
             rm -rf chrome2moz
             rm -f extension.zip
-            rm out.xpi
+            mv out.xpi converted.xpi
 
       - name: push to repo
         run: |
