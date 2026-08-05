@@ -7,11 +7,11 @@ This is not the official RoValra
 
 ### Adding to firefox
 
-You can either download the zip file or clone the repo and zip the contents of the out/ folder
+You can either download the xpi file or clone the repo and zip the contents of the out/ folder
 
 After you have the file go to `about:debugging#/runtime/this-firefox` in your browser and load a temporary add on
 
-Select your zip file and done
+Select your xpi/zip file and done
 
 
 ### How does this work?
@@ -20,7 +20,7 @@ This uses https://github.com/OtsoBear/chrome2moz in a GitHub workflows that runs
 
 It downloads the RoValra source code, builds it and runs the CLI tool on it
 
-Then it zips it to converted.zip
+chrome2moz generates the .xpi file
 
 
 ### All are RoValra features here?
