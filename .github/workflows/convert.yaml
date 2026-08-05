@@ -47,7 +47,6 @@ jobs:
             rm -rf chrome2moz
             rm -f extension.zip
             rm out.xpi
-            rm -rf out
 
       - name: push to repo
         run: |
