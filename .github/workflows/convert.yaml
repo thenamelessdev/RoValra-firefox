@@ -43,6 +43,11 @@ jobs:
         run: |
             rm -rf chrome2moz
             rm -f extension.zip
+            rm out.xpi
+            cd out
+            mv * ../
+            cd ..
+            rmdir out
       
       - name: push to repo
         run: |
