@@ -37,7 +37,7 @@ jobs:
           cd ../..
           rm -rf extension
       
-      - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./
+      - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
       
       - name: clean up
         run: |
