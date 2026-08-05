@@ -45,6 +45,9 @@ jobs:
           rm -rf extension
       
       - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
+
+      - name: fix manifest
+        run: jq '.optional_permissions |= map(if . == "contextMenus" then "menus" elif . == "webRequest" then "webRequestBlocking" else . end)' out/manifest.json > out/manifest.json.tmp && mv out/manifest.json.tmp out/manifest.json
       
       - name: clean up
         run: |
