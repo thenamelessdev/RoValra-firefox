@@ -48,8 +48,8 @@ jobs:
             rm -rf chrome2moz
             rm -f extension.zip
             rm out.xpi
-            cd out
-            cp -r out/* ./
+            rm -rf assets css public shims
+            mv out/* ../
             cd ..
             rm -rf out
 
