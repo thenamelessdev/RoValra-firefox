@@ -47,14 +47,18 @@ jobs:
       
       - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
 
-      - name: fix manifest
-        run: jq '.optional_permissions |= map(if . == "contextMenus" then "menus" elif . == "webRequest" then "webRequestBlocking" else . end)' out/manifest.json > out/manifest.json.tmp && mv out/manifest.json.tmp out/manifest.json
+      - name: manifest things
+        run: |
+            jq '.optional_permissions |= map(if . == "contextMenus" then "menus" elif . == "webRequest" then "webRequestBlocking" else . end)' out/manifest.json > out/manifest.json.tmp && mv out/manifest.json.tmp out/manifest.json
+            jq '.browser_specific_settings.gecko.update_url = "https://thenamelessdev.github.io/RoValra-firefox/updates.json"' out/manifest.json > out/manifest.json.tmp && mv out/manifest.json.tmp out/manifest.json
       
       - name: clean up
         run: |
             rm -rf chrome2moz
             rm -f extension.zip
             mv out.xpi converted.xpi
+            rm -f docs/converted.xpi
+            cp converted.xpi docs/
 
       - name: push to repo
         run: |
