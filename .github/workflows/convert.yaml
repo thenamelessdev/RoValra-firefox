@@ -41,16 +41,14 @@ jobs:
 
       - name: zip extension
         run: |
-            zip -r ./extension.zip .
+            cd out
+            zip -r ./extension.zip ../
       
       - name: clean up
         run: |
             rm -rf chrome2moz
             rm -f extension.zip
             rm out.xpi
-            rm -rf assets css public shims
-            mv out/* ../
-            cd ..
             rm -rf out
 
       - name: push to repo
