@@ -1,0 +1,123 @@
+{
+  "manifest_version": 3,
+  "name": "RoValra - Roblox Improved",
+  "version": "2.6.4",
+  "description": "An extension aiming to provide features that other Roblox extensions paywall!",
+  "background": {
+    "scripts": [
+      "shims/storage-session-compat.js",
+      "shims/execute-script-compat.js",
+      "shims/sidepanel-compat.js",
+      "shims/declarative-net-request-stub.js",
+      "shims/user-scripts-compat.js",
+      "shims/tabs-windows-compat.js",
+      "shims/runtime-compat.js",
+      "shims/downloads-compat.js",
+      "shims/privacy-stub.js",
+      "shims/notifications-compat.js",
+      "background.js"
+    ]
+  },
+  "action": {
+    "default_popup": "public/Assets/popup/popup.html",
+    "default_icon": {
+      "128": "public/Assets/icon-128.png",
+      "16": "public/Assets/icon-16.png",
+      "48": "public/Assets/icon-48.png"
+    }
+  },
+  "permissions": [
+    "declarativeNetRequest",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://games.roblox.com/*",
+    "*://*.roblox.com/*",
+    "https://gamejoin.roblox.com/v1/join-game-instance",
+    "https://users.roblox.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.roblox.com/*"
+      ],
+      "js": [
+        "intercept.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "*://*.roblox.com/*"
+      ],
+      "js": [
+        "public/Assets/data/serverid_extractor.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "*://*.roblox.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "css/sitewide.css",
+        "css/rovalra.css"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "public/Assets/*",
+        "public/data/*",
+        "Assets/data/serverid_extractor.js",
+        "data/*",
+        "intercept.js",
+        "assets/*",
+        "css/*"
+      ],
+      "matches": [
+        "https://www.roblox.com/*",
+        "*://*.roblox.com/*"
+      ]
+    }
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "rovalra---roblox-improved@converted-extension.org",
+      "strict_min_version": "121.0"
+    }
+  },
+  "icons": {
+    "128": "public/Assets/icon-128.png",
+    "16": "public/Assets/icon-16.png",
+    "48": "public/Assets/icon-48.png"
+  },
+  "optional_permissions": [
+    "webNavigation",
+    "contextMenus",
+    "webRequest"
+  ],
+  "declarative_net_request": {
+    "rule_resources": [
+      {
+        "enabled": false,
+        "id": "ruleset_status",
+        "path": "public/Assets/Rules/StatusRules.json"
+      },
+      {
+        "enabled": false,
+        "id": "ruleset_3",
+        "path": "public/Assets/Rules/beta-rules.json"
+      }
+    ]
+  }
+}
