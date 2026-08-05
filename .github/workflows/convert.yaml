@@ -36,6 +36,7 @@ jobs:
           rm public/Assets/icon-128.png
           rm public/Assets/RoValraLogo.png
           rm -rf public/Assets/DonatorTiers/
+          jq '.name = "RoValra - Firefox Edition" | .description = "An unofficial Firefox version of RoValra (Roblox Improved)"' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
           npm ci
           npm run build
           cd dist
