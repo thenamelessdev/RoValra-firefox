@@ -38,24 +38,9 @@ jobs:
           rm -rf public/Assets/DonatorTiers/
 
           # remove draco, this is temporary
-          node -e "
-            const fs = require('fs');
-            let content = fs.readFileSync('build.js', 'utf8');
-            
-            // Remove the dracoPath existence check
-            content = content.replace(/if \(!fs\.existsSync\(dracoPath\)\) \{[\s\S]*?process\.exit\(1\);\s*\}\s*/m, '');
-            
-            // Remove the dracoSource definition
-            content = content.replace(/const dracoSource = fs\.readFileSync\(dracoPath, 'utf8'\);\s*/m, '');
-            
-            // Replace the banner usage
-            content = content.replace(
-              /js: bannerText \+ '\\\\\\\\n' \+ dracoSource,/m,
-              'js: bannerText,'
-            );
-            
-            fs.writeFileSync('build.js', content);
-          "
+          sed -i '/if (!fs.existsSync(dracoPath))/,/^}/d' build.js
+          sed -i '/^const dracoSource/d' build.js
+          sed -i "s/js: bannerText + '\\\\n' + dracoSource,/js: bannerText,/" build.js
 
           jq '.name = "RoValra - Firefox Edition" | .description = "An unofficial Firefox version of RoValra (Roblox Improved)"' manifest.json > manifest.json.tmp && mv manifest.json.tmp manifest.json
           npm ci
