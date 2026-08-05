@@ -30,6 +30,12 @@ jobs:
       - run: |
           git clone https://github.com/NotValra/RoValra.git extension
           cd extension
+          rm public/Assets/Contributor.png
+          rm public/Assets/icon-16.png
+          rm public/Assets/icon-48.png
+          rm public/Assets/icon-128.png
+          rm public/Assets/RoValraLogo.png
+          rm -rf public/Assets/DonatorTiers/
           npm ci
           npm run build
           cd dist
