@@ -40,7 +40,7 @@ jobs:
       - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
 
       - name: zip extension
-        run: zip -r ./converted.zip ./out
+        run: zip -r ./converted.zip ./out/*
       
       - name: clean up
         run: |
