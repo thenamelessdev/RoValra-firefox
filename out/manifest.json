@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "RoValra - Roblox Improved",
+  "name": "RoValra - Firefox Edition",
   "version": "2.6.4",
-  "description": "An extension aiming to provide features that other Roblox extensions paywall!",
+  "description": "An unofficial Firefox version of RoValra (Roblox Improved)",
   "background": {
     "scripts": [
       "shims/storage-session-compat.js",
@@ -92,14 +92,14 @@
   ],
   "browser_specific_settings": {
     "gecko": {
-      "id": "rovalra---roblox-improved@converted-extension.org",
+      "id": "rovalra---firefox-edition@converted-extension.org",
       "strict_min_version": "121.0"
     }
   },
   "icons": {
+    "16": "public/Assets/icon-16.png",
     "48": "public/Assets/icon-48.png",
-    "128": "public/Assets/icon-128.png",
-    "16": "public/Assets/icon-16.png"
+    "128": "public/Assets/icon-128.png"
   },
   "optional_permissions": [
     "webNavigation",
