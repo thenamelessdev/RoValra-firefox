@@ -28,7 +28,7 @@ jobs:
           cargo build --release
       
       - run: |
-          gh repo clone NotValra/RoValra extension
+          git clone https://github.com/NotValra/RoValra.git extension
           cd extension
           npm ci
           npm run build
