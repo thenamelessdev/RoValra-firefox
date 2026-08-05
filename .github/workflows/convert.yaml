@@ -38,6 +38,10 @@ jobs:
           rm -rf extension
       
       - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
+
+      - name: zip extension
+        run: |
+            zip -r ./extension.zip .
       
       - name: clean up
         run: |
@@ -48,7 +52,7 @@ jobs:
             mv * ../
             cd ..
             rmdir out
-      
+
       - name: push to repo
         run: |
           git config user.name "github-actions[bot]"
