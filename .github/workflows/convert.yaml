@@ -49,9 +49,9 @@ jobs:
             rm -f extension.zip
             rm out.xpi
             cd out
-            mv * ../
+            cp -r out/* ./
             cd ..
-            rmdir out
+            rm -rf out
 
       - name: push to repo
         run: |
