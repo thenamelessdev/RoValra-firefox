@@ -13,3 +13,11 @@ After you have the file go to `about:debugging#/runtime/this-firefox` in your br
 
 Select your zip file and done
 
+
+### How does this work?
+
+This uses https://github.com/OtsoBear/chrome2moz in a GitHub workflows that runs daily
+
+It downloads the RoValra source code, builds it and runs the CLI tool on it
+
+Then it zips it to converted.zip
