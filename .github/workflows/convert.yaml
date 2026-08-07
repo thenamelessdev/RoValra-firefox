@@ -53,15 +53,6 @@ jobs:
             jq '.browser_specific_settings.gecko.update_url = "https://thenamelessdev.github.io/RoValra-firefox/updates.json"' out/manifest.json > out/manifest.json.tmp && mv out/manifest.json.tmp out/manifest.json
       
           
-      - name: remove copyrighted files
-        run: |
-          cd out
-          rm public/Assets/Contributor.png
-          rm public/Assets/icon-16.png
-          rm public/Assets/icon-48.png
-          rm public/Assets/icon-128.png
-          rm public/Assets/RoValraLogo.png
-          rm -rf public/Assets/DonatorTiers/
       - name: clean up
         run: |
             rm -rf chrome2moz
