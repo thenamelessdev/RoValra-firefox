@@ -4085,8 +4085,6 @@ Never used outside your local device.`;
                     "This will be overridden by the Hide The Badge setting"
                   ],
                   type: "input",
-                  maxLength: 30,
-                  showCharacterCount: !0,
                   default: null,
                   contributors: ["10646979010", "1564574922"]
                 },
@@ -4484,6 +4482,19 @@ Never used outside your local device.`;
         FunStuff: {
           title: "Fun Stuff",
           settings: {
+            iconElementUsageDescription: {
+              label: "icon Element Usage",
+              description: [
+                "You can use the `<icon>` element to put icons in places",
+                "To use an `<icon>` element simply do the following `<icon>tilt</icon>` <icon>tilt</icon>",
+                "If you want the icon to be filled simply do the following `<icon filled>thumb-up</icon>` <icon filled>thumb-up</icon>",
+                "To use RoValra icons you simple do the following `<icon rovalra>contributor</icon>` <icon rovalra>icon</icon>",
+                "To use Google Material Icons you simple do the following `<icon material>bookmark</icon>` <icon material>bookmark</icon>",
+                "You can also use the `size` property to change the size to a specific css length or even use presets like `x-small`, `small`, `medium`, `large`, `x-large`, and `xx-large`",
+                "You can use the `<icon>` element in the Custom Age Theme Badge Text setting"
+              ],
+              contributors: ["650766686", "1564574922"]
+            },
             bandurationsEnabled: {
               label: "All possible ban durations",
               description: [
@@ -6976,6 +6987,22 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     }
   });
 
+  // src/content/core/utils/purifyCfg.js
+  var CUSTOM_ADDED_TAGS, init_purifyCfg = __esm({
+    "src/content/core/utils/purifyCfg.js"() {
+      CUSTOM_ADDED_TAGS = Object.freeze({
+        ADD_TAGS: ["icon"],
+        ADD_ATTR: [
+          "filled",
+          "fill",
+          "size",
+          "material",
+          "rovalra"
+        ]
+      });
+    }
+  });
+
   // src/content/core/utils/markdown.js
   function parseMarkdown(text2, themeColors = {}) {
     if (!text2) return "";
@@ -7013,16 +7040,19 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         "strong",
         "ul"
       ],
-      ALLOWED_ATTR: ["class", "href", "rel", "target"]
+      ALLOWED_ATTR: ["class", "href", "rel", "target"],
+      ...CUSTOM_ADDED_TAGS
     }).trim()) : (text2 = text2.replace(/^# (.*)$/m, (match, heading) => `<u><b>${heading}</b></u><br>`), text2 = text2.replaceAll(/\*\*(.*?)\*\*/g, (match, bold) => `<b>${bold}</b>`), text2 = text2.replaceAll(/__(.*?)__/g, (match, bold) => `<b>${bold}</b>`), text2 = text2.replaceAll(/\*(.*?)\*/g, (match, italic) => `<i>${italic}</i>`), text2 = text2.replaceAll(/_(.*?)_/g, (match, italic) => `<i>${italic}</i>`), text2 = text2.replaceAll(/`(.*?)`/g, (match, codeblock) => `<code>${codeblock}</code>`), text2 = text2.replaceAll(/\r\n|\r|\n/g, "<br>"), purify.sanitize(text2, {
       ALLOWED_TAGS: ["a", "b", "i", "u", "code", "br"],
-      ALLOWED_ATTR: ["class", "href", "rel", "target"]
+      ALLOWED_ATTR: ["class", "href", "rel", "target"],
+      ...CUSTOM_ADDED_TAGS
     }).trim())) : "";
   }
   var init_markdown = __esm({
     "src/content/core/utils/markdown.js"() {
       init_marked_esm();
       init_purify_es();
+      init_purifyCfg();
       __name(parseMarkdown, "parseMarkdown");
       __name(parseUntrustedMarkdown, "parseUntrustedMarkdown");
     }
@@ -7139,21 +7169,12 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         alice: "https://www.rovalra.com/static/img/alice.gif",
         verifiedShield: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1phnduy" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path fill="#335fff" d="M12 2 4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5zm-1.06 13.54L7.4 12l1.41-1.41 2.12 2.12 4.24-4.24 1.41 1.41z"></path></svg>')}`,
         UnverifiedShield: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1phnduy" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path fill="#636363" d="M12 2 4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5zm3.5 12.09-1.41 1.41L12 13.42 9.91 15.5 8.5 14.09 10.59 12 8.5 9.91 9.91 8.5 12 10.59l2.09-2.09 1.41 1.41L13.42 12z"></path></svg>')}`,
-        betaVR: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1.248c1.857 0 3.526.641 4.65 1.794a5 5 0 0 1 2.518 1.09C13.907 1.482 11.295 0 8 0 4.75 0 2.12 1.48.844 4.122a5 5 0 0 1 2.289-1.047C4.236 1.872 5.974 1.248 8 1.248"/><path d="M12 12a4 4 0 0 1-2.786-1.13l-.002-.002a1.6 1.6 0 0 0-.276-.167A2.2 2.2 0 0 0 8 10.5c-.414 0-.729.103-.935.201a1.6 1.6 0 0 0-.277.167l-.002.002A4 4 0 1 1 4 4h8a4 4 0 0 1 0 8"/></svg>')}`,
-        betaPlaystation: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="m21.58 16.09-1.09-7.66C20.21 6.46 18.52 5 16.53 5H7.47C5.48 5 3.79 6.46 3.51 8.43l-1.09 7.66C2.2 17.63 3.39 19 4.94 19c.68 0 1.32-.27 1.8-.75L9 16h6l2.25 2.25c.48.48 1.13.75 1.8.75 1.56 0 2.75-1.37 2.53-2.91M11 11H9v2H8v-2H6v-1h2V8h1v2h2zm4-1c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1m2 3c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1"></path></svg>')}`,
-        betaXbox: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15 7.5V2H9v5.5l3 3zM7.5 9H2v6h5.5l3-3zM9 16.5V22h6v-5.5l-3-3zM16.5 9l-3 3 3 3H22V9z"></path></svg>')}`,
-        betaMacPlayer: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 18c1.1 0 1.99-.9 1.99-2L22 5c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2H0c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2zM4 5h16v11H4zm8 14c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1"></path></svg>')}`,
-        betaWindowsStudio: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20 3H4c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h6v2H8v2h8v-2h-2v-2h6c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2"></path></svg>')}`,
-        betaAndroid: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 1H8C6.34 1 5 2.34 5 4v16c0 1.66 1.34 3 3 3h8c1.66 0 3-1.34 3-3V4c0-1.66-1.34-3-3-3m-2 20h-4v-1h4zm3.25-3H6.75V4h10.5z"></path></svg>')}`,
-        betaIos: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 1h-8C6.12 1 5 2.12 5 3.5v17C5 21.88 6.12 23 7.5 23h8c1.38 0 2.5-1.12 2.5-2.5v-17C18 2.12 16.88 1 15.5 1m-4 21c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5m4.5-4H7V4h9z"></path></svg>')}`,
-        betaAllowlist: `data:image/svg+xml,${encodeURIComponent('<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M4 10.5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5m0-6c-.83 0-1.5.67-1.5 1.5S3.17 7.5 4 7.5 5.5 6.83 5.5 6 4.83 4.5 4 4.5m0 12c-.83 0-1.5.68-1.5 1.5s.68 1.5 1.5 1.5 1.5-.68 1.5-1.5-.67-1.5-1.5-1.5M7 19h14v-2H7zm0-6h14v-2H7zm0-8v2h14V5z"></path></svg>')}`,
         dragHandle: "data:image/svg+xml," + encodeURIComponent(
           '<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1phnduy" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M11 18c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2m-2-8c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m6 4c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2m0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2m0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2"></path></svg>'
         ),
         edit: `data:image/svg+xml,${encodeURIComponent('<svg class="MuiSvgIcon-root MuiSvgIcon-fontSizeMedium css-1phnduy" focusable="false" aria-hidden="true" viewBox="0 0 24 24"><path d="M7 17V9.93L13.93 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2v-8.93L14.07 17z"></path><path d="M9 15h4.24l7.2-7.2-4.24-4.24-7.2 7.2zM22.91 2.49 21.5 1.08c-.78-.78-2.05-.78-2.83 0l-1.06 1.06 4.24 4.24 1.06-1.06c.79-.78.79-2.05 0-2.83"></path></svg>')}`,
         visibility: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5C21.27 7.61 17 4.5 12 4.5m0 12.5c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5m0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3"></path></svg>')}`,
         visibilityOff: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.71 3.16 18.13 18.13 1.41-1.41-3.04-3.04A11.8 11.8 0 0 0 23 12c-1.73-4.39-6-7.5-11-7.5-1.61 0-3.14.32-4.53.89L4.12 2.04zm8.37 5.09c.29-.16.6-.25.92-.25 2.21 0 4 1.79 4 4 0 .32-.09.63-.25.92zM12 19.5c-5 0-9.27-3.11-11-7.5.76-1.93 2.01-3.64 3.6-4.94l2.18 2.18A5 5 0 0 0 12 17c.97 0 1.88-.28 2.65-.76l2.02 2.02c-1.42.79-3.01 1.24-4.67 1.24M9 12c0 1.66 1.34 3 3 3 .35 0 .68-.06.99-.17L9.17 11c-.11.31-.17.65-.17 1"></path></svg>')}`,
-        betaRcc: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%"><path d="M20 13H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1v-6c0-.55-.45-1-1-1M7 19c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2M20 3H4c-.55 0-1 .45-1 1v6c0 .55.45 1 1 1h16c.55 0 1-.45 1-1V4c0-.55-.45-1-1-1M7 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2"></path></svg>')}`,
         testerIcon: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="100%" height="100%"><path d="M20 8h-2.81c-.45-.78-1.07-1.45-1.82-1.96L17 4.41 15.59 3l-2.17 2.17C12.96 5.06 12.49 5 12 5s-.96.06-1.41.17L8.41 3 7 4.41l1.62 1.63C7.88 6.55 7.26 7.22 6.81 8H4v2h2.09c-.05.33-.09.66-.09 1v1H4v2h2v1c0 .34.04.67.09 1H4v2h2.81c1.04 1.79 2.97 3 5.19 3s4.15-1.21 5.19-3H20v-2h-2.09c.05-.33.09-.66.09-1v-1h2v-2h-2v-1c0-.34-.04-.67-.09-1H20zm-6 8h-4v-2h4zm0-4h-4v-2h4z"></path></svg>')}`,
         artistIcon: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><defs><linearGradient id="g" x1="1" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#ff0000"/><stop offset="20%" stop-color="#ff9900"/><stop offset="40%" stop-color="#ffff00"/><stop offset="60%" stop-color="#33cc33"/><stop offset="80%" stop-color="#3399ff"/><stop offset="100%" stop-color="#cc33ff"/></linearGradient></defs><path d="M7 14c-1.66 0-3 1.34-3 3 0 1.31-1.16 2-2 2 .92 1.22 2.49 2 4 2 2.21 0 4-1.79 4-4 0-1.66-1.34-3-3-3" fill="#ffffff"/><path d="M20.71 4.63l-1.34-1.34a.996.996 0 0 0-1.41 0L9 12.25 11.75 15l8.96-8.96c.39-.39.39-1.02 0-1.41" fill="url(#g)"/></svg>')}`,
         translateIcon: `data:image/svg+xml,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="rgb(0, 89, 255)" width="100%" height="100%"><path d="m12.87 15.07-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4h-7V2H8v2H1v1.99h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"></path></svg>')}`,
@@ -12777,11 +12798,15 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     presenceInfo = 0,
     gameName,
     isVerified = !1,
+    isSubscribed = !1,
     isOpaque = !1,
     hidePresence = !1,
     presenceData = null
   }) {
-    let presence = PRESENCE_MAP[presenceInfo] || PRESENCE_MAP[0], showSublabel = showUsername && gameName ? !0 : showUsername, sublabelText = showUsername && gameName ? gameName : username, sublabelFontSize = gameName ? "9.6px" : "12px", presenceTitle = presenceInfo === 2 && gameName ? gameName : presence.title, assets7 = getAssets(), verifiedSvg = isVerified ? `<img src="${assets7.verifiedBadgeMono}" alt="" style="width: 14px; height: 14px; flex-shrink: 0; margin-left: 2px; vertical-align: middle; color: var(--rovalra-playbutton-color);">` : "", tileContainer = document.createElement("div");
+    let presence = PRESENCE_MAP[presenceInfo] || PRESENCE_MAP[0], showSublabel = showUsername && gameName ? !0 : showUsername, sublabelText = showUsername && gameName ? gameName : username, sublabelFontSize = gameName ? "9.6px" : "12px", presenceTitle = presenceInfo === 2 && gameName ? gameName : presence.title, assets7 = getAssets(), verifiedBadge = isVerified ? `<span class="relative flex items-center justify-center">
+            <icon filled size="x-small" class="grow-0 shrink-0 basis-auto content-system-emphasis">verified-backplate</icon>
+            <icon filled size="x-small" class="grow-0 shrink-0 basis-auto absolute" style="color: white;">verified-check</icon>
+        </span>` : "", plusBadge = isSubscribed ? '<icon class="grow-0 shrink-0 basis-auto content-system-contrast" size-xsmall aria-label="Roblox Plus subscriber">roblox-plus</icon>' : "", tileContainer = document.createElement("div");
     tileContainer.className = "friends-carousel-tile";
     let innerHtml = `
         <div class="user-card user-card-content rovalra-user-card" style="width: 90px; ${isOpaque ? "background: var(--rovalra-container-background-color) !important; opacity: 1 !important; border-radius: 50%;" : ""}" ${Number(userId) > 0 ? `data-rovalra-card-user-id="${userId}"` : ""}>
@@ -12792,23 +12817,24 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
                 ${hidePresence ? "" : `<div class="avatar-status" style="width: 28px !important; height: 28px !important; max-width: 28px !important; max-height: 28px !important; min-width: 28px !important; min-height: 28px !important; overflow: hidden !important; display: block !important;"><span data-testid="presence-icon" title="${presenceTitle}" class="${presence.class}" style="width: 28px !important; height: 28px !important; display: block !important; transform: scale(1) !important; zoom: 1 !important; font-size: 28px !important;"></span></div>`}
             </div>
             ${showSublabel ? `
-            <div class="user-card-labels" style="display: block; margin-top: 8px; max-width: 90px; width: 90px;">
-                <div class="user-card-name" style="overflow: hidden; line-height: 1.2;">
-                    <span style="font-weight: 400; font-size: 12.8px; color: var(--rovalra-main-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 90px; text-align: center; transition: text-decoration 0.2s ease;">${displayName}${verifiedSvg}</span>
+            <div class="user-card-labels" style="display: block; margin-top: 8px; width: 90px;">
+                <div class="user-card-name" style="line-height: 1.2;">
+                    <span style="white-space: nowrap; font-weight: 400; font-size: 12.8px; color: var(--rovalra-main-text-color);transition: text-decoration 0.2s ease; display: flex;" class="flex flex-row items-center gap-xsmall justify-center">${displayName}${verifiedBadge}${plusBadge}</span>
                 </div>
                 <div class="user-card-subname" style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: ${sublabelFontSize}; color: var(--rovalra-secondary-text-color); max-width: 90px; display: block; text-align: center; transition: text-decoration 0.2s ease;">${sublabelText}</div>
             </div>
             ` : `
-            <div class="user-card-labels-no-username" style="margin-top: 8px; max-width: 90px; width: 90px; text-align: center;">
-                <div class="user-card-name" style="overflow: hidden; line-height: 1.2;">
-                    <span style="font-weight: 400; font-size: 12.8px; color: var(--rovalra-main-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; max-width: 90px; text-align: center; transition: text-decoration 0.2s ease;">${displayName}${verifiedSvg}</span>
+            <div class="user-card-labels-no-username" style="margin-top: 8px; width: 90px; text-align: center;">
+                <div class="user-card-name" style="line-height: 1.2;">
+                    <span style="white-space: nowrap; font-weight: 400; font-size: 12.8px; color: var(--rovalra-main-text-color);transition: text-decoration 0.2s ease; display: flex;" class="flex flex-row items-center gap-xsmall justify-center">${displayName}${verifiedBadge}${plusBadge}</span>
                 </div>
             </div>
             `}
         </div>
     `;
     tileContainer.innerHTML = dompurify_default.sanitize(
-      `<div class="user-card-inner">${innerHtml}</div>`
+      `<div class="user-card-inner">${innerHtml}</div>`,
+      CUSTOM_ADDED_TAGS
     );
     let thumbEl = createThumbnailElement(thumbData, displayName, "", {
       width: "90px",
@@ -12833,7 +12859,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     }
     return tileContainer;
   }
-  function createFriendTile(item, thumbData, { displayName, username, isHidden, isVerified = !1 }) {
+  function createFriendTile(item, thumbData, { displayName, username, isHidden, isVerified = !1, isSubscribed = !1 }) {
     let href = isHidden ? "" : `https://www.roblox.com/users/${item.id}/profile`, card = createUserCard({
       displayName: displayName || "",
       username: isHidden ? "" : username || "",
@@ -12841,7 +12867,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       href,
       userId: isHidden ? -1 : item.id,
       presenceInfo: 0,
-      isVerified
+      isVerified,
+      isSubscribed
     });
     return !isHidden && (displayName === "Account Deleted" || username?.includes("Account Deleted")) && callRobloxApiJson({
       subdomain: "users",
@@ -12873,6 +12900,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       init_assets();
       init_getSettings();
       init_subplaceCard();
+      init_purifyCfg();
       __name(isSubplaceHoverCardEnabled, "isSubplaceHoverCardEnabled");
       presenceQueue = {
         pendingIds: /* @__PURE__ */ new Set(),
@@ -14643,7 +14671,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
 
   // src/content/core/utils/sanitize.js
   function sanitizeString(str) {
-    return typeof str != "string" || (str = str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ""), str = str.replace(/on\w+\s*=\s*["'][^"']*["']/gi, ""), str = str.replace(/on\w+\s*=\s*[^\s>]*/gi, ""), str = str.replace(/javascript:/gi, ""), str = str.replace(/data:text\/html[^,]*,/gi, ""), str = str.replace(/style\s*=\s*["'][^"']*["']/gi, ""), str = str.replace(/expression\s*\(/gi, ""), str = str.replace(/vbscript:/gi, ""), str = str.replace(/<[^>]*>/g, "")), str;
+    return typeof str != "string" || (str = str.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, ""), str = str.replace(/on\w+\s*=\s*["'][^"']*["']/gi, ""), str = str.replace(/on\w+\s*=\s*[^\s>]*/gi, ""), str = str.replace(/javascript:/gi, ""), str = str.replace(/data:text\/html[^,]*,/gi, ""), str = str.replace(/style\s*=\s*["'][^"']*["']/gi, ""), str = str.replace(/expression\s*\(/gi, ""), str = str.replace(/vbscript:/gi, ""), str = str.replace(/<(?!\/?icon(?:\s+(?:material|rovalra|fill|filled|size=(?:"[^\\"]*"|'[^\\']*')))*\s*\/?>)[^>]*>/g, "")), str;
   }
   function sanitizeObject(obj) {
     if (obj == null)
@@ -58477,6 +58505,27 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_i18n();
   init_assets();
   init_tooltip();
+
+  // src/content/core/ui/buildericon.ts
+  init_dompurify();
+  function Icon({
+    icon,
+    filled,
+    size,
+    classes,
+    material,
+    rovalra
+  }) {
+    let iconElement = document.createElement("icon");
+    return filled && iconElement.toggleAttribute("filled"), material && iconElement.toggleAttribute("material"), rovalra && iconElement.toggleAttribute("rovalra"), typeof classes == "string" ? iconElement.className = classes : typeof classes == "object" && Array.isArray(classes) && iconElement.classList.add(...classes), iconElement.setAttribute("size", size ?? "1em"), iconElement.textContent = icon, iconElement;
+  }
+  __name(Icon, "Icon");
+  function ChangeIcon(iconEl, { icon, filled, size, material, rovalra }) {
+    return !iconEl || iconEl.nodeName.toLowerCase() != "icon" ? null : (icon && (iconEl.textContent = dompurify_default.sanitize(icon)), filled && !iconEl.hasAttribute("filled") ? (iconEl.toggleAttribute("filled"), iconEl.hasAttribute("fill") && iconEl.toggleAttribute("fill")) : filled == !1 && (iconEl.hasAttribute("fill") && iconEl.toggleAttribute("fill"), iconEl.hasAttribute("filled") && iconEl.toggleAttribute("filled")), (material && !iconEl.hasAttribute("material") || material == !1 && iconEl.hasAttribute("material")) && iconEl.toggleAttribute("material"), (rovalra && !iconEl.hasAttribute("rovalra") || rovalra == !1 && iconEl.hasAttribute("rovalra")) && iconEl.toggleAttribute("rovalra"), size && iconEl.setAttribute("size", size), iconEl);
+  }
+  __name(ChangeIcon, "ChangeIcon");
+
+  // src/content/features/navigation/betaprograms.js
   var PREVIOUS_BETA_PROGRAMS_STORAGE_KEY = "rovalra_previous_beta_programs", FAKE_PREVIOUS_BETA_PROGRAM = {
     id: "rovalra-fake-previous-beta-program",
     displayName: "RoValra Previous Beta Program",
@@ -58558,7 +58607,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   __name(getPreviousOnlyBetaPrograms, "getPreviousOnlyBetaPrograms");
   async function addNavbarButton() {
     if (document.getElementById("rovalra-beta-programs-toggle")) return;
-    let assets7 = getAssets(), icon = assets7.TerminalIcon, button = await createNavbarButton({
+    let icon = getAssets().TerminalIcon, button = await createNavbarButton({
       id: "rovalra-beta-programs-toggle",
       iconSvgData: icon,
       tooltipText: await t2("betaPrograms.toggleTooltip")
@@ -58655,35 +58704,38 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
             }
             let iconsRow = document.createElement("div");
             iconsRow.style.display = "flex", iconsRow.style.alignItems = "center", iconsRow.style.gap = "8px", iconsRow.style.marginTop = "6px", iconsRow.style.flexWrap = "wrap", iconsRow.style.color = "var(--rovalra-main-text-color)";
-            let addPlatIcon = /* @__PURE__ */ __name((assetKey, tooltipText) => {
-              let el2 = document.createElement("div");
-              el2.style.display = "flex", el2.style.alignItems = "center", el2.style.justifyContent = "center", el2.style.width = "20px", el2.style.height = "20px";
-              let svgData = assets7[assetKey];
-              svgData.startsWith("data:image/svg+xml,") && (el2.innerHTML = decodeURIComponent(
-                svgData.split(",")[1]
-              )), addTooltip(el2, tooltipText, { position: "bottom" }), iconsRow.appendChild(el2);
+            let addPlatIcon = /* @__PURE__ */ __name((assetKey, tooltipText, filled = !1, material = !1) => {
+              let el2 = Icon({
+                icon: assetKey,
+                filled,
+                material,
+                size: "20px"
+              });
+              addTooltip(el2, tooltipText, { position: "bottom" }), iconsRow.appendChild(el2);
             }, "addPlatIcon");
             item.activeStatus === "PROGRAM_ACTIVE_STATUS_ALLOWLIST" && addPlatIcon(
-              "betaAllowlist",
-              await t2("betaPrograms.allowlist")
+              "format_list_bulleted",
+              await t2("betaPrograms.allowlist"),
+              !1,
+              !0
             );
             let p2 = item.platforms, win = [];
             p2.includes("PROGRAM_PLATFORM_WINDOWS_PLAYER") && win.push("Player"), p2.includes("PROGRAM_PLATFORM_WINDOWS_STUDIO") && win.push("Studio"), win.length > 0 && addPlatIcon(
-              "betaWindowsStudio",
+              "microsoft",
               `Windows (${win.join(" & ")})`
             );
             let mac = [];
             p2.includes("PROGRAM_PLATFORM_MAC_PLAYER") && mac.push("Player"), p2.includes("PROGRAM_PLATFORM_MAC_STUDIO") && mac.push("Studio"), mac.length > 0 && addPlatIcon(
-              "betaMacPlayer",
+              "apple",
               `macOS (${mac.join(" & ")})`
             );
             let andr = [];
             p2.includes("PROGRAM_PLATFORM_GOOGLE_ANDROID_APP") && andr.push("Google Play"), p2.includes("PROGRAM_PLATFORM_AMAZON_ANDROID_APP") && andr.push("Amazon"), p2.includes("PROGRAM_PLATFORM_TENCENT_ANDROID_APP") && andr.push("Tencent"), andr.length > 0 && addPlatIcon(
-              "betaAndroid",
+              "android",
               `Android (${andr.join(", ")})`
-            ), p2.includes("PROGRAM_PLATFORM_IOS_APP") && addPlatIcon("betaIos", "iOS");
+            ), p2.includes("PROGRAM_PLATFORM_IOS_APP") && addPlatIcon("phone_iphone", "iOS", !1, !0);
             let ps = [];
-            p2.includes("PROGRAM_PLATFORM_PS4_APP") && ps.push("PS4"), p2.includes("PROGRAM_PLATFORM_PS5_APP") && ps.push("PS5"), ps.length > 0 && addPlatIcon("betaPlaystation", ps.join(" & ")), p2.includes("PROGRAM_PLATFORM_XBOX_APP") && addPlatIcon("betaXbox", "Xbox"), p2.includes("PROGRAM_PLATFORM_QUEST_ANDROID_APP") && addPlatIcon("betaVR", "Meta Quest"), p2.includes("PROGRAM_PLATFORM_RCC") && addPlatIcon("betaRcc", "RCC"), iconsRow.children.length > 0 && textContainer.appendChild(iconsRow);
+            p2.includes("PROGRAM_PLATFORM_PS4_APP") && ps.push("PS4"), p2.includes("PROGRAM_PLATFORM_PS5_APP") && ps.push("PS5"), ps.length > 0 && addPlatIcon("playstation", ps.join(" & ")), p2.includes("PROGRAM_PLATFORM_XBOX_APP") && addPlatIcon("xbox", "XBOX"), p2.includes("PROGRAM_PLATFORM_QUEST_ANDROID_APP") && addPlatIcon("xr-headset", "Meta Quest"), p2.includes("PROGRAM_PLATFORM_RCC") && addPlatIcon("dns", "RCC", !0, !0), iconsRow.children.length > 0 && textContainer.appendChild(iconsRow);
             let handleRadioChange = /* @__PURE__ */ __name(async (newState) => {
               newState ? (radios.forEach((r) => {
                 r !== radio && r.setChecked(!1);
@@ -59610,7 +59662,8 @@ function run() {
               fields: [
                 "names.combinedName",
                 "isVerified",
-                "names.username"
+                "names.username",
+                "hasRobloxSubscription"
               ]
             }
           }),
@@ -59621,10 +59674,12 @@ function run() {
         friendItems.forEach((item) => {
           let isHidden = item.id === -1, profile = isHidden ? null : profileMap.get(item.id);
           if (!isHidden && !profile) return;
-          let thumbData = isHidden ? { state: "Error" } : thumbMap.get(item.id), displayName = isHidden ? "Hidden User" : profile.names.combinedName, username = isHidden ? "" : `@${profile.names.username}`, tile = createFriendTile(item, thumbData, {
+          let thumbData = isHidden ? { state: "Error" } : thumbMap.get(item.id), displayName = isHidden ? "Hidden User" : profile.names.combinedName, username = isHidden ? "" : `@${profile.names.username}`, isVerified = isHidden ? "" : profile.isVerified, isSubscribed = isHidden ? "" : profile.hasRobloxSubscription, tile = createFriendTile(item, thumbData, {
             displayName,
             username,
-            isHidden
+            isHidden,
+            isVerified,
+            isSubscribed
           });
           friendList.appendChild(tile);
         });
@@ -59670,7 +59725,35 @@ function run() {
       initialValue: 2,
       onChange: /* @__PURE__ */ __name((value2) => console.log("Pill Toggle changed to:", value2), "onChange")
     });
-    container.appendChild(pillToggle), removeHomeElement2();
+    container.appendChild(pillToggle);
+    let builderIconsHeader = document.createElement("h2");
+    builderIconsHeader.textContent = "Icons", builderIconsHeader.style.fontWeight = "800", builderIconsHeader.style.fontSize = "2.5em", builderIconsHeader.style.margin = "0";
+    let builderIcon = Icon({
+      icon: "xr-headset",
+      size: "xx-large"
+    }), builderIconFilled = Icon({
+      icon: "xr-headset",
+      filled: !0,
+      size: "xx-large"
+    }), materialIcon = Icon({
+      icon: "label",
+      material: !0,
+      size: "xx-large"
+    }), materialIconFilled = Icon({
+      icon: "label",
+      filled: !0,
+      material: !0,
+      size: "xx-large"
+    }), rovalraIcon = Icon({
+      icon: "rovalra",
+      rovalra: !0,
+      size: "xx-large"
+    }), rovalraContributorIcon = Icon({
+      icon: "icon",
+      rovalra: !0,
+      size: "xx-large"
+    });
+    container.append(document.createElement("br"), builderIconsHeader, document.createElement("br"), builderIcon, builderIconFilled, materialIcon, materialIconFilled, rovalraIcon, rovalraContributorIcon), removeHomeElement2();
   }
   __name(renderTestPage, "renderTestPage");
   function init14() {
@@ -106677,11 +106760,11 @@ Bundled Items:
     if (presence && presence.userPresenceType === 2 && presence.lastLocation ? statusText = ts2("quickSearch.playing", {
       gameName: presence.lastLocation
     }) : isFriend && (statusText = isTrusted ? ts2("quickSearch.trustedConnection") : ts2("quickSearch.connection")), secondaryInfoDiv.textContent = statusText, infoDiv.appendChild(displayNameDiv), infoDiv.appendChild(secondaryInfoDiv), link.appendChild(thumbContainer), link.appendChild(infoDiv), applyUserCosmetics(user.id, thumbContainer, displayNameSpan, link), user.hasVerifiedBadge && displayNameDiv) {
-      let badge = document.createElement("img");
-      badge.src = assets.verifiedBadge, badge.alt = ts2("quickSearch.verifiedBadge"), badge.title = ts2("quickSearch.verified"), Object.assign(badge.style, {
-        width: "16px",
-        height: "16px",
-        display: "inline-block",
+      let badge = document.createElement("span");
+      badge.innerHTML = `
+                <icon filled size="medium" class="grow-0 shrink-0 basis-auto content-system-emphasis">verified-backplate</icon>
+                <icon filled size="medium" class="grow-0 shrink-0 basis-auto absolute" style="color: white;">verified-check</icon>`, badge.alt = ts2("quickSearch.verifiedBadge"), badge.title = ts2("quickSearch.verified"), Object.assign(badge.style, {
+        display: "inline-flex",
         verticalAlign: "middle",
         marginLeft: "5px",
         flexShrink: "0"
@@ -107923,13 +108006,12 @@ Bundled Items:
   }
   __name(matchesRoute2, "matchesRoute");
   function createDocsIcon() {
-    let svg2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg2.classList.add("MuiSvgIcon-root", "MuiSvgIcon-fontSizeMedium"), svg2.setAttribute("aria-hidden", "true"), svg2.setAttribute("focusable", "false"), svg2.setAttribute("viewBox", "0 0 24 24"), svg2.style.width = "20px", svg2.style.height = "20px", svg2.style.display = "block", svg2.style.fill = "currentColor";
-    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    return path.setAttribute(
-      "d",
-      "M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8zm2 16H8v-2h8zm0-4H8v-2h8zm-3-5V3.5L18.5 9z"
-    ), path.setAttribute("fill", "currentColor"), svg2.appendChild(path), svg2;
+    return Icon({
+      material: !0,
+      size: "medium",
+      icon: "description",
+      filled: !0
+    });
   }
   __name(createDocsIcon, "createDocsIcon");
   function getSidebarContainer2(anchor) {
@@ -108067,12 +108149,17 @@ Bundled Items:
   init_assets();
   var assets2 = getAssets(), ICON_TEMPLATES = /* @__PURE__ */ new Map(), modernIconsInitialized = !1;
   function prepareTemplates() {
-    let parse = /* @__PURE__ */ __name((svgData) => {
-      if (!svgData || !svgData.startsWith("data:image/svg+xml,")) return null;
-      let container = document.createElement("span");
-      return container.className = "rovalra-modern-icon", container.innerHTML = decodeURIComponent(svgData.split(",")[1]), container;
-    }, "parse");
-    ICON_TEMPLATES.set("votes", parse(assets2.thumbsUp)), ICON_TEMPLATES.set("playing", parse(assets2.playingIcon)), injectStylesheet("css/modernIcons.css", "rovalra-modern-icons-styles");
+    ICON_TEMPLATES.set("votes", Icon({
+      classes: ["rovalra-modern-icon"],
+      filled: !0,
+      size: "18px",
+      icon: "thumb-up"
+    })), ICON_TEMPLATES.set("playing", Icon({
+      classes: ["rovalra-modern-icon"],
+      filled: !0,
+      size: "18px",
+      icon: "person-play"
+    })), injectStylesheet("css/modernIcons.css", "rovalra-modern-icons-styles");
   }
   __name(prepareTemplates, "prepareTemplates");
   function replaceIcon(element) {
@@ -108224,9 +108311,11 @@ Bundled Items:
 
   // src/content/features/sitewide/kidsThemeText.js
   init_purify_es();
+  init_purifyCfg();
   init_observer();
   init_i18n();
-  var ageBadgeContainerId = "age-badge-container", badgeClassToSelect = "rbx-age-badge", badgeClasses = badgeClassToSelect + " items-center justify-center select-none height-400 padding-x-xsmall radius-small text-label-small margin-left-[6px] bg-[var(--color-content-emphasis)] content-[var(--color-surface-0)]", AGE_BADGE_TEXT_MAX_LENGTH = 30, expandedBadgeRootClass = "rovalra-age-badge-push-navbar", navbarShiftProperty = "--rovalra-age-badge-navbar-shift", desktopNavbarSelector = "#header > .container-fluid > ul.nav.rbx-navbar.hidden-xs.hidden-sm", badgeToNavbarGap = 12, currentBadgeContainerObserver = null, observerCalled = 0, navbarLayoutFrame = null, pushNavbarEnabled = !1, layoutListenersInitialized = !1;
+  var ageBadgeContainerId = "age-badge-container", badgeClassToSelect = "rbx-age-badge", badgeClasses = badgeClassToSelect + " items-center justify-center select-none height-400 padding-x-xsmall radius-small text-label-small margin-left-[6px] bg-[var(--color-content-emphasis)] content-[var(--color-surface-0)]";
+  var expandedBadgeRootClass = "rovalra-age-badge-push-navbar", navbarShiftProperty = "--rovalra-age-badge-navbar-shift", desktopNavbarSelector = "#header > .container-fluid > ul.nav.rbx-navbar.hidden-xs.hidden-sm", badgeToNavbarGap = 12, currentBadgeContainerObserver = null, observerCalled = 0, navbarLayoutFrame = null, pushNavbarEnabled = !1, layoutListenersInitialized = !1;
   function updateNavbarLayout() {
     navbarLayoutFrame = null;
     let root = document.documentElement;
@@ -108312,11 +108401,8 @@ Bundled Items:
   }
   __name(addBadge, "addBadge");
   async function editBadge(text2) {
-    let cleanText = purify.sanitize(String(text2 ?? "")).slice(
-      0,
-      AGE_BADGE_TEXT_MAX_LENGTH
-    ), elementsWithBadgeClass = document.getElementsByClassName(badgeClassToSelect), badgeElement = elementsWithBadgeClass.length >= 1 ? elementsWithBadgeClass[0] : await addBadge();
-    badgeElement && (cleanText == "" ? hideBadge() : showBadge(), badgeElement.textContent = cleanText, scheduleNavbarLayoutUpdate());
+    let cleanText = purify.sanitize(String(text2 ?? ""), { ...CUSTOM_ADDED_TAGS }), elementsWithBadgeClass = document.getElementsByClassName(badgeClassToSelect), badgeElement = elementsWithBadgeClass.length >= 1 ? elementsWithBadgeClass[0] : await addBadge();
+    badgeElement && (cleanText == "" ? hideBadge() : showBadge(), badgeElement.innerHTML = cleanText, scheduleNavbarLayoutUpdate());
   }
   __name(editBadge, "editBadge");
   async function matchBadgeToTheme(theme) {
@@ -108339,7 +108425,7 @@ Bundled Items:
       },
       (settings2) => {
         let shouldPushNavbar = settings2.ageKidsTextEnabled && !settings2.ageKidsTextHiddenEnabled && settings2.ageKidsTextPushNavbarEnabled;
-        setPushNavbarEnabled(shouldPushNavbar), !(!(settings2.ageKidsThemeEnabled && settings2.ageThemeTextMatch) && !settings2.ageKidsTextEnabled || !document.body) && (settings2.ageKidsTextEnabled && settings2.ageKidsTextHiddenEnabled ? (chrome.storage.local.set({ ageThemeTextMatch: !1 }), hideBadge()) : settings2.ageKidsTextEnabled && !settings2.ageKidsTextHiddenEnabled ? (chrome.storage.local.set({ ageThemeTextMatch: !1 }), editBadge(settings2.ageKidsTextInput)) : settings2.ageKidsThemeEnabled && settings2.ageThemeTextMatch && matchBadgeToTheme(settings2.ageThemeSelection), currentBadgeContainerObserver && observerCalled >= 2 ? currentBadgeContainerObserver.disconnect() : currentBadgeContainerObserver && observerCalled++);
+        setPushNavbarEnabled(shouldPushNavbar), !(!(settings2.ageKidsThemeEnabled && settings2.ageThemeTextMatch) && !settings2.ageKidsTextEnabled || !document.body) && (settings2.ageKidsTextEnabled && settings2.ageKidsTextHiddenEnabled ? (chrome.storage.local.set({ ageThemeTextMatch: !1 }), hideBadge()) : settings2.ageKidsTextEnabled && !settings2.ageKidsTextHiddenEnabled ? (chrome.storage.local.set({ ageThemeTextMatch: !1 }), editBadge(settings2.ageKidsTextInput)) : settings2.ageKidsThemeEnabled && settings2.ageThemeTextMatch && matchBadgeToTheme(settings2.ageThemeSelection), currentBadgeContainerObserver && observerCalled >= 3 ? currentBadgeContainerObserver.disconnect() : currentBadgeContainerObserver && observerCalled++);
       }
     );
   }
@@ -111255,7 +111341,8 @@ Bundled Items:
   __name(init48, "init");
 
   // src/content/features/plus/sendRobux.js
-  var keepOpenInAppProfileItem = !1, cssClassNamePrefix = "rovalra-sendrobux", SVG_CALANDAR = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M640 1536Q667 1536 685.5 1517.5Q704 1499 704 1472V1344H1344V1472Q1344 1499 1362.5 1517.5Q1381 1536 1408.0 1536.0Q1435 1536 1453.5 1517.5Q1472 1499 1472 1472V1344H1600Q1670 1344 1728.5 1309.5Q1787 1275 1821.5 1216.5Q1856 1158 1856 1088V1024H192V1088Q192 1158 226.5 1216.5Q261 1275 319.5 1309.5Q378 1344 448 1344H576V1472Q576 1499 594.5 1517.5Q613 1536 640 1536ZM192 896H1856V72Q1856 14 1831.0 -37.0Q1806 -88 1761.0 -120.5Q1716 -153 1659 -160Q1386 -192 1024.0 -192.0Q662 -192 389 -160Q332 -153 287.0 -120.5Q242 -88 217.0 -37.0Q192 14 192 72ZM640 640Q613 640 594.5 621.5Q576 603 576.0 576.0Q576 549 594.5 530.5Q613 512 640.0 512.0Q667 512 685.5 530.5Q704 549 704.0 576.0Q704 603 685.5 621.5Q667 640 640 640ZM960 576Q960 549 978.5 530.5Q997 512 1024.0 512.0Q1051 512 1069.5 530.5Q1088 549 1088.0 576.0Q1088 603 1069.5 621.5Q1051 640 1024.0 640.0Q997 640 978.5 621.5Q960 603 960 576ZM960 192Q960 165 978.5 146.5Q997 128 1024.0 128.0Q1051 128 1069.5 146.5Q1088 165 1088.0 192.0Q1088 219 1069.5 237.5Q1051 256 1024.0 256.0Q997 256 978.5 237.5Q960 219 960 192ZM1408 256Q1381 256 1362.5 237.5Q1344 219 1344.0 192.0Q1344 165 1362.5 146.5Q1381 128 1408.0 128.0Q1435 128 1453.5 146.5Q1472 165 1472.0 192.0Q1472 219 1453.5 237.5Q1435 256 1408 256ZM1344 576Q1344 549 1362.5 530.5Q1381 512 1408.0 512.0Q1435 512 1453.5 530.5Q1472 549 1472.0 576.0Q1472 603 1453.5 621.5Q1435 640 1408.0 640.0Q1381 640 1362.5 621.5Q1344 603 1344 576ZM576 192Q576 165 594.5 146.5Q613 128 640.0 128.0Q667 128 685.5 146.5Q704 165 704.0 192.0Q704 219 685.5 237.5Q667 256 640.0 256.0Q613 256 594.5 237.5Q576 219 576 192Z" transform="scale(1, -1) translate(0, -1664)" fill="currentColor"/></svg>', SVG_TWOFRIENDS = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M572 1471Q538 1480 505.0 1471.0Q472 1462 448.0 1438.0Q424 1414 415 1380L332 1071Q323 1038 332.0 1005.0Q341 972 365.0 947.5Q389 923 423 914L732 832Q765 823 798.0 832.0Q831 841 855.0 865.0Q879 889 888 922L971 1231Q980 1265 971.0 1298.0Q962 1331 938.0 1355.0Q914 1379 881 1388ZM1408 832Q1495 832 1569 876Q1642 918 1684 990Q1728 1065 1728.0 1152.0Q1728 1239 1684 1313Q1642 1386 1569 1428Q1495 1472 1408.0 1472.0Q1321 1472 1246 1428Q1174 1386 1132 1313Q1088 1239 1088.0 1152.0Q1088 1065 1132 990Q1174 918 1246 876Q1321 832 1408 832ZM1228 -150Q1316 -160 1415 -160Q1586 -160 1718 -131Q1813 -111 1879 -78Q1917 -59 1933 -20Q1947 16 1938 53L1855 407Q1835 493 1780.5 560.5Q1726 628 1648.0 666.0Q1570 704 1481 704H1349Q1287 704 1229.0 684.5Q1171 665 1122 629Q1187 543 1212 436L1295 82Q1308 24 1293 -37Q1277 -104 1228 -150ZM1031 535Q978 614 894.0 659.0Q810 704 713 704H581Q493 704 415.0 666.0Q337 628 282.0 560.5Q227 493 207 407L125 53Q116 16 130 -20Q146 -59 184 -78Q250 -111 345 -131Q477 -160 647 -160Q772 -160 877 -145Q962 -132 1031 -110Q1076 -95 1111 -78Q1149 -59 1165 -20Q1179 16 1170 53L1087 407Q1071 477 1031 535Z" transform="scale(1, -1) translate(0, -1664)" fill="currentColor"/></svg>', SVG_INFO_FILLED = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1024 1536Q1206 1536 1373 1466Q1534 1398 1658.0 1274.0Q1782 1150 1850 989Q1920 822 1920.0 640.0Q1920 458 1850 291Q1782 130 1658.0 6.0Q1534 -118 1373 -186Q1206 -256 1024.0 -256.0Q842 -256 675 -186Q514 -118 390.0 6.0Q266 130 198 291Q128 458 128.0 640.0Q128 822 198 989Q266 1150 390.0 1274.0Q514 1398 675 1466Q842 1536 1024 1536ZM832 768H960V320H800V192H1248V320H1088V896H832ZM960 1024H1088V1152H960Z" transform="scale(1, -1) translate(0, -1664)" fill="currentColor"/></svg>', isAprilFools = /* @__PURE__ */ __name(() => {
+  init_purifyCfg();
+  var keepOpenInAppProfileItem = !1, cssClassNamePrefix = "rovalra-sendrobux", isAprilFools = /* @__PURE__ */ __name(() => {
     let d2 = /* @__PURE__ */ new Date();
     return d2.getMonth() === 3 && d2.getDate() <= 7;
   }, "isAprilFools");
@@ -111296,12 +111383,13 @@ Bundled Items:
       method: "GET"
     })).perTransferLimit;
     robuxBalanceContainer.classList.add(`${cssClassNamePrefix}-robux-container`), robuxBalanceContainer.append(createRobuxIcon({ size: "20px" }), " " + String((await getUserCurrency()).robux));
-    let userThumbnailData = await fetchUserThumbnailWithApiKey(userId), userFullData = await getUserFullData(userId), userCard = createUserCard({
+    let userThumbnailData = await fetchUserThumbnailWithApiKey(userId), userFullData = await getUserFullData(userId), userProfileData = (await getUserProfileData([userId])).profileDetails[0], userCard = createUserCard({
       displayName: userFullData.displayName || userFullData.name,
       username: userFullData.name,
       thumbData: userThumbnailData,
       hidePresence: !0,
       isVerified: userFullData.hasVerifiedBadge || !1,
+      isSubscribed: userProfileData.hasRobloxSubscription,
       userId,
       showUsername: !1
     });
@@ -111397,20 +111485,21 @@ Bundled Items:
       }
     });
     robuxBalanceContainer.classList.add(`${cssClassNamePrefix}-robux-container`), robuxBalanceContainer.append(createRobuxIcon({ size: "20px" }), " " + String((await getUserCurrency()).robux));
-    let userThumbnailData = await fetchUserThumbnailWithApiKey(userId), userFullData = await getUserFullData(userId), userCard = createUserCard({
+    let userThumbnailData = await fetchUserThumbnailWithApiKey(userId), userFullData = await getUserFullData(userId), userProfileData = (await getUserProfileData([userId])).profileDetails[0], userCard = createUserCard({
       displayName: userFullData.displayName,
       username: `@${userFullData.name}`,
       thumbData: userThumbnailData,
       hidePresence: !0,
       isVerified: userFullData.hasVerifiedBadge || !1,
+      isSubscribed: userProfileData.hasRobloxSubscription,
       userId,
       showUsername: !0
     }), avatarEl = userCard.querySelector(".avatar.avatar-card-fullbody");
     if (avatarEl && avatarEl.classList.add(`${cssClassNamePrefix}-avatar`), userCard.classList.add(`${cssClassNamePrefix}-profile`), profileContainer.classList.add(`${cssClassNamePrefix}-profile-container`), infoContainer.classList.add(`${cssClassNamePrefix}-profile-info`), initTransferRequest.userRelationshipDetail.areFriends) {
       let friendedDate = Date.now() - (/* @__PURE__ */ new Date(`${initTransferRequest.userRelationshipDetail.friendSinceDate.month}-${initTransferRequest.userRelationshipDetail.friendSinceDate.day}-${initTransferRequest.userRelationshipDetail.friendSinceDate.year}`)).valueOf(), days = Math.floor(friendedDate / 1e3 / 60 / 60 / 24), months = Math.floor(days / 30), years = Math.floor(months / 365), time2 = years != 0 ? years : months != 0 ? months : days, timeUnit = years != 0 ? "year" : months != 0 ? "month" : "day";
-      infoContainer.innerHTML += `<span>${SVG_CALANDAR}${await t2("plus.sendRobux.popup.step2.userInfoFriendTime", { time: -time2, range: timeUnit })}</span>`;
+      infoContainer.innerHTML += `<span><icon filled>calendar</icon>${await t2("plus.sendRobux.popup.step2.userInfoFriendTime", { time: -time2, range: timeUnit })}</span>`;
     }
-    infoContainer.innerHTML += `<span>${SVG_TWOFRIENDS}${await t2("plus.sendRobux.popup.step2.userInfoMutualFriends", { count: initTransferRequest.userRelationshipDetail.mutualFriendsCount })}</span><span>${SVG_INFO_FILLED}${await t2("plus.sendRobux.popup.step2.userInfoJoin", { year: initTransferRequest.userRelationshipDetail.userAccountSinceYear })}</span>`, profileContainer.append(userCard, infoContainer), robuxAmountContainer.classList.add(`${cssClassNamePrefix}-robuxamount-container`), robuxAmountContainer.append(createRobuxIcon({ size: "55px" }), " " + String(robuxAmount)), mutedTextNotice.classList.add(`${cssClassNamePrefix}-mutednotice`), mutedTextNotice.textContent = await t2("plus.sendRobux.popup.step2.mutedNotice"), error2 != null && error2 != "" && (mutedTextNotice.textContent = error2 == !0 ? await t2("plus.sendRobux.popup.step2.paramPassedError") : error2, mutedTextNotice.classList.add("error")), bodyContent.append(
+    infoContainer.innerHTML += `<span><icon filled>two-people</icon>${await t2("plus.sendRobux.popup.step2.userInfoMutualFriends", { count: initTransferRequest.userRelationshipDetail.mutualFriendsCount })}</span><span><icon filled>circle-i</icon>${await t2("plus.sendRobux.popup.step2.userInfoJoin", { year: initTransferRequest.userRelationshipDetail.userAccountSinceYear })}</span>`, profileContainer.append(userCard, infoContainer), robuxAmountContainer.classList.add(`${cssClassNamePrefix}-robuxamount-container`), robuxAmountContainer.append(createRobuxIcon({ size: "55px" }), " " + String(robuxAmount)), mutedTextNotice.classList.add(`${cssClassNamePrefix}-mutednotice`), mutedTextNotice.textContent = await t2("plus.sendRobux.popup.step2.mutedNotice"), error2 != null && error2 != "" && (mutedTextNotice.textContent = error2 == !0 ? await t2("plus.sendRobux.popup.step2.paramPassedError") : error2, mutedTextNotice.classList.add("error")), bodyContent.append(
       robuxBalanceContainer,
       profileContainer,
       robuxAmountContainer,
@@ -111717,14 +111806,14 @@ Bundled Items:
                         <span class="items-center gap-xxsmall inline-flex shrink-0 [--icon-size-small:1em]">
                             ${/* Verified Badge */
           profile.isVerified ? `<span class="relative flex items-center justify-center">
-                                <span role="presentation" class="grow-0 shrink-0 basis-auto icon icon-filled-verified-backplate size-[var(--icon-size-medium)] content-system-emphasis"></span>
-                                <span role="presentation" class="grow-0 shrink-0 basis-auto icon icon-filled-verified-check size-[var(--icon-size-medium)] absolute" style="color: white;"></span>
+                                <icon filled size="medium" role="presentation" class="grow-0 shrink-0 basis-auto content-system-emphasis">verified-backplate</icon>
+                                <icon filled size="medium" role="presentation" class="grow-0 shrink-0 basis-auto absolute" style="color: white;">verified-check</icon>
                             </span>` : ""}
                             ${/* Roblox Plus Badge */
-          profile.hasRobloxSubscription ? '<span role="presentation" class="grow-0 shrink-0 basis-auto icon icon-regular-roblox-plus size-[var(--icon-size-small)] content-system-contrast" aria-label="Roblox Plus subscriber"></span>' : ""}
+          profile.hasRobloxSubscription ? '<icon size="small" role="presentation" class="grow-0 shrink-0 basis-auto content-system-contrast" aria-label="Roblox Plus subscriber">roblox-plus</icon>' : ""}
                         </span>
                     </div>
-                `), settings2.displayNameGradientEnabled && applyDisplayNameGradientToElement(profileDiv.querySelector(".text-body-medium.content-emphasis"), profileUserSettings, { hoverHost: profileDiv }), settings2.avatarBorderEnabled && applyBorderToContainer(profileDiv.querySelector("div.radius-circle.overflow-hidden"), profileUserSettings.border, !0), settings2.profileBackgroundGradientEnabled && applyGradientForUserId(profile.userId, profileDiv.querySelector("div.radius-circle.overflow-hidden"), !0), profileDiv.onclick = async () => {
+                `, { ...CUSTOM_ADDED_TAGS }), settings2.displayNameGradientEnabled && applyDisplayNameGradientToElement(profileDiv.querySelector(".text-body-medium.content-emphasis"), profileUserSettings, { hoverHost: profileDiv }), settings2.avatarBorderEnabled && applyBorderToContainer(profileDiv.querySelector("div.radius-circle.overflow-hidden"), profileUserSettings.border, !0), settings2.profileBackgroundGradientEnabled && applyGradientForUserId(profile.userId, profileDiv.querySelector("div.radius-circle.overflow-hidden"), !0), profileDiv.onclick = async () => {
             if (document.querySelector(".fui-sheet-close-affordance-container > button").click(), profile.names.username == "Account Deleted") {
               let deletedAccountNoticeOverlay = createOverlay({
                 title: await t2("plus.sendRobux.buyRobux.deletedAccountTitle"),
@@ -159715,6 +159804,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_confirmationPrompt();
   init_spinner();
   init_buttons();
+  init_purifyCfg();
 
   // src/content/core/configs/otherContributions.ts
   var Contribution = class {
@@ -159786,6 +159876,19 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       contributors: [
         new Contribution(650766686, "donatorTierPage.newIndicators", "https://github.com/NotValra/RoValra/pull/123")
         // @auggeeo
+      ]
+    },
+    IconElement: {
+      label: "Icon Element + Builder, Material, and RoValra Icons",
+      contributors: [
+        new Contribution(650766686, "iconElement.addIcons", "https://github.com/NotValra/RoValra/pull/168"),
+        // @auggeeo
+        new Contribution(650766686, "iconElement.makeRoValraIcons", "https://github.com/NotValra/RoValra-Website/pull/4"),
+        // @auggeeo
+        new Contribution(650766686, "iconElement.addBuilderIconsWOFF", "https://github.com/NotValra/RoValra-Website/pull/5"),
+        // @auggeeo
+        new Contribution(1564574922, "iconElement.addElement", "https://github.com/NotValra/RoValra/pull/168")
+        // @BossBoss2021
       ]
     }
   };
@@ -160399,21 +160502,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return `<td class="rovalra-donator-perk-status-cell" aria-label="${hasPerk ? "Included" : "Not included"}" data-rovalra-donator-perk-included="${hasPerk ? "true" : "false"}"></td>`;
   }
   __name(getDonatorPerkStatusCell, "getDonatorPerkStatusCell");
-  function createDonatorPerkStatusIcon(isIncluded) {
-    let icon = document.createElement("span");
-    icon.className = "rovalra-donator-perk-status-icon " + (isIncluded ? "rovalra-donator-perk-status-icon-included" : "rovalra-donator-perk-status-icon-not-included"), icon.setAttribute("aria-hidden", "true");
-    let svg2 = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svg2.setAttribute("viewBox", "0 0 24 24"), svg2.setAttribute("focusable", "false");
-    let path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    return path.setAttribute(
-      "d",
-      isIncluded ? "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8z" : "M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2m5 11H7v-2h10z"
-    ), svg2.appendChild(path), icon.appendChild(svg2), icon;
-  }
-  __name(createDonatorPerkStatusIcon, "createDonatorPerkStatusIcon");
   function renderDonatorPerkStatusPills(container) {
     container.querySelectorAll("[data-rovalra-donator-perk-included]").forEach((cell) => {
-      let isIncluded = cell.dataset.rovalraDonatorPerkIncluded === "true", label = isIncluded ? "Included" : "Not included", symbol = createDonatorPerkStatusIcon(isIncluded);
+      let isIncluded = cell.dataset.rovalraDonatorPerkIncluded === "true", label = isIncluded ? "Included" : "Not included", symbol = Icon({
+        icon: isIncluded ? "circle-check" : "circle-minus",
+        filled: !0,
+        size: "medium",
+        classes: isIncluded ? "rovalra-donator-perk-status-icon-included" : "rovalra-donator-perk-status-icon-not-included"
+      });
       addTooltip(symbol, label, { position: "top" }), cell.replaceChildren(symbol);
     });
   }
@@ -161088,14 +161184,25 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
                                             <p>${ts2("settings.info.review")}</p>
                                         </div>
                                         <div style="margin-top: 10px; margin-bottom: 20px;">
-                                            <a href="https://discord.gg/GHd5cSKJRk" target="_blank" class="rovalra-discord-link">${ts2("settings.info.discord")}</a>
-                                            <a href="https://github.com/NotValra/RoValra" target="_blank" class="rovalra-github-link">
-                                                ${ts2("settings.info.github")}
-                                                <img data-rovalra-asset="rovalraIcon" src="${assets6.rovalraIcon}" style="width: 20px; height: 20px; margin-right: 0px; vertical-align: middle;" />
+                                            <a href="https://discord.gg/GHd5cSKJRk" target="_blank" class="rovalra-discord-link">
+                                                <icon>discord</icon> ${ts2("settings.info.discord")}
                                             </a>
-                                            <a href="https://www.roblox.com/my/account?rovalra=donator+perks" class="rovalra-roblox-link">${ts2("settings.info.support")}</a>
-                                            <a href="https://www.tiktok.com/@valrawantbanana" target="_blank" class="rovalra-tiktok-link">${ts2("settings.info.tiktok")}</a>
-                                            <a href="https://x.com/ValraSwag" target="_blank" class="rovalra-x-link">${ts2("settings.info.x")}</a>
+                                            <br />
+                                            <a href="https://github.com/NotValra/RoValra" target="_blank" class="rovalra-github-link">
+                                                <icon filled>github</icon> ${ts2("settings.info.github")}
+                                            </a>
+                                            <br />
+                                            <a href="https://www.roblox.com/my/account?rovalra=donator+perks" class="rovalra-donator-link">
+                                                <icon filled>heart</icon> ${ts2("settings.info.support")}
+                                            </a>
+                                            <br />
+                                            <a href="https://www.tiktok.com/@valrawantbanana" target="_blank" class="rovalra-tiktok-link">
+                                                <icon size="large">tik-tok</icon> ${ts2("settings.info.tiktok")}
+                                            </a>
+                                            <br />
+                                            <a href="https://x.com/ValraSwag" target="_blank" class="rovalra-x-link">
+                                                <icon>twitter</icon> ${ts2("settings.info.x")}
+                                            </a>
                                         </div>
                                         <div id="export-import-buttons-container" style="border-top: 1px solid var(--rovalra-secondary-text-color); opacity: 0.8; padding-top: 15px; display: flex; justify-content: flex-start; gap: 10px;"></div>
                                     </div>
@@ -161276,9 +161383,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     if (discordCard.className = "rovalra-account-standing-card", discordCard.style.cssText = "background-color: var(--rovalra-container-background-color); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 24px;", container.appendChild(discordCard), discordCard.innerHTML = purify.sanitize(`
         <div style="display: flex; align-items: flex-start; gap: 20px;">
             <div class="standing-status-icon-bg" style="width: 48px; height: 48px; border-radius: 50%; background-color: #23a55a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background-color 0.3s;">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-                    <path class="standing-status-icon-path" d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                </svg>
+                <icon size="large" style="transform: translate(1px, 1px)">check-large</icon>
             </div>
             <div style="flex: 1;">
                 <h3 class="standing-status-title" style="margin: 0 0 8px 0; font-size: 18px; color: var(--rovalra-main-text-color);">Your account is in good standing.</h3>
@@ -161302,7 +161407,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: var(--rovalra-secondary-text-color);">RoValra Safety Policy</div>
             Accounts found in violation of the <a href="https://www.rovalra.com/tou/" target="_blank" style="color: inherit; text-decoration: underline;">RoValra Terms of Service</a> or deemed a risk via third-party detections will have specific features disabled. Please note that while specific online capabilities may be restricted, the RoValra safety team will <strong>never</strong> disable the entire extension or fully local features.
         </div>
-    `), standingCache) {
+    `, { ...CUSTOM_ADDED_TAGS }), standingCache) {
       updateAccountStandingUI(
         discordCard,
         standingCache,
@@ -161326,14 +161431,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(renderAccountStanding, "renderAccountStanding");
   function updateAccountStandingUI(discordCard, data, levels) {
-    let activeModeration = getActiveModeration(data), currentStatus = activeModeration?.moderation_status ?? 0, isGoodStanding = currentStatus === 0, isTemporary = !!activeModeration?.moderation_expires_at, iconBg = discordCard.querySelector(".standing-status-icon-bg"), iconPath = discordCard.querySelector(".standing-status-icon-path"), statusTitle = discordCard.querySelector(".standing-status-title"), statusDesc = discordCard.querySelector(".standing-status-desc"), fill3 = discordCard.querySelector(".standing-status-fill"), dots = discordCard.querySelectorAll(".standing-status-dot"), labels = discordCard.querySelectorAll(".standing-status-label"), policyAnchor = discordCard.querySelector(".standing-policy-anchor");
-    if (discordCard.querySelectorAll(".standing-dynamic-section").forEach((section) => section.remove()), isGoodStanding && (iconBg.style.backgroundColor = "#23a55a", iconPath.setAttribute(
-      "d",
-      "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-    ), statusTitle.textContent = "Your account is in good standing.", statusDesc.textContent = "You do not have any active violations or restrictions from the RoValra safety team."), isGoodStanding || (iconBg.style.backgroundColor = "#f23f43", iconPath.setAttribute(
-      "d",
-      "M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"
-    ), statusTitle.textContent = isTemporary ? "Your account is temporarily limited." : "We found a violation on your account.", statusDesc.textContent = `Your account status has been set to: ${getModerationStatusLabel(currentStatus)}`), fill3.style.width = `${currentStatus / (levels.length - 1) * 100}%`, fill3.style.backgroundColor = levels[currentStatus]?.color || "#808080", dots.forEach((dot2, index) => {
+    let activeModeration = getActiveModeration(data), currentStatus = activeModeration?.moderation_status ?? 0, isGoodStanding = currentStatus === 0, isTemporary = !!activeModeration?.moderation_expires_at, iconBg = discordCard.querySelector(".standing-status-icon-bg"), iconEl = iconBg.querySelector("icon"), statusTitle = discordCard.querySelector(".standing-status-title"), statusDesc = discordCard.querySelector(".standing-status-desc"), fill3 = discordCard.querySelector(".standing-status-fill"), dots = discordCard.querySelectorAll(".standing-status-dot"), labels = discordCard.querySelectorAll(".standing-status-label"), policyAnchor = discordCard.querySelector(".standing-policy-anchor");
+    if (discordCard.querySelectorAll(".standing-dynamic-section").forEach((section) => section.remove()), isGoodStanding && (iconBg.style.backgroundColor = "#23a55a", ChangeIcon(iconEl, { icon: "check-large" }), statusTitle.textContent = "Your account is in good standing.", statusDesc.textContent = "You do not have any active violations or restrictions from the RoValra safety team."), isGoodStanding || (iconBg.style.backgroundColor = "#f23f43", ChangeIcon(iconEl, { icon: "x" }), statusTitle.textContent = isTemporary ? "Your account is temporarily limited." : "We found a violation on your account.", statusDesc.textContent = `Your account status has been set to: ${getModerationStatusLabel(currentStatus)}`), fill3.style.width = `${currentStatus / (levels.length - 1) * 100}%`, fill3.style.backgroundColor = levels[currentStatus]?.color || "#808080", dots.forEach((dot2, index) => {
       dot2.style.background = index <= currentStatus ? levels[index].color : "#4f545c";
     }), labels.forEach((label, index) => {
       let isCurrent = index === currentStatus;
@@ -166925,8 +167024,16 @@ ${locale4.suggestOnDiscord}`), subtitle;
 Feature Load Time: ${(endTime - featureStartTime).toFixed(2)}ms
 Total Load Time: ${(endTime - startTime).toFixed(2)}ms`
       );
-    }, "startFeatures");
-    document.body ? startFeatures().catch(
+    }, "startFeatures"), builderIconsReg = document.createElement("link");
+    builderIconsReg.rel = "preload", builderIconsReg.href = "https://www.rovalra.com/static/fonts/BuilderIcons-Regular.woff2", builderIconsReg.as = "font", builderIconsReg.type = "font/woff2", builderIconsReg.crossOrigin = "anonymous";
+    let builderIconsFill = document.createElement("link");
+    builderIconsFill.rel = "preload", builderIconsFill.href = "https://www.rovalra.com/static/fonts/BuilderIcons-Filled.woff2", builderIconsFill.as = "font", builderIconsFill.type = "font/woff2", builderIconsFill.crossOrigin = "anonymous";
+    let rovalraIconsWOFF = document.createElement("link");
+    rovalraIconsWOFF.rel = "preload", rovalraIconsWOFF.href = "https://www.rovalra.com/static/fonts/RoValraIcons.woff2", rovalraIconsWOFF.as = "font", rovalraIconsWOFF.type = "font/woff2", rovalraIconsWOFF.crossOrigin = "anonymous";
+    let googleIcons = document.createElement("link");
+    googleIcons.rel = "preload", googleIcons.href = "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons&display=swap", googleIcons.rel = "stylesheet", googleIcons.crossOrigin = "anonymous", document.head ? document.head.append(googleIcons, rovalraIconsWOFF, builderIconsReg, builderIconsFill) : new MutationObserver((_2, obs) => {
+      document.head && (obs.disconnect(), document.head.append(googleIcons, rovalraIconsWOFF, builderIconsReg, builderIconsFill));
+    }).observe(document.documentElement, { childList: !0 }), document.body ? startFeatures().catch(
       (error2) => console.error("RoValra: Feature initialization failed", error2)
     ) : new MutationObserver((_2, obs) => {
       document.body && (obs.disconnect(), startFeatures().catch(
