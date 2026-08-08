@@ -845,8 +845,9 @@
         groupFiltersEnabled: {
           label: "Community Filters",
           description: [
-            "Adds filters to the community section on profiles allowing you to sort by A-Z, Z-A, Newest and Oldest."
+            "Adds filters to the community section on profiles allowing you to sort by A-Z, Z-A, Newest and Oldest, also allows you to view groups in a row format or grid format."
           ],
+          contributors: ["447170745", "3602693727"],
           type: "checkbox",
           default: !0
         },
@@ -1219,6 +1220,17 @@
           type: "checkbox",
           default: !1,
           contributors: ["476449201"]
+        },
+        friendUsernamesEnabled: {
+          label: "Show Usernames On Friend Cards",
+          description: [
+            "Shows a friend's @username below their display name on the Home page.",
+            "In 'Servers My Friends Are In' it shows friends as 'DisplayName (@Username)', and also shows the username in a tooltip when hovering their avatar.",
+            "Other extensions may overwrite this feature."
+          ],
+          type: "checkbox",
+          default: !1,
+          contributors: ["760897332"]
         },
         homeLayoutEnabled: {
           label: "Home Layout",

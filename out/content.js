@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init143 = {
+          let init144 = {
             ...params,
             headers
           };
-          return this.onSite && (init143.credentials = "include"), (this._fetchFn ?? fetch)(url, init143);
+          return this.onSite && (init144.credentials = "include"), (this._fetchFn ?? fetch)(url, init144);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init143 } = response2;
-              resolve(new Response(body2, init143));
+              let { body: body2, ...init144 } = response2;
+              resolve(new Response(body2, init144));
             }
           );
         });
@@ -3024,8 +3024,9 @@ Never used outside your local device.`;
             groupFiltersEnabled: {
               label: "Community Filters",
               description: [
-                "Adds filters to the community section on profiles allowing you to sort by A-Z, Z-A, Newest and Oldest."
+                "Adds filters to the community section on profiles allowing you to sort by A-Z, Z-A, Newest and Oldest, also allows you to view groups in a row format or grid format."
               ],
+              contributors: ["447170745", "3602693727"],
               type: "checkbox",
               default: !0
             },
@@ -3398,6 +3399,17 @@ Never used outside your local device.`;
               type: "checkbox",
               default: !1,
               contributors: ["476449201"]
+            },
+            friendUsernamesEnabled: {
+              label: "Show Usernames On Friend Cards",
+              description: [
+                "Shows a friend's @username below their display name on the Home page.",
+                "In 'Servers My Friends Are In' it shows friends as 'DisplayName (@Username)', and also shows the username in a tooltip when hovering their avatar.",
+                "Other extensions may overwrite this feature."
+              ],
+              type: "checkbox",
+              default: !1,
+              contributors: ["760897332"]
             },
             homeLayoutEnabled: {
               label: "Home Layout",
@@ -13044,8 +13056,10 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         // radwl_radu
         "2333236354",
         // AandA510
-        "170038374"
+        "170038374",
         // syra (concept artist)
+        "760897332"
+        // ceyexm
       ], TESTER_USER_IDS = [
         "1163412141"
         //Tino
@@ -13588,35 +13602,32 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
   function setPixelStyle(element, name2, value2) {
     element.style[name2] = `${value2}px`;
   }
-  function isInlineContainer(container) {
-    let tagName = container.tagName;
-    return tagName === "SPAN" || tagName === "A";
+  function getHomeHeaderAvatarLink(container) {
+    return container.closest(
+      "#roseal-home-header a.user-avatar-container.avatar.avatar-headshot"
+    );
   }
-  function isBorderManagedChild(child) {
-    return child.nodeType === Node.ELEMENT_NODE && child.matches(`${BORDER_CHILD_SELECTOR}, ${OVERLAY_CHILD_SELECTOR}`);
+  function getBorderHost(container) {
+    return getHomeHeaderAvatarLink(container) || container;
+  }
+  function getBorderElements(container) {
+    return getBorderHost(container).querySelectorAll(
+      ":scope > .rovalra-avatar-border"
+    );
   }
   function getOrCreateClip(container) {
-    let clip = container.querySelector(":scope > .rovalra-avatar-border-clip");
-    return clip || (clip = document.createElement(
-      isInlineContainer(container) ? "span" : "div"
-    ), clip.className = "rovalra-avatar-border-clip", container.prepend(clip), clip);
+    return container.querySelector(":scope > .rovalra-avatar-border-clip");
   }
   function syncBorderClipChildren(container) {
     let clip = getOrCreateClip(container);
-    for (let child of [...container.childNodes])
-      child === clip || isBorderManagedChild(child) || clip.appendChild(child);
     return syncBorderMetrics(container), clip;
   }
   function syncBorderMetrics(container) {
     let clip = container.querySelector(
       ":scope > .rovalra-avatar-border-clip"
-    );
-    if (!clip) return;
-    let containerBox = getLocalLayoutBox(container), clipBox = getLayoutBox(clip);
+    ), host = getBorderHost(container), containerBox = getLocalLayoutBox(host === container ? container : host), clipBox = clip ? getLayoutBox(clip) : host === container ? containerBox : getLayoutBox(container);
     if (!(!containerBox.width || !containerBox.height) && !(!clipBox.width || !clipBox.height))
-      for (let border of container.querySelectorAll(
-        ":scope > .rovalra-avatar-border"
-      ))
+      for (let border of getBorderElements(container))
         syncBorderImageMetrics(containerBox, clipBox, border);
   }
   function ensureStackingLayer(element, zIndex) {
@@ -13635,9 +13646,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     ), addOverlays(container.parentElement), overlays;
   }
   function syncOverlayStacking(container) {
-    for (let border of container.querySelectorAll(
-      ":scope > .rovalra-avatar-border"
-    ))
+    for (let border of getBorderElements(container))
       border.style.zIndex = BORDER_Z_INDEX;
     for (let overlay of getRelatedOverlayElements(container))
       ensureStackingLayer(overlay, OVERLAY_Z_INDEX);
@@ -13707,30 +13716,26 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     };
   }
   function ensureBorderContainerLayout(container) {
-    window.getComputedStyle(container).display === "inline" && (container.style.display = "inline-block"), container.style.position = "relative", container.style.overflow = "visible";
+    window.getComputedStyle(container).display === "inline" && (container.style.display = "inline-block"), container.style.position = "relative", container.style.overflow = getHomeHeaderAvatarLink(container) ? "hidden" : "visible";
+    let host = getHomeHeaderAvatarLink(container);
+    host && (host.style.position = "relative", host.style.overflow = "visible");
   }
   function removeBorderFromContainer(container) {
     if (!container) return;
     delete container.dataset.rovalraBorderLoading, delete container.dataset.rovalraIntendedBorder;
-    for (let border of container.querySelectorAll(
-      ":scope > .rovalra-avatar-border"
-    ))
+    for (let border of getBorderElements(container))
       border.remove();
     let clip = container.querySelector(
       ":scope > .rovalra-avatar-border-clip"
     );
-    if (clip) {
-      for (; clip.firstChild; )
-        container.insertBefore(clip.firstChild, clip);
-      clip.remove();
-    }
+    clip && clip.replaceWith(...Array.from(clip.childNodes));
   }
   function ensureBorderStructure(container) {
     ensureBorderContainerLayout(container);
     let clip = syncBorderClipChildren(container);
     return syncOverlayStacking(container), container.dataset.rovalraBorderClipObserver || (container.dataset.rovalraBorderClipObserver = "true", observeChildren(container, () => {
       syncBorderClipChildren(container), syncOverlayStacking(container);
-    }), observeResize(container, () => syncBorderMetrics(container)), observeResize(clip, () => syncBorderMetrics(container))), clip;
+    }), observeResize(container, () => syncBorderMetrics(container)), clip && observeResize(clip, () => syncBorderMetrics(container))), clip;
   }
   async function applyBorderToContainer(container, borderUrl, alwaysPlay = !1) {
     if (!borderUrl) return;
@@ -13752,9 +13757,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         }
         if (isConfigured) break;
       }
-    let existingBorders = [
-      ...container.querySelectorAll(":scope > .rovalra-avatar-border")
-    ];
+    let existingBorders = [...getBorderElements(container)];
     if (existingBorders.length > 0 && container.dataset.rovalraIntendedBorder !== borderUrl)
       removeBorderFromContainer(container);
     else if (existingBorders.length > 0) {
@@ -13772,29 +13775,21 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     container.dataset.rovalraBorderLoading = "true", container.dataset.rovalraIntendedBorder = borderUrl;
     let img = document.createElement("img");
     img.className = "rovalra-avatar-border", img.crossOrigin = "anonymous", img.onload = async () => {
-      if (delete container.dataset.rovalraBorderLoading, container.querySelector(".rovalra-avatar-border") || container.dataset.rovalraIntendedBorder !== borderUrl)
-        return;
-      img.decode && await img.decode().catch(() => {
-      }), await getBorderContentBounds(img);
-      let overlays = [];
-      for (let child of container.children)
-        child.matches(OVERLAY_CHILD_SELECTOR) && overlays.push(child);
-      ensureBorderStructure(container);
-      for (let overlay of overlays)
-        container.appendChild(overlay);
-      if (syncOverlayStacking(container), alwaysPlay || !animatedLink || animatedLink === staticLink)
-        container.appendChild(img), syncBorderMetrics(container), syncOverlayStacking(container);
-      else {
-        let animImg = document.createElement("img");
-        animImg.className = "rovalra-avatar-border", animImg.crossOrigin = "anonymous", animImg.style.display = "none", animImg.onload = async () => {
-          animImg.decode && await animImg.decode().catch(() => {
-          }), await getBorderContentBounds(animImg), syncBorderMetrics(container);
-        }, container.appendChild(img), container.appendChild(animImg), syncBorderMetrics(container), syncOverlayStacking(container), container.addEventListener("mouseenter", () => {
-          img.style.display = "none", animImg.style.display = "block", startAnimatedBorder(animImg, animatedLink), syncOverlayStacking(container);
-        }), container.addEventListener("mouseleave", () => {
-          img.style.display = "block", animImg.style.display = "none", stopAnimatedBorder(animImg), syncOverlayStacking(container);
-        });
-      }
+      if (delete container.dataset.rovalraBorderLoading, !(container.querySelector(".rovalra-avatar-border") || container.dataset.rovalraIntendedBorder !== borderUrl))
+        if (img.decode && await img.decode().catch(() => {
+        }), await getBorderContentBounds(img), ensureBorderStructure(container), syncOverlayStacking(container), alwaysPlay || !animatedLink || animatedLink === staticLink)
+          getBorderHost(container).appendChild(img), syncBorderMetrics(container), syncOverlayStacking(container);
+        else {
+          let animImg = document.createElement("img");
+          animImg.className = "rovalra-avatar-border", animImg.crossOrigin = "anonymous", animImg.style.display = "none", animImg.onload = async () => {
+            animImg.decode && await animImg.decode().catch(() => {
+            }), await getBorderContentBounds(animImg), syncBorderMetrics(container);
+          }, getBorderHost(container).appendChild(img), getBorderHost(container).appendChild(animImg), syncBorderMetrics(container), syncOverlayStacking(container), container.addEventListener("mouseenter", () => {
+            img.style.display = "none", animImg.style.display = "block", startAnimatedBorder(animImg, animatedLink), syncOverlayStacking(container);
+          }), container.addEventListener("mouseleave", () => {
+            img.style.display = "block", animImg.style.display = "none", stopAnimatedBorder(animImg), syncOverlayStacking(container);
+          });
+        }
     }, img.onerror = () => {
       delete container.dataset.rovalraBorderLoading;
     }, img.src = alwaysPlay && animatedLink ? animatedLink : staticLink;
@@ -13853,7 +13848,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       console.error("RoValra: Avatar border init failed", error2);
     }
   }
-  var BORDER_CHILD_SELECTOR, OVERLAY_CHILD_SELECTOR, BORDER_SCALE, BORDER_Z_INDEX, OVERLAY_Z_INDEX, MAX_ALPHA_CENTER_CORRECTION, borderContentBoundsCache, init_avatarBorder = __esm({
+  var OVERLAY_CHILD_SELECTOR, BORDER_SCALE, BORDER_Z_INDEX, OVERLAY_Z_INDEX, MAX_ALPHA_CENTER_CORRECTION, borderContentBoundsCache, init_avatarBorder = __esm({
     "src/content/features/profile/avatarBorder.js"() {
       init_observer();
       init_idExtractor();
@@ -13861,10 +13856,11 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       init_settingHandler();
       init_borders();
       init_userCardElements();
-      BORDER_CHILD_SELECTOR = ".rovalra-avatar-border, .rovalra-avatar-border-clip", OVERLAY_CHILD_SELECTOR = ".rovalra-status-bubble-wrapper, .avatar-status, .avatar-card-label, .icon-label", BORDER_SCALE = 1.24, BORDER_Z_INDEX = "2", OVERLAY_Z_INDEX = "4", MAX_ALPHA_CENTER_CORRECTION = 0.04, borderContentBoundsCache = /* @__PURE__ */ new Map();
+      OVERLAY_CHILD_SELECTOR = ".rovalra-status-bubble-wrapper, .avatar-status, .avatar-card-label, .icon-label", BORDER_SCALE = 1.24, BORDER_Z_INDEX = "2", OVERLAY_Z_INDEX = "4", MAX_ALPHA_CENTER_CORRECTION = 0.04, borderContentBoundsCache = /* @__PURE__ */ new Map();
       __name(setPixelStyle, "setPixelStyle");
-      __name(isInlineContainer, "isInlineContainer");
-      __name(isBorderManagedChild, "isBorderManagedChild");
+      __name(getHomeHeaderAvatarLink, "getHomeHeaderAvatarLink");
+      __name(getBorderHost, "getBorderHost");
+      __name(getBorderElements, "getBorderElements");
       __name(getOrCreateClip, "getOrCreateClip");
       __name(syncBorderClipChildren, "syncBorderClipChildren");
       __name(syncBorderMetrics, "syncBorderMetrics");
@@ -58441,7 +58437,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init143 = /* @__PURE__ */ __name(() => {
+      let init144 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58467,7 +58463,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init143() : window.addEventListener("load", init143, { once: !0 });
+      document.readyState === "complete" ? init144() : window.addEventListener("load", init144, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -59924,16 +59920,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init143) {
-    return init143?.body !== void 0 ? init143.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init144) {
+    return init144?.body !== void 0 ? init144.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init143 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init143.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init143.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init144 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init144.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init144.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -59941,8 +59937,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init143),
-      credentials: init143.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init144),
+      credentials: init144.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -59951,9 +59947,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init143 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init143.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init143) : await originalFetch(input, init143);
+    window.fetch = async (input, init144 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init144.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init144) : await originalFetch(input, init144);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62109,7 +62105,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init143 = /* @__PURE__ */ __name(() => {
+    let init144 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62126,7 +62122,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init143() : window.addEventListener("load", init143, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init144() : window.addEventListener("load", init144, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -85374,10 +85370,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init143() {
+    function init144() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init143, "init");
+    __name(init144, "init");
     function getNextRenderItem(object, geometry, material, groupOrder, z2, group) {
       let renderItem = renderItems2[renderItemsIndex];
       return renderItem === void 0 ? (renderItem = {
@@ -85417,7 +85413,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init143,
+      init: init144,
       push,
       unshift,
       finish,
@@ -85662,10 +85658,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [];
-    function init143(camera) {
+    function init144(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0;
     }
-    __name(init143, "init");
+    __name(init144, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -85690,7 +85686,7 @@ Program Info Log: ` + programLog + `
       transmissionRenderTarget: {}
     };
     return {
-      init: init143,
+      init: init144,
       state: state4,
       setupLights,
       setupLightsView,
@@ -110290,6 +110286,140 @@ Bundled Items:
   }
   __name(init43, "init");
 
+  // src/content/features/sitewide/friendUsernames.js
+  init_idExtractor();
+  init_observer();
+  init_getSettings();
+  init_users();
+  init_tooltip();
+  init_i18n();
+  init_userCardElements();
+  var USERNAME_WRAPPER_CLASS = "rovalra-friend-username-wrapper", USERNAME_LABEL_CLASS = "rovalra-friend-username-label", USERNAME_INLINE_CLASS = "rovalra-friend-username-inline", COMPATIBLE_FRIEND_USERNAME_SELECTOR = ".roseal-friends-carousel-container, .btr-friends-carousel-username", SERVER_FRIEND_AVATAR_SELECTOR = '.rbx-friends-game-server-item .player-thumbnails-container .avatar-card-link[href*="/users/"]', SERVER_FRIEND_NAME_SELECTOR = '.rbx-friends-game-server-item a.text-name[href*="/users/"]', cardUnsubscribe = null, serverAvatarObserverStarted = !1, serverNameObserverStarted = !1, compatibleFriendUsernameDetected = !1;
+  function isCompatibleFriendUsernamePresent() {
+    return compatibleFriendUsernameDetected || document.querySelector(COMPATIBLE_FRIEND_USERNAME_SELECTOR) !== null;
+  }
+  __name(isCompatibleFriendUsernamePresent, "isCompatibleFriendUsernamePresent");
+  function setupCompatibleFriendUsernameDetection() {
+    observeElement(
+      COMPATIBLE_FRIEND_USERNAME_SELECTOR,
+      () => {
+        compatibleFriendUsernameDetected = !0;
+      },
+      { multiple: !0 }
+    );
+  }
+  __name(setupCompatibleFriendUsernameDetection, "setupCompatibleFriendUsernameDetection");
+  function isOnFriendsListPage() {
+    return window.location.hash.includes("#!/friends") || window.location.pathname.includes("/friends");
+  }
+  __name(isOnFriendsListPage, "isOnFriendsListPage");
+  function getNameRow(displayNameEl, context) {
+    let parent = displayNameEl.parentElement;
+    return !parent || parent.classList.contains(USERNAME_WRAPPER_CLASS) || context.link && parent.contains(context.link) || context.avatar && parent.contains(context.avatar) || parent.textContent.trim() !== displayNameEl.textContent.trim() ? displayNameEl : parent;
+  }
+  __name(getNameRow, "getNameRow");
+  function ensureUsernameWrapper(nameRow) {
+    let parent = nameRow.parentElement;
+    if (parent?.classList.contains(USERNAME_WRAPPER_CLASS))
+      return parent;
+    let wrapper = document.createElement("span");
+    return wrapper.className = USERNAME_WRAPPER_CLASS, nameRow.replaceWith(wrapper), wrapper.appendChild(nameRow), wrapper;
+  }
+  __name(ensureUsernameWrapper, "ensureUsernameWrapper");
+  async function applyCardUsernameLabel(tile, context) {
+    let { userId, displayName } = context;
+    if (!userId || !displayName || isOnFriendsListPage() || isCompatibleFriendUsernamePresent() || tile.querySelector(".user-card-subname")) return;
+    let applyKey = `${userId}|${displayName.textContent || ""}`;
+    if (tile.dataset.rovalraFriendUsernameApplied !== applyKey)
+      try {
+        let username = await getUserName(userId);
+        if (!username) return;
+        let currentUserId = getUserCardContext(tile).userId;
+        if (String(currentUserId) !== String(userId) || isCompatibleFriendUsernamePresent()) return;
+        tile.dataset.rovalraFriendUsernameApplied = applyKey;
+        let wrapper = ensureUsernameWrapper(getNameRow(displayName, context)), label = wrapper.querySelector(`:scope > .${USERNAME_LABEL_CLASS}`);
+        label || (label = document.createElement("span"), label.className = USERNAME_LABEL_CLASS, wrapper.appendChild(label)), label.textContent = `@${username}`, label.setAttribute(
+          "aria-label",
+          ts2("friendUsernames.ariaLabel", { username })
+        );
+      } catch (error2) {
+        console.warn(
+          "RoValra: Failed to render friend username label",
+          userId,
+          error2
+        );
+      }
+  }
+  __name(applyCardUsernameLabel, "applyCardUsernameLabel");
+  function setupCardUsernames() {
+    cardUnsubscribe || (setupCompatibleFriendUsernameDetection(), observeUserCardElements(), cardUnsubscribe = onUserCardElement(applyCardUsernameLabel));
+  }
+  __name(setupCardUsernames, "setupCardUsernames");
+  function formatNameWithUsername(userData) {
+    return userData.displayName && userData.displayName !== userData.name ? ts2("friendUsernames.nameWithUsername", {
+      displayName: userData.displayName,
+      username: userData.name
+    }) : `@${userData.name}`;
+  }
+  __name(formatNameWithUsername, "formatNameWithUsername");
+  function applyServerFriendName(link, userId) {
+    let applyKey = `${userId}|${link.textContent.trim()}`;
+    link.dataset.rovalraFriendUsernameName !== applyKey && (link.dataset.rovalraFriendUsernameName = applyKey, getUserFullData(userId).then((userData) => {
+      if (!userData?.name || !link.isConnected || getUserIdFromUrl(link.href) !== userId) return;
+      let existing = link.querySelector(`.${USERNAME_INLINE_CLASS}`);
+      if (userData.displayName && userData.displayName !== userData.name) {
+        let usernameEl = existing || document.createElement("span");
+        usernameEl.className = USERNAME_INLINE_CLASS, usernameEl.textContent = ` (@${userData.name})`, existing || link.appendChild(usernameEl);
+      } else
+        existing?.remove();
+      link.dataset.rovalraFriendUsernameName = `${userId}|${link.textContent.trim()}`, link.setAttribute("aria-label", formatNameWithUsername(userData));
+    }).catch((error2) => {
+      delete link.dataset.rovalraFriendUsernameName, console.warn(
+        "RoValra: Failed to render server friend username",
+        userId,
+        error2
+      );
+    }));
+  }
+  __name(applyServerFriendName, "applyServerFriendName");
+  function setupServerFriendNames() {
+    serverNameObserverStarted || (serverNameObserverStarted = !0, observeElement(
+      SERVER_FRIEND_NAME_SELECTOR,
+      (link) => {
+        let userId = getUserIdFromUrl(link.href);
+        userId && applyServerFriendName(link, userId);
+      },
+      { multiple: !0 }
+    ));
+  }
+  __name(setupServerFriendNames, "setupServerFriendNames");
+  function setupServerFriendTooltips() {
+    serverAvatarObserverStarted || (serverAvatarObserverStarted = !0, observeElement(
+      SERVER_FRIEND_AVATAR_SELECTOR,
+      (link) => {
+        if (link.dataset.rovalraFriendUsernameTooltip) return;
+        let userId = getUserIdFromUrl(link.href);
+        userId && (link.dataset.rovalraFriendUsernameTooltip = "true", link.removeAttribute("title"), addTooltip(
+          link,
+          () => link.dataset.rovalraFriendUsernameText || "",
+          {
+            position: "top"
+          }
+        ), getUserFullData(userId).then((userData) => {
+          if (!userData?.name || !link.isConnected) return;
+          let text2 = formatNameWithUsername(userData);
+          link.dataset.rovalraFriendUsernameText = text2, link.setAttribute("aria-label", text2);
+        }));
+      },
+      { multiple: !0 }
+    ));
+  }
+  __name(setupServerFriendTooltips, "setupServerFriendTooltips");
+  async function init44() {
+    await settings.friendUsernamesEnabled && (setupCardUsernames(), setupServerFriendTooltips(), setupServerFriendNames());
+  }
+  __name(init44, "init");
+
   // src/content/features/sitewide/wideTilePlayerCounts.js
   init_games();
   init_observer();
@@ -110708,10 +110838,10 @@ Bundled Items:
     });
   }
   __name(startObservers, "startObservers");
-  async function init44() {
+  async function init45() {
     initialized6 || (initialized6 = !0, await settings.wideGameTileStatsEnabled && (startObservers(), debouncedScan()));
   }
-  __name(init44, "init");
+  __name(init45, "init");
 
   // src/content/features/paymentmethods/bonusItems.js
   init_observer();
@@ -110888,7 +111018,7 @@ Bundled Items:
     }
   }
   __name(addBonusItemDropdown, "addBonusItemDropdown");
-  async function init45() {
+  async function init46() {
     if (window.location.pathname.toLowerCase().includes("/upgrades/paymentmethods")) {
       if (!await settings.bonusItemEnabled) {
         paymentMethodsObserver?.disconnect(), paymentMethodsObserver = null, activeDropdown?.destroy(), activeDropdown = null, activeCard?.remove(), activeCard = null, activePurchaseSummary = null;
@@ -110918,7 +111048,7 @@ Bundled Items:
       );
     }
   }
-  __name(init45, "init");
+  __name(init46, "init");
 
   // src/content/features/sitewide/backgroundImage.js
   init_getSettings();
@@ -110999,7 +111129,7 @@ Bundled Items:
   }
   __name(applyStoredBackgroundImage, "applyStoredBackgroundImage");
   var initialized7 = !1;
-  function init46() {
+  function init47() {
     initialized7 || (initialized7 = !0, chrome.storage.onChanged.addListener((changes, areaName) => {
       areaName === "local" && (changes[BACKGROUND_IMAGE_SETTING] || changes[BACKGROUND_IMAGE_ENABLED_SETTING]) && applyStoredBackgroundImage(changes).catch(
         (error2) => console.error("RoValra: Failed to refresh the custom background.", error2)
@@ -111008,7 +111138,7 @@ Bundled Items:
       (error2) => console.error("RoValra: Failed to apply the custom background.", error2)
     ));
   }
-  __name(init46, "init");
+  __name(init47, "init");
 
   // src/content/features/sitewide/freeRobloxPlusThemes.js
   init_observer();
@@ -111108,7 +111238,7 @@ Bundled Items:
     );
   }
   __name(publishInitialSettingState, "publishInitialSettingState");
-  function init47() {
+  function init48() {
     initialized8 || (initialized8 = !0, observeElement(THEME_SECTION_SELECTOR, observeThemeSection, {
       onRemove: /* @__PURE__ */ __name(() => {
         themeSectionObserver?.disconnect(), themeSectionObserver = null;
@@ -111126,7 +111256,7 @@ Bundled Items:
       event.detail?.name === SETTING_NAME && setEnabled(event.detail.value);
     }));
   }
-  __name(init47, "init");
+  __name(init48, "init");
 
   // src/content/features/plus/sendRobux.js
   init_api();
@@ -111311,7 +111441,7 @@ Bundled Items:
     );
   }
   __name(observeProfileGradient, "observeProfileGradient");
-  async function init48() {
+  async function init49() {
     try {
       let settings2 = await loadSettings();
       if (!settings2.profileBackgroundGradientEnabled) {
@@ -111338,7 +111468,7 @@ Bundled Items:
       );
     }
   }
-  __name(init48, "init");
+  __name(init49, "init");
 
   // src/content/features/plus/sendRobux.js
   init_purifyCfg();
@@ -113049,7 +113179,7 @@ Bundled Items:
   __name(createAvatarFilterUI, "createAvatarFilterUI");
 
   // src/content/features/avatar/filters.js
-  function init49() {
+  function init50() {
     window.location.pathname.includes("/my/avatar") && chrome.storage.local.get({
       avatarFiltersEnabled: !1,
       searchbarEnabled: !1
@@ -113408,11 +113538,11 @@ Bundled Items:
       })();
     });
   }
-  __name(init49, "init");
+  __name(init50, "init");
 
   // src/content/features/avatar/R6Warning.js
   init_observer();
-  function init50() {
+  function init51() {
     function injectLayoutStyles() {
       if (document.getElementById("rovalra-avatar-layout-styles")) return;
       let link = document.createElement("link");
@@ -113477,7 +113607,7 @@ Bundled Items:
       }), observeElement(modalSelector, handleModalFound, { multiple: !0 });
     });
   }
-  __name(init50, "init");
+  __name(init51, "init");
 
   // src/content/features/avatar/avatarRotator.js
   init_observer();
@@ -113485,7 +113615,7 @@ Bundled Items:
   init_api();
   init_thumbnails();
   init_input();
-  function init51() {
+  function init52() {
     window.location.pathname.includes("/my/avatar") && chrome.storage.local.get("avatarRotatorEnabled", (data) => {
       data.avatarRotatorEnabled && observeElement(".breadcrumb-container", (container) => {
         if (!window.location.pathname.includes("/my/avatar") || container.querySelector(".rovalra-avatar-rotator-btn")) return;
@@ -113615,7 +113745,7 @@ Bundled Items:
       }, { multiple: !0 });
     });
   }
-  __name(init51, "init");
+  __name(init52, "init");
 
   // src/content/core/utils/itemCategories.js
   init_api();
@@ -113679,7 +113809,7 @@ Bundled Items:
   __name(getIdsBySubcategory, "getIdsBySubcategory");
 
   // src/content/features/avatar/multiEquip.js
-  function init52() {
+  function init53() {
     let updateState = /* @__PURE__ */ __name(async (enabled2) => {
       if (document.dispatchEvent(new CustomEvent("rovalra-multi-equip", { detail: { enabled: enabled2 } })), enabled2)
         try {
@@ -113705,7 +113835,7 @@ Bundled Items:
       namespace === "local" && changes.multiEquipEnabled && updateState(changes.multiEquipEnabled.newValue === !0);
     });
   }
-  __name(init52, "init");
+  __name(init53, "init");
 
   // src/content/features/catalog/itemsales.js
   init_api();
@@ -113713,7 +113843,7 @@ Bundled Items:
   init_tooltip();
   init_purify_es();
   var cachedItemsData = null, currentActiveItemId = null;
-  function init53() {
+  function init54() {
     chrome.storage.local.get({ itemSalesEnabled: !1 }, async (settings2) => {
       if (!settings2.itemSalesEnabled) return;
       let url = window.location.href, regex = /https:\/\/www\.roblox\.com\/(?:[a-z]{2}\/)?(?:catalog|bundles)\/(\d+)/, match = url.match(regex);
@@ -113758,7 +113888,7 @@ Bundled Items:
       });
     });
   }
-  __name(init53, "init");
+  __name(init54, "init");
 
   // src/content/index.js
   init_method();
@@ -113833,10 +113963,7 @@ Bundled Items:
   }
   __name(fetchAssetDetails, "fetchAssetDetails");
   async function mountDependencyScanner(favButton) {
-    if (favButton.dataset.rovalraScanning === "true" || favButton.nextSibling?.id === "rovalra-dep-container" || document.getElementById("rovalra-dep-container"))
-      return;
-    let parent = favButton.parentNode;
-    if (!parent) return;
+    if (favButton.dataset.rovalraScanning === "true" || document.getElementById("rovalra-dep-container")) return;
     favButton.dataset.rovalraScanning = "true";
     let mainAssetId = Number.parseInt(getPlaceIdFromUrl(), 10);
     if (Number.isFinite(mainAssetId))
@@ -113846,8 +113973,19 @@ Bundled Items:
           return;
         let deps = findDependencies(assetData.root);
         if (deps.length === 0 || document.getElementById("rovalra-dep-container")) return;
+        let pageContent = document.querySelector(".page-content.menu-shown"), insertionTarget = pageContent?.querySelector(
+          "#item-dependencies, #asset-resale-data-container"
+        ), contentRoot = Array.from(pageContent?.children || []).find(
+          (child) => child.id !== "rovalra-catalog-notice-banner"
+        ), parent = insertionTarget?.parentNode || contentRoot, clearfix = contentRoot ? Array.from(contentRoot.children).find(
+          (child) => child.classList.contains("clearfix")
+        ) : null, fallbackTarget = clearfix?.parentNode === parent ? clearfix.nextSibling : parent?.firstChild;
+        if (!parent) {
+          favButton.dataset.rovalraScanning = "false";
+          return;
+        }
         let uiContainer = document.createElement("div");
-        uiContainer.id = "rovalra-dep-container", parent.insertBefore(uiContainer, favButton.nextSibling);
+        uiContainer.id = "rovalra-dep-container", parent.insertBefore(uiContainer, insertionTarget || fallbackTarget);
         let dropdown = createDropdown({
           items: [],
           placeholder: "Scan Dependencies",
@@ -113924,7 +114062,7 @@ Bundled Items:
       }
   }
   __name(mountDependencyScanner, "mountDependencyScanner");
-  function init54() {
+  function init55() {
     /\/bundles\//i.test(window.location.pathname) || chrome.storage.local.get("EnableItemDependencies", (data) => {
       data.EnableItemDependencies === !0 && (startObserving(), observeElement(
         "#favorites-button",
@@ -113932,7 +114070,7 @@ Bundled Items:
       ));
     });
   }
-  __name(init54, "init");
+  __name(init55, "init");
 
   // src/content/features/catalog/pricefloor.js
   init_observer();
@@ -113941,7 +114079,7 @@ Bundled Items:
   init_assets();
   init_tooltip();
   init_i18n();
-  function init55() {
+  function init56() {
     chrome.storage.local.get("priceFloorEnabled", (data) => {
       data.priceFloorEnabled !== !1 && observeElement(
         ".item-price-value.icon-text-wrapper.clearfix.icon-robux-price-container",
@@ -114005,14 +114143,14 @@ Bundled Items:
       );
     });
   }
-  __name(init55, "init");
+  __name(init56, "init");
 
   // src/content/core/ui/catalog/catalogBanner.js
   init_markdown();
   init_observer();
   init_purify_es();
   var isInitialized2 = !1;
-  function init56() {
+  function init57() {
     if (isInitialized2) return;
     isInitialized2 = !0, startObserving();
     let BANNER_ID3 = "rovalra-catalog-notice-banner", TARGET_PARENT_SELECTOR = ".page-content.menu-shown";
@@ -114066,14 +114204,14 @@ Bundled Items:
     }
     __name(initializeBannerContainer2, "initializeBannerContainer"), observeElement(TARGET_PARENT_SELECTOR, initializeBannerContainer2);
   }
-  __name(init56, "init");
+  __name(init57, "init");
 
   // src/content/features/catalog/bannerTest.js
   init_observer();
   var isInitialized3 = !1;
-  function init57() {
+  function init58() {
     window.location.href.includes("/catalog") && chrome.storage.local.get({ EnablebannerTest: !1 }, (settings2) => {
-      settings2.EnablebannerTest && (init56(), !isInitialized3 && (isInitialized3 = !0, observeElement("#rovalra-catalog-notice-banner", () => {
+      settings2.EnablebannerTest && (init57(), !isInitialized3 && (isInitialized3 = !0, observeElement("#rovalra-catalog-notice-banner", () => {
         window.location.href.includes("/catalog") && window.CatalogBannerManager && window.CatalogBannerManager.addNotice(
           "Catalog Test Banner",
           '<svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>',
@@ -114082,7 +114220,7 @@ Bundled Items:
       })));
     });
   }
-  __name(init57, "init");
+  __name(init58, "init");
 
   // src/content/features/catalog/ParentItem.js
   init_idExtractor();
@@ -114109,7 +114247,7 @@ Bundled Items:
     });
   }
   __name(observeNativeItemBundles, "observeNativeItemBundles");
-  function init58() {
+  function init59() {
     chrome.storage.local.get(
       { ParentItemsEnabled: !1 },
       async (settings2) => {
@@ -114123,7 +114261,7 @@ Bundled Items:
           currentItemId = null;
           return;
         }
-        currentItemId = itemId, init56(), observeNativeItemBundles(itemId);
+        currentItemId = itemId, init57(), observeNativeItemBundles(itemId);
         try {
           let response = await callRobloxApi({
             subdomain: "catalog",
@@ -114221,7 +114359,7 @@ Bundled Items:
       }
     );
   }
-  __name(init58, "init");
+  __name(init59, "init");
 
   // src/content/features/catalog/purchasePrompt.js
   init_observer();
@@ -114263,7 +114401,7 @@ Bundled Items:
     `;
   }
   __name(processDialog, "processDialog");
-  function init59() {
+  function init60() {
     chrome.storage.local.get({ EnableRobuxAfterPurchase: !0 }, (settings2) => {
       settings2.EnableRobuxAfterPurchase && observeElement(
         ".unified-purchase-dialog-content",
@@ -114276,7 +114414,7 @@ Bundled Items:
       );
     });
   }
-  __name(init59, "init");
+  __name(init60, "init");
 
   // src/content/features/catalog/ItemTrading.js
   init_observer();
@@ -114772,7 +114910,7 @@ Bundled Items:
     header.appendChild(container);
   }
   __name(updateItemName, "updateItemName");
-  function init60() {
+  function init61() {
     chrome.storage.local.get(
       { itemTradingEnabled: !0, tradeRiskEnabled: !0 },
       (settings2) => {
@@ -114815,7 +114953,7 @@ Bundled Items:
       }
     );
   }
-  __name(init60, "init");
+  __name(init61, "init");
 
   // src/content/features/catalog/lastEquipped.js
   init_observer();
@@ -114861,7 +114999,7 @@ Bundled Items:
     priceRow && updateLastEquippedRow(priceRow);
   }
   __name(updateCurrentItemPage, "updateCurrentItemPage");
-  async function init61() {
+  async function init62() {
     isInitialized5 || (isInitialized5 = !0, isEnabled = await settings.lastEquippedEnabled !== !1, observeElement(
       "#item-details .price-row-container",
       (priceRow) => {
@@ -114878,7 +115016,7 @@ Bundled Items:
       }
     }));
   }
-  __name(init61, "init");
+  __name(init62, "init");
 
   // src/content/features/catalog/ItemRender.js
   init_observer();
@@ -134144,7 +134282,7 @@ void main() {
     ), customAnimate());
   }
   __name(asyncInit2, "asyncInit");
-  function init62() {
+  function init63() {
     chrome.storage.onChanged.addListener((changes, areaName) => {
       areaName !== "local" || !changes.marketplace3DRenderHoverPreviewDisabled || (hoverPreviewEnabled = !changes.marketplace3DRenderHoverPreviewDisabled.newValue, hoverPreviewEnabled || (removeCurrentHoveredItemData(), itemHoverScene.noRect()));
     }), !window.location.href.includes("/catalog") && !window.location.href.includes("/bundles") && !window.location.href.includes("/looks") && (needsMainOutfitRenderer = !1), chrome.storage.local.remove("marketplace3DRenderEnabled", () => {
@@ -134199,7 +134337,7 @@ void main() {
     }
     `, document.body.appendChild(customStyle);
   }
-  __name(init62, "init");
+  __name(init63, "init");
 
   // src/content/features/catalog/friendOwnership.js
   init_api();
@@ -134211,7 +134349,7 @@ void main() {
   init_assets();
   init_thumbnails();
   init_friendslist();
-  var CONTAINER_SELECTOR = "#favorites-button", assets4 = getAssets(), pillCache = /* @__PURE__ */ new Map(), initialized9 = !1;
+  var CONTAINER_SELECTOR = "#item-report-button-frontend", assets4 = getAssets(), pillCache = /* @__PURE__ */ new Map(), initialized9 = !1;
   function getCatalogItemType() {
     return /\/bundles\//i.test(window.location.pathname) ? "Bundle" : "Asset";
   }
@@ -134314,17 +134452,21 @@ void main() {
     });
   }
   __name(showOwnersOverlay, "showOwnersOverlay");
-  async function addOwnershipPill(container) {
-    if (container.dataset.rovalraFriendOwnershipInjected) return;
+  async function addOwnershipPill(reportButton) {
+    if (reportButton.dataset.rovalraFriendOwnershipInjected) return;
     let itemId = Number(getPlaceIdFromUrl());
     if (!itemId) return;
+    let clearfix = reportButton.closest(".clearfix"), parent = reportButton.parentNode;
+    if (!clearfix || !parent || !clearfix.contains(parent)) return;
+    let container = document.createElement("div");
+    container.className = "rovalra-friend-ownership-container", parent.insertBefore(container, reportButton.nextSibling);
     let itemType = getCatalogItemType(), cacheKey = `${itemType}:${itemId}`;
-    container.dataset.rovalraFriendOwnershipInjected = "loading";
+    reportButton.dataset.rovalraFriendOwnershipInjected = "loading";
     try {
       let ownerData = pillCache.get(cacheKey);
       if (!ownerData) {
         if (ownerData = await fetchOwners(itemId, itemType), ownerData.totalCount === 0) {
-          container.dataset.rovalraFriendOwnershipInjected = "empty";
+          reportButton.dataset.rovalraFriendOwnershipInjected = "empty", container.remove();
           return;
         }
         let [cachedFriends, thumbnailMap] = await Promise.all([
@@ -134359,16 +134501,20 @@ void main() {
           ownerData.totalCount
         )
       ), Object.assign(container.style, {
-        display: "flex",
+        display: "inline-flex",
         alignItems: "center",
-        width: "100%",
-        maxWidth: "100%"
+        width: "fit-content",
+        maxWidth: "100%",
+        verticalAlign: "middle",
+        marginLeft: "auto",
+        marginTop: "20px",
+        marginLeft: "12px"
       }), Object.assign(pill.style, {
         display: "inline-flex",
         width: "fit-content",
         minWidth: "0",
         flex: "0 0 auto",
-        marginLeft: "auto",
+        marginLeft: "0",
         marginRight: "0",
         alignItems: "center"
       });
@@ -134377,27 +134523,13 @@ void main() {
         display: "inline-flex",
         alignItems: "center",
         lineHeight: "16px"
-      }), container.appendChild(pill);
-      let bindThumbnailWidth = /* @__PURE__ */ __name((thumbnailContainer2) => {
-        let alignPillToThumbnail = /* @__PURE__ */ __name(() => {
-          if (!thumbnailContainer2.isConnected) return;
-          let thumbnailWidth = thumbnailContainer2.getBoundingClientRect().width;
-          container.style.width = `${thumbnailWidth}px`, container.style.maxWidth = `${thumbnailWidth}px`;
-        }, "alignPillToThumbnail");
-        alignPillToThumbnail(), observeResize(thumbnailContainer2, alignPillToThumbnail);
-      }, "bindThumbnailWidth"), thumbnailContainer = document.querySelector(
-        ".item-details-thumbnail-container"
-      );
-      thumbnailContainer ? bindThumbnailWidth(thumbnailContainer) : observeElement(
-        ".item-details-thumbnail-container",
-        bindThumbnailWidth
-      ), container.dataset.rovalraFriendOwnershipInjected = String(itemId);
+      }), container.appendChild(pill), reportButton.dataset.rovalraFriendOwnershipInjected = String(itemId);
     } catch (error2) {
-      delete container.dataset.rovalraFriendOwnershipInjected, console.warn("RoValra: Failed to load friend ownership", error2);
+      container.remove(), delete reportButton.dataset.rovalraFriendOwnershipInjected, console.warn("RoValra: Failed to load friend ownership", error2);
     }
   }
   __name(addOwnershipPill, "addOwnershipPill");
-  function init63() {
+  function init64() {
     initialized9 || (initialized9 = !0, chrome.storage.local.get({ friendOwnershipEnabled: !0 }, (settings2) => {
       settings2.friendOwnershipEnabled && (observeElement(CONTAINER_SELECTOR, addOwnershipPill, {
         multiple: !0
@@ -134410,7 +134542,7 @@ void main() {
       ));
     }));
   }
-  __name(init63, "init");
+  __name(init64, "init");
 
   // src/content/features/games/about/botDetector.js
   init_api();
@@ -134623,7 +134755,7 @@ void main() {
     }
   };
   window.BotDetector = BotDetector;
-  function init64() {
+  function init65() {
     chrome.storage.local.get({ botdataEnabled: !1 }, function(settings2) {
       settings2.botdataEnabled && window.location.href.includes("/games/") && getPlaceIdFromUrl2(window.location.href) && (window.botDetector = new BotDetector(), observeElement && typeof observeElement == "function" && observeElement(
         "#btr-description-wrapper, .game-description-container",
@@ -134633,7 +134765,7 @@ void main() {
       ));
     });
   }
-  __name(init64, "init");
+  __name(init65, "init");
 
   // src/content/features/games/quickplay.js
   init_review();
@@ -135422,7 +135554,7 @@ void main() {
     );
   }
   __name(initializeQuickPlay, "initializeQuickPlay");
-  function init65() {
+  function init66() {
     chrome.storage.local.get({ QuickPlayEnable: !0 }, (settings2) => {
       settings2.QuickPlayEnable && (document.readyState === "loading" ? document.addEventListener(
         "DOMContentLoaded",
@@ -135430,7 +135562,7 @@ void main() {
       ) : initializeQuickPlay());
     });
   }
-  __name(init65, "init");
+  __name(init66, "init");
 
   // src/content/features/games/hiddenBadges.js
   init_api();
@@ -135690,7 +135822,7 @@ void main() {
     header.prepend(toggle), heading.remove();
   }
   __name(setupBadgeTabs, "setupBadgeTabs");
-  async function init66() {
+  async function init67() {
     initialized10 || await settings.hiddenBadgesEnabled && (initialized10 = !0, observeElement(".game-badges-list", setupBadgeTabs, {
       multiple: !0
     }), chrome.storage.onChanged.addListener((changes, area) => {
@@ -135702,7 +135834,7 @@ void main() {
       }));
     }));
   }
-  __name(init66, "init");
+  __name(init67, "init");
 
   // src/content/features/games/badgeLayoutToggle.js
   init_api();
@@ -136065,12 +136197,12 @@ void main() {
     toggle.classList.add("rovalra-badge-layout-toggle"), header.appendChild(toggle);
   }
   __name(setupBadgeLayoutToggle, "setupBadgeLayoutToggle");
-  async function init67() {
+  async function init68() {
     initialized11 || await settings.badgeLayoutToggleEnabled && (initialized11 = !0, observeElement(".game-badges-list", setupBadgeLayoutToggle, {
       multiple: !0
     }));
   }
-  __name(init67, "init");
+  __name(init68, "init");
 
   // src/content/features/games/badgeOwnership.js
   init_api();
@@ -136253,12 +136385,12 @@ void main() {
     }));
   }
   __name(setupBadgeOwnership, "setupBadgeOwnership");
-  async function init68() {
+  async function init69() {
     initialized12 || await settings.badgeOwnershipEnabled !== !1 && (initialized12 = !0, observeElement(".game-badges-list", setupBadgeOwnership, {
       multiple: !0
     }));
   }
-  __name(init68, "init");
+  __name(init69, "init");
 
   // src/content/features/games/serverlist/serverlist.js
   init_api();
@@ -137885,6 +138017,12 @@ void main() {
     updateInfoElement(container, "Region", icon, text2, visible);
   }
   __name(displayRegion, "displayRegion");
+  function displayRegionForServerId(serverId, regionName, serverLocations3) {
+    serverId && document.querySelectorAll(`[data-rovalra-serverid="${serverId}"]`).forEach(
+      (server) => displayRegion(server, regionName, serverLocations3)
+    );
+  }
+  __name(displayRegionForServerId, "displayRegionForServerId");
   function displayIpAndDcId(server) {
     let extraDiv = server.querySelector(".rovalra-server-extra-details");
     if (!isFullServerIDEnabled || !isDatacenterAndIdEnabled || !isServerListModificationsEnabled) {
@@ -138039,7 +138177,11 @@ void main() {
           let fullName = normalizeRegionName(
             getFullLocationName(locInfo)
           );
-          fullName && (serverLocations3[serverId] = fullName, displayRegion(server, fullName, serverLocations3));
+          fullName && (serverLocations3[serverId] = fullName, displayRegionForServerId(
+            serverId,
+            fullName,
+            serverLocations3
+          ));
         }
       }
     } catch {
@@ -138206,7 +138348,7 @@ void main() {
     }
   }
   __name(getVipServerDetails2, "getVipServerDetails");
-  async function init69() {
+  async function init70() {
     let userId = await getAuthenticatedUserId();
     if (userId) {
       try {
@@ -138289,7 +138431,7 @@ void main() {
       );
     }
   }
-  __name(init69, "init");
+  __name(init70, "init");
   async function addOwnerControls(serverItem, privateServerId) {
     let detailsDiv = serverItem.querySelector(
       ".rbx-private-game-server-details"
@@ -138719,7 +138861,7 @@ void main() {
     }
   }
   __name(isServerActive2, "isServerActive");
-  function init70() {
+  function init71() {
     if (typeof chrome > "u" || !chrome.storage || !chrome.storage.local) {
       safeInitAll();
       return;
@@ -138742,7 +138884,7 @@ void main() {
       }
     );
   }
-  __name(init70, "init");
+  __name(init71, "init");
   function safeInitAll() {
     if (!document.getElementById("rovalra-filter-shared-styles")) {
       let s = document.createElement("style");
@@ -139941,7 +140083,7 @@ void main() {
     addCustomButton(container), reconcileButtons(container);
   }
   __name(processContainer, "processContainer");
-  function init71() {
+  function init72() {
     chrome.storage.local.get({ PreferredRegionEnabled: !0 }, (settings2) => {
       settings2.PreferredRegionEnabled && (injectCustomCSS(), observeElement(targetContainerIdSelector, (container) => {
         processContainer(container);
@@ -139955,7 +140097,7 @@ void main() {
       ));
     });
   }
-  __name(init71, "init");
+  __name(init72, "init");
 
   // src/content/features/games/tab/Subplaces.js
   init_thumbnails();
@@ -139967,7 +140109,7 @@ void main() {
   init_purify_es();
   init_i18n();
   var PAGE_SIZE = 12;
-  async function init72() {
+  async function init73() {
     chrome.storage.local.get(["subplacesEnabled"], async (result) => {
       if (result.subplacesEnabled) {
         let fetchUniverseId4 = /* @__PURE__ */ __name(async (placeId) => {
@@ -140271,7 +140413,7 @@ void main() {
       }
     });
   }
-  __name(init72, "init");
+  __name(init73, "init");
 
   // src/content/features/games/thumbnails/gametrailers.js
   init_observer();
@@ -140349,7 +140491,7 @@ void main() {
     }, { multiple: !0 });
   }
   __name(hijackFirstSlot, "hijackFirstSlot");
-  function init73() {
+  function init74() {
     chrome.storage.local.get(["EnableGameTrailer", "Enableautoplay"], (result) => {
       if (result && result.EnableGameTrailer === !0) {
         let shouldAutoplay = result.Enableautoplay === !0;
@@ -140364,10 +140506,10 @@ void main() {
       }
     });
   }
-  __name(init73, "init");
+  __name(init74, "init");
 
   // src/content/features/games/banner.js
-  function init74() {
+  function init75() {
     chrome.storage.local.get({ EnablebannerTest: !1 }, (settings2) => {
       if (settings2.EnablebannerTest) {
         let checkApi = setInterval(() => {
@@ -140388,7 +140530,7 @@ Markdown test
       }
     });
   }
-  __name(init74, "init");
+  __name(init75, "init");
 
   // src/content/features/games/actions/quickOutfits.js
   init_observer();
@@ -140675,12 +140817,12 @@ Markdown test
     gameButtonsContainer && container.insertBefore(buttonContainer, gameButtonsContainer);
   }
   __name(addQuickOutfitsButton, "addQuickOutfitsButton");
-  function init75() {
+  function init76() {
     chrome.storage.local.get("QuickOutfitsEnabled", (data) => {
       data.QuickOutfitsEnabled && observeElement(".game-calls-to-action", addQuickOutfitsButton);
     });
   }
-  __name(init75, "init");
+  __name(init76, "init");
 
   // src/content/features/games/tab/DevProducts.js
   init_api();
@@ -141741,7 +141883,7 @@ Markdown test
     updateTabState("passes"), controlsDiv.appendChild(toggle), headerContainer.appendChild(controlsDiv), headerContainer.appendChild(filterWrapper);
   }
   __name(loadAndRenderProducts, "loadAndRenderProducts");
-  async function init76() {
+  async function init77() {
     let [devProductsEnabled, shopWidgetsEnabled] = await Promise.all([
       settings.EnableDevProducts,
       settings.shopWidgetsEnabled
@@ -141761,7 +141903,7 @@ Markdown test
       );
     });
   }
-  __name(init76, "init");
+  __name(init77, "init");
 
   // src/content/features/games/DeveloperProductsSection.js
   init_api();
@@ -142067,7 +142209,7 @@ Markdown test
     }), renderCurrentPage();
   }
   __name(renderProductsPage, "renderProductsPage");
-  function init77() {
+  function init78() {
     let placeId = getProductsSectionPlaceId();
     placeId && (currentPlaceId === placeId && document.querySelector(".rovalra-products-section") || (currentPlaceId = placeId, observeElement(".content#content, #content", (content) => {
       getProductsSectionPlaceId() === placeId && renderProductsPage(content, placeId).catch((error2) => {
@@ -142080,7 +142222,7 @@ Markdown test
       });
     })));
   }
-  __name(init77, "init");
+  __name(init78, "init");
 
   // src/content/features/games/developerProductAutoBuy.js
   init_observer();
@@ -142107,7 +142249,7 @@ Markdown test
     );
   }
   __name(clickWhenReady, "clickWhenReady");
-  function init78() {
+  function init79() {
     if (!window.location.pathname.includes("/developer-product/") || !window.location.search.includes("RoValra-Auto-Buy"))
       return;
     let productId = getDeveloperProductIdFromUrl(), runAutoBuy = /* @__PURE__ */ __name(() => {
@@ -142119,7 +142261,7 @@ Markdown test
     }, "runAutoBuy");
     document.readyState === "complete" ? runAutoBuy() : window.addEventListener("load", runAutoBuy, { once: !0 });
   }
-  __name(init78, "init");
+  __name(init79, "init");
 
   // src/content/features/games/tab/updateHistory.js
   init_observer();
@@ -142358,7 +142500,7 @@ Markdown test
   // src/content/features/games/tab/updateHistory.js
   init_i18n();
   init_games();
-  function init79() {
+  function init80() {
     chrome.storage.local.get({ updateHistoryEnabled: !1 }, (settings2) => {
       settings2.updateHistoryEnabled && observeElement(
         "#horizontal-tabs",
@@ -142396,7 +142538,7 @@ Markdown test
       );
     });
   }
-  __name(init79, "init");
+  __name(init80, "init");
   async function loadAndRenderHeatmap(placeId, parentElement) {
     let container = document.createElement("div");
     container.style.position = "relative", parentElement.appendChild(container);
@@ -142496,7 +142638,7 @@ Markdown test
   init_idExtractor();
   init_i18n();
   var isTotalSpentGamesInitialized = !1;
-  function init80() {
+  function init81() {
     isTotalSpentGamesInitialized || (isTotalSpentGamesInitialized = !0, observeElement(
       "#rbx-game-passes, #roseal-game-passes",
       async (container) => {
@@ -142542,7 +142684,7 @@ Markdown test
       }
     ));
   }
-  __name(init80, "init");
+  __name(init81, "init");
 
   // src/content/features/games/underReviewPill.js
   init_games();
@@ -142630,7 +142772,7 @@ Markdown test
     (await getUniverseEligibility(universeId))?.underReview === !0 ? insertUnderReviewPill(container) : removeExistingPill(container);
   }
   __name(updateUnderReviewPill, "updateUnderReviewPill");
-  function init81() {
+  function init82() {
     let currentContainer = document.querySelector(CAROUSEL_SELECTOR);
     currentContainer && updateUnderReviewPill(currentContainer), !observerInitialized2 && (observerInitialized2 = !0, observeElement(CAROUSEL_SELECTOR, updateUnderReviewPill), observeElement(ACTIONS_SELECTOR, () => {
       let container = document.querySelector(CAROUSEL_SELECTOR);
@@ -142640,7 +142782,7 @@ Markdown test
       container && updateUnderReviewPill(container);
     }));
   }
-  __name(init81, "init");
+  __name(init82, "init");
 
   // src/content/features/transactions/totalspent.js
   init_review();
@@ -143138,7 +143280,7 @@ Markdown test
     ), container.appendChild(totalSpentButton);
   }
   __name(onElementFound, "onElementFound");
-  function init82() {
+  function init83() {
     chrome.storage.local.get("totalspentEnabled", (result) => {
       result.totalspentEnabled && observeElement(
         ".dropdown-container.container-header",
@@ -143146,7 +143288,7 @@ Markdown test
       );
     });
   }
-  __name(init82, "init");
+  __name(init83, "init");
 
   // src/content/features/transactions/pendingRobuxTrans.js
   init_observer();
@@ -143392,7 +143534,7 @@ Markdown test
     storeResults(state2.userId, finalResults), injectResultElement(rowToInjectInto, finalResults);
   }
   __name(onElementFound2, "onElementFound");
-  function init83() {
+  function init84() {
     chrome.storage.local.get({ pendingrobuxtrans: !0 }, async (settings2) => {
       if (!(!settings2.pendingrobuxtrans || !window.location.pathname.includes("/transactions")))
         try {
@@ -143415,7 +143557,7 @@ Markdown test
         }
     });
   }
-  __name(init83, "init");
+  __name(init84, "init");
 
   // src/content/features/transactions/totalearned.js
   init_observer();
@@ -143748,7 +143890,7 @@ Markdown test
     ), container.appendChild(totalEarnedButton);
   }
   __name(onElementFound3, "onElementFound");
-  function init84() {
+  function init85() {
     chrome.storage.local.get("totalearnedEnabled", (result) => {
       result.totalearnedEnabled && observeElement(
         ".dropdown-container.container-header",
@@ -143756,7 +143898,7 @@ Markdown test
       );
     });
   }
-  __name(init84, "init");
+  __name(init85, "init");
 
   // src/content/features/trading/confirmtrade.js
   init_observer();
@@ -144148,7 +144290,7 @@ Markdown test
     });
   }
   __name(hydrateTradePreviewThumbnails, "hydrateTradePreviewThumbnails");
-  function init85() {
+  function init86() {
     chrome.storage.local.get({ confirmTradeEnabled: !0 }, (settings2) => {
       if (!settings2.confirmTradeEnabled) return;
       let path = window.location.pathname;
@@ -144204,7 +144346,7 @@ Markdown test
       ));
     });
   }
-  __name(init85, "init");
+  __name(init86, "init");
   function startPrefetching() {
     prefetchRequests.forEach((req) => req.active = !1), prefetchRequests = [];
     let handleLink = /* @__PURE__ */ __name((el2) => {
@@ -144368,7 +144510,7 @@ Markdown test
     tradeShowTotalDemand: !0,
     tradeShowDiffPills: !0
   }, includeRobuxInCalculation = !0;
-  function init86() {
+  function init87() {
     chrome.storage.local.get(
       {
         tradeValuesEnabled: !0,
@@ -144447,7 +144589,7 @@ Markdown test
       }
     );
   }
-  __name(init86, "init");
+  __name(init87, "init");
   function onRolimonsUpdate(e) {
     let updatedIds = e.detail;
     Array.isArray(updatedIds) && (updatedIds.forEach((id) => {
@@ -144975,7 +145117,7 @@ Markdown test
     }
   }
   __name(onTradesData, "onTradesData");
-  function init87() {
+  function init88() {
     chrome.storage.local.get(
       { tradePreviewEnabled: !0 },
       async (settings2) => {
@@ -144997,7 +145139,7 @@ Markdown test
       }
     );
   }
-  __name(init87, "init");
+  __name(init88, "init");
 
   // src/content/features/trading/tradefilter.js
   init_input();
@@ -145009,7 +145151,7 @@ Markdown test
   document.addEventListener("rovalra-rolimons-data-update", () => {
     currentQuery && filterTrades(currentQuery);
   });
-  async function init88() {
+  async function init89() {
     !(await chrome.storage.local.get({
       tradeFilterEnabled: !0
     })).tradeFilterEnabled || !window.location.pathname.startsWith("/trades") || (myUserId = await getAuthenticatedUserId(), observeElement(".trade-row-list", (list) => {
@@ -145033,7 +145175,7 @@ Markdown test
       noResults.id = "rovalra-trade-filter-no-results", noResults.innerText = "No results found", noResults.className = "text-secondary", noResults.style.display = "none", noResults.style.textAlign = "center", noResults.style.marginTop = "8px", wrapper.appendChild(noResults), list.insertBefore(wrapper, scrollContainer);
     }));
   }
-  __name(init88, "init");
+  __name(init89, "init");
   async function getTradeDetails(tradeId) {
     let cached = await get("trade_history", tradeId, "local");
     if (Array.isArray(cached))
@@ -145127,7 +145269,7 @@ Markdown test
   init_observer();
   init_idExtractor();
   var PAGING_COOLDOWN = 100, activeSearches = /* @__PURE__ */ new WeakMap(), searchButtons = /* @__PURE__ */ new WeakMap();
-  function init89() {
+  function init90() {
     chrome.storage.local.get({ tradeSearchEnabled: !0 }, (settings2) => {
       if (!settings2.tradeSearchEnabled) return;
       let path = window.location.pathname;
@@ -145142,7 +145284,7 @@ Markdown test
       );
     });
   }
-  __name(init89, "init");
+  __name(init90, "init");
   function injectSearchInput(dropdown) {
     let { container, input } = createStyledInput({
       id: `rovalra-trade-search-${Math.random().toString(36).substr(2, 9)}`,
@@ -145242,7 +145384,7 @@ Markdown test
   // src/content/features/trading/tradeProof.js
   init_observer();
   init_user();
-  function init90() {
+  function init91() {
     chrome.storage.local.get({ tradeProofEnabled: !0 }, (settings2) => {
       !settings2.tradeProofEnabled || !window.location.pathname.startsWith("/trades") || observeElement(".trades-list-detail", (container) => {
         if (container.querySelector(".rovalra-copy-proof-btn")) return;
@@ -145258,7 +145400,7 @@ Markdown test
       });
     });
   }
-  __name(init90, "init");
+  __name(init91, "init");
   async function copyTradeProof(container, btn) {
     if (container.querySelectorAll(".trade-list-detail-offer").length < 2) return;
     let activeRow = document.querySelector(".trade-row.active"), tradeId = activeRow?.dataset.tradeId || getLatestTradeDetailsId(), myUserId2 = await getAuthenticatedUserId(), analysis = tradeId ? await getTradeAnalysis(tradeId, { myUserId: myUserId2 }).catch(() => null) : null;
@@ -145602,8 +145744,8 @@ D:${formattedDate}`;
       }
     }
   };
-  function init91() {
-    init91._run || (init91._run = !0, chrome.storage.local.get(["groupGamesEnabled"], (result) => {
+  function init92() {
+    init92._run || (init92._run = !0, chrome.storage.local.get(["groupGamesEnabled"], (result) => {
       if (result.groupGamesEnabled !== !0) return;
       let isInserting = !1, ensureSingleButton = /* @__PURE__ */ __name(() => {
         let all = document.querySelectorAll(
@@ -145657,7 +145799,7 @@ D:${formattedDate}`;
       setInterval(checkForUrlChange, 500), window.addEventListener("popstate", checkForUrlChange), getGroupIdFromUrl() && tryInsert();
     }));
   }
-  __name(init91, "init");
+  __name(init92, "init");
 
   // src/content/features/groups/Antibots.js
   init_review();
@@ -146396,10 +146538,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )) : !active2 && isAntiBotScriptActive && antiBotsFullCleanup();
   }
   __name(checkUrlAndManageState, "checkUrlAndManageState");
-  function init92() {
+  function init93() {
     isInitialized8 || (isInitialized8 = !0, window.rovalra || (window.rovalra = {}), window.rovalra.ui || (window.rovalra.ui = {}), window.addEventListener("hashchange", checkUrlAndManageState), checkUrlAndManageState());
   }
-  __name(init92, "init");
+  __name(init93, "init");
 
   // src/content/features/groups/pendingRobux.js
   init_observer();
@@ -146593,12 +146735,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     storeResults2(state3.groupId, finalResults), await injectResultElement2(targetElement, finalResults);
   }
   __name(onElementFound4, "onElementFound");
-  function init93() {
+  function init94() {
     chrome.storage.local.get({ pendingRobuxEnabled: !0 }, (settings2) => {
       settings2.pendingRobuxEnabled && window.location.pathname.includes("communities/configure") && observeElement(TARGET_ELEMENT_SELECTOR2, onElementFound4);
     });
   }
-  __name(init93, "init");
+  __name(init94, "init");
 
   // src/content/features/groups/draggableGroups.js
   init_observer();
@@ -146613,14 +146755,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     holdTimer: null,
     preventClick: !1
   }, dropIndicator = null, isEnabled2 = !1;
-  function init94() {
+  function init95() {
     chrome.storage.local.get(["draggableGroupsEnabled"], (result) => {
       isEnabled2 = result.draggableGroupsEnabled !== !1, isEnabled2 && (startObserving(), initializeDragSystem());
     }), chrome.storage.onChanged.addListener((changes) => {
       changes.draggableGroupsEnabled && (isEnabled2 = changes.draggableGroupsEnabled.newValue !== !1, isEnabled2 ? initializeDragSystem() : destroyDragSystem());
     });
   }
-  __name(init94, "init");
+  __name(init95, "init");
   function initializeDragSystem() {
     observeElement("a.groups-list-item", (link) => {
       if (link.closest(".pending-join-requests"))
@@ -147022,8 +147164,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, 500));
   }
   __name(showSuccessAlertIfNeeded, "showSuccessAlertIfNeeded");
-  async function init95() {
-    (await chrome.storage.local.get("bulkLeaveGroupsEnabled")).bulkLeaveGroupsEnabled !== !1 && (init95._run || (init95._run = !0, showSuccessAlertIfNeeded(), fetchUserGroups(), document.addEventListener("click", onDocumentClickCapture, !0), observeElement(
+  async function init96() {
+    (await chrome.storage.local.get("bulkLeaveGroupsEnabled")).bulkLeaveGroupsEnabled !== !1 && (init96._run || (init96._run = !0, showSuccessAlertIfNeeded(), fetchUserGroups(), document.addEventListener("click", onDocumentClickCapture, !0), observeElement(
       ".groups-list-items-container",
       (container) => {
         injectToolbar(container);
@@ -147049,7 +147191,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     )));
   }
-  __name(init95, "init");
+  __name(init96, "init");
 
   // src/content/features/groups/placevisits.js
   init_api();
@@ -147076,7 +147218,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(fetchTotalVisits, "fetchTotalVisits");
-  function init96() {
+  function init97() {
     chrome.storage.local.get({ groupPlaceVisitsEnabled: !0 }, (settings2) => {
       settings2.groupPlaceVisitsEnabled && observeElement(
         ".profile-insights-container.flex.gap-small",
@@ -147103,7 +147245,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init96, "init");
+  __name(init97, "init");
 
   // src/content/features/groups/createDate.js
   init_observer();
@@ -147138,7 +147280,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/groups/createDate.js
   init_i18n();
-  function init97() {
+  function init98() {
     chrome.storage.local.get({ groupCreateDateEnabled: !0 }, (settings2) => {
       settings2.groupCreateDateEnabled && (observeElement(
         ".roseal-group-stats .group-created-date",
@@ -147183,7 +147325,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       ));
     });
   }
-  __name(init97, "init");
+  __name(init98, "init");
 
   // src/content/features/plus/stats.js
   init_i18n();
@@ -147349,7 +147491,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         </div>`, parent.appendChild(containerDiv), !0;
   }
   __name(makeHtml, "makeHtml");
-  function init98() {
+  function init99() {
     chrome.storage.local.get(
       {
         plusStatsEnabled: !0
@@ -147362,7 +147504,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init98, "init");
+  __name(init99, "init");
 
   // src/content/features/plus/transferLimits.js
   init_observer();
@@ -147748,7 +147890,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(attachTransferLimitListener, "attachTransferLimitListener");
-  async function init99() {
+  async function init100() {
     if (!await isFeatureEnabled()) {
       removeTransferLimits();
       return;
@@ -147761,7 +147903,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     });
   }
-  __name(init99, "init");
+  __name(init100, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_observer();
@@ -148041,7 +148183,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addUserRapDisplay, "addUserRapDisplay");
-  function init100() {
+  function init101() {
     chrome.storage.local.get({ userRapEnabled: !0 }, function(data) {
       data.userRapEnabled && observeElement(
         ".flex-nowrap.gap-small.flex, .profile-header-names",
@@ -148050,7 +148192,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init100, "init");
+  __name(init101, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_purify_es();
@@ -148308,7 +148450,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     targetContainer.appendChild(donationButton);
   }
   __name(addDonationButton, "addDonationButton");
-  function init101() {
+  function init102() {
     if (window.location.pathname.includes("/game-pass") && window.location.search.includes("RoValra-Auto-Buy")) {
       let runAutoBuy = /* @__PURE__ */ __name(() => {
         observeElement('button[data-button-action="buy"]', (btn) => {
@@ -148334,7 +148476,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init101, "init");
+  __name(init102, "init");
 
   // src/content/features/profile/header/instantjoiner.js
   init_observer();
@@ -148571,7 +148713,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_purify_es();
   init_idExtractor();
   init_i18n();
-  function init102() {
+  function init103() {
     chrome.storage.local.get(
       { userSniperEnabled: !1, deeplinkEnabled: !0 },
       function(settings2) {
@@ -148790,7 +148932,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init102, "init");
+  __name(init103, "init");
 
   // src/content/features/profile/outfits.js
   init_review();
@@ -148803,7 +148945,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_dompurify();
   init_overlay();
   init_i18n();
-  function init103() {
+  function init104() {
     chrome.storage.local.get("useroutfitsEnabled", function(data) {
       if (data.useroutfitsEnabled !== !0)
         return;
@@ -149401,7 +149543,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       });
     });
   }
-  __name(init103, "init");
+  __name(init104, "init");
 
   // src/content/features/profile/privateserver.js
   init_observer();
@@ -149732,7 +149874,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), selectAllButton.addEventListener("click", handleSelectAll), mainButtonInactive.addEventListener("click", () => handleBulkAction(!1)), mainButtonActive.addEventListener("click", () => handleBulkAction(!0)), updateButtonStates();
   }
   __name(handlePageUpdate, "handlePageUpdate");
-  function init104() {
+  function init105() {
     chrome.storage.local.get({ PrivateServerBulkEnabled: !0 }, (data) => {
       if (data.PrivateServerBulkEnabled === !0) {
         let wrapHistory = /* @__PURE__ */ __name((type) => {
@@ -149746,7 +149888,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     });
   }
-  __name(init104, "init");
+  __name(init105, "init");
 
   // src/content/features/profile/header/RoValraBadges.js
   init_observer();
@@ -150307,7 +150449,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addProfileBadgeButtons, "addProfileBadgeButtons");
-  function init105() {
+  function init106() {
     settings.robloxGroupFeaturesEnabled.then((enabled2) => {
       document.dispatchEvent(
         new CustomEvent("rovalra:settingsState", {
@@ -150353,7 +150495,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init105, "init");
+  __name(init106, "init");
 
   // src/content/features/profile/hiddengames.js
   init_observer();
@@ -150663,7 +150805,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(getUserId, "getUserId");
   var isInitialized9 = !1;
-  function init106() {
+  function init107() {
     chrome.storage.local.get(["userGamesEnabled"], (result) => {
       if (result.userGamesEnabled !== !0 || isInitialized9) return;
       isInitialized9 = !0;
@@ -150697,7 +150839,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       window.addEventListener("hashchange", checkEmptyState), observeElement(".profile-tab-content", checkEmptyState);
     });
   }
-  __name(init106, "init");
+  __name(init107, "init");
 
   // src/content/features/profile/grouprole.js
   init_api();
@@ -150710,7 +150852,13 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_api();
   init_cacheHandler();
   init_i18n();
-  var joinDateCache = /* @__PURE__ */ new Map(), joinDatePromises = /* @__PURE__ */ new Map();
+  var joinDateCache = /* @__PURE__ */ new Map(), joinDatePromises = /* @__PURE__ */ new Map(), VIEW_PREFERENCE_KEY = "rovalra_group_filters_view", DEFAULT_VIEW = "default";
+  function getStoredViewPreference() {
+    return chrome.storage.local.get({ [VIEW_PREFERENCE_KEY]: DEFAULT_VIEW }).then(
+      (settings2) => settings2[VIEW_PREFERENCE_KEY] === "grid" ? "grid" : DEFAULT_VIEW
+    ).catch(() => DEFAULT_VIEW);
+  }
+  __name(getStoredViewPreference, "getStoredViewPreference");
   async function getJoinDate(groupId, userId) {
     if (!groupId || !userId) return /* @__PURE__ */ new Date(0);
     if (joinDateCache.has(groupId)) return joinDateCache.get(groupId);
@@ -150769,7 +150917,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return joinDatePromises.delete(groupId), result;
   }
   __name(getJoinDate, "getJoinDate");
-  function init107() {
+  function init108() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get({ groupFiltersEnabled: !0 }, (settings2) => {
       settings2.groupFiltersEnabled && observeElement(
@@ -150779,7 +150927,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             '#collection-carousel-item, [id="collection-carousel-item"], [class*="-carouselItem"]'
           )?.parentElement || container.querySelector(
             '.css-1i465w8-carousel, [class*="-carousel"]'
-          ), "getCarousel"), setup = /* @__PURE__ */ __name(() => {
+          ), "getCarousel"), setup = /* @__PURE__ */ __name(async () => {
             let carousel = getCarousel();
             if (!carousel || container.dataset.rovalraFiltersAdded)
               return;
@@ -150797,9 +150945,26 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             });
             let header = container.querySelector("h2");
             if (!header) return;
-            let headerWrapper = document.createElement("div");
-            headerWrapper.style.display = "flex", headerWrapper.style.alignItems = "center", headerWrapper.style.justifyContent = "space-between", headerWrapper.style.width = "100%", headerWrapper.style.marginBottom = "12px", header.parentNode.insertBefore(headerWrapper, header), headerWrapper.appendChild(header);
-            let originalOrder3 = [...items], sortOptions = [
+            let storedView = await getStoredViewPreference(), headerWrapper = document.createElement("div");
+            headerWrapper.style.display = "flex", headerWrapper.style.alignItems = "center", headerWrapper.style.justifyContent = "space-between", headerWrapper.style.width = "100%", headerWrapper.style.marginBottom = "12px", headerWrapper.style.gap = "12px", header.parentNode.insertBefore(headerWrapper, header), headerWrapper.appendChild(header);
+            let originalOrder3 = [...items], currentView = storedView, viewOptions = [
+              { text: "Row", value: DEFAULT_VIEW },
+              { text: "Grid", value: "grid" }
+            ], applyView2 = /* @__PURE__ */ __name((value2, activeCarousel = getCarousel()) => {
+              if (!activeCarousel) return;
+              currentView = value2 === "grid" ? "grid" : DEFAULT_VIEW;
+              let rowButtons = activeCarousel.parentElement?.querySelector(
+                ".scroll-arrow.next"
+              );
+              currentView === DEFAULT_VIEW ? (activeCarousel.style.display = "flex", activeCarousel.style.flexWrap = "nowrap", activeCarousel.style.gridTemplateColumns = "", rowButtons && (rowButtons.style.display = "")) : (activeCarousel.style.display = "grid", activeCarousel.style.gridTemplateColumns = "repeat(6, 1fr)", activeCarousel.style.flexWrap = "", rowButtons && (rowButtons.style.display = "none"));
+            }, "applyView"), viewToggle = createPillToggle({
+              options: viewOptions,
+              initialValue: storedView,
+              onChange: /* @__PURE__ */ __name((value2) => {
+                applyView2(value2), chrome.storage.local.set({ [VIEW_PREFERENCE_KEY]: value2 }).catch(() => {
+                });
+              }, "onChange")
+            }), sortOptions = [
               {
                 text: ts2("groupFilters.sort.default"),
                 value: "default"
@@ -150820,7 +150985,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
               options: sortOptions,
               initialValue: "default",
               onChange: /* @__PURE__ */ __name(async (value2) => {
-                let activeCarousel = getCarousel();
+                let activeCarousel = getCarousel(), rowButtons = document.querySelector(".scroll-arrow.next");
                 if (!activeCarousel) return;
                 let currentItems = Array.from(
                   activeCarousel.querySelectorAll(
@@ -150862,12 +151027,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
                     default:
                       return 0;
                   }
-                }), activeCarousel.style.display = "flex", activeCarousel.style.flexWrap = "nowrap", currentItems.forEach(
+                }), currentView === "default" ? (activeCarousel.style.display = "flex", activeCarousel.style.flexWrap = "nowrap", activeCarousel.style.gridTemplateColumns = "", rowButtons && (rowButtons.style.display = "block")) : (activeCarousel.style.display = "grid", activeCarousel.style.gridTemplateColumns = "repeat(6, 1fr)", activeCarousel.style.flexWrap = "", rowButtons && (rowButtons.style.display = "none")), currentItems.forEach(
                   (item) => activeCarousel.appendChild(item)
                 );
               }, "onChange")
-            });
-            headerWrapper.appendChild(toggle);
+            }), filterToggles = document.createElement("div");
+            filterToggles.style.display = "flex", filterToggles.style.alignItems = "center", filterToggles.style.flexDirection = "row", filterToggles.style.gap = "12px", headerWrapper.appendChild(viewToggle), filterToggles.style.marginLeft = "auto", headerWrapper.appendChild(filterToggles), filterToggles.appendChild(toggle), applyView2(storedView);
           }, "setup");
           setup(), observeChildren(container, setup);
         },
@@ -150875,7 +151040,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init107, "init");
+  __name(init108, "init");
 
   // src/content/features/profile/grouprole.js
   init_i18n();
@@ -150896,7 +151061,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     })()), rolesPromise;
   }
   __name(getGroupRoles, "getGroupRoles");
-  function init108() {
+  function init109() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get(
       { groupRoleEnabled: !0, groupJoinedDateEnabled: !0 },
@@ -150977,7 +151142,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init108, "init");
+  __name(init109, "init");
 
   // src/content/features/games/plusPrivateServerTooltip.js
   init_observer();
@@ -150988,7 +151153,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_assets();
   init_i18n();
   init_games();
-  async function init109() {
+  async function init110() {
     chrome.storage.local.get(
       { PlusPrivateServerTooltipEnabled: !0 },
       async (settings2) => {
@@ -151075,7 +151240,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init109, "init");
+  __name(init110, "init");
 
   // src/content/features/sitewide/PreviousPrice.js
   init_observer();
@@ -151107,7 +151272,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addPriceIconToCard, "addPriceIconToCard");
-  function init110() {
+  function init111() {
     chrome.storage.local.get("PreviousPriceEnabled", (result) => {
       result.PreviousPriceEnabled === !0 && (listenersAttached || (listenersAttached = !0, observeElement(
         "#offsale-since-date",
@@ -151221,7 +151386,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       )));
     });
   }
-  __name(init110, "init");
+  __name(init111, "init");
   function handleItemCard(card) {
     if (!card.isConnected) return;
     let link = card.querySelector(".item-card-link") || card.querySelector(".rovalra-item-card-link");
@@ -151773,7 +151938,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     !card || card.parentElement === targetGrid || (targetGrid.appendChild(card), syncDiscoveredCategories(), refreshPillToggle());
   }
   __name(moveAssetCardToCategory, "moveAssetCardToCategory");
-  async function init111() {
+  async function init112() {
     let result = await new Promise(
       (resolve) => chrome.storage.local.get(
         [
@@ -151863,7 +152028,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       content && loadCurrentlyWearing(content);
     });
   }
-  __name(init111, "init");
+  __name(init112, "init");
 
   // src/content/features/profile/bannedusers.js
   init_api();
@@ -151970,7 +152135,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/profile/bannedusers.js
   init_i18n();
-  function init112() {
+  function init113() {
     chrome.storage.local.get(
       {
         bannedUserViewerEnabled: !1,
@@ -152112,7 +152277,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init112, "init");
+  __name(init113, "init");
   async function renderBannedUserProfile(user, settings2) {
     let content = document.getElementById("content");
     if (!content) return;
@@ -152913,7 +153078,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(addTrustedFriendButton, "addTrustedFriendButton");
-  function init113() {
+  function init114() {
     chrome.storage.local.get(
       { trustedConnectionsEnabledv2: !0 },
       async (settings2) => {
@@ -152924,7 +153089,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init113, "init");
+  __name(init114, "init");
 
   // src/content/features/profile/header/ProfileRender.js
   init_observer();
@@ -154337,7 +154502,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     profileRenderObserversSetup && (removeRoblox3dObserver?.disconnect(), renderContainerObserver?.disconnect(), autoSwitchObserver?.disconnect(), removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, profileRenderObserversSetup = !1, removeStylesheet("rovalra-thumbnail-holder-css"));
   }
   __name(teardownProfileRenderObservers, "teardownProfileRenderObservers");
-  function init114() {
+  function init115() {
     migrateLegacyEnvironment();
     let userId = getUserIdFromUrl();
     if (!userId) {
@@ -154360,7 +154525,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init114, "init");
+  __name(init115, "init");
 
   // src/content/features/profile/testTab.js
   init_observer();
@@ -154426,10 +154591,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     contentPane.textContent = "test";
   }
   __name(addTestTab, "addTestTab");
-  async function init115() {
+  async function init116() {
     await settings.profileTestTabEnabled && observeElement(".profile-tabs", addTestTab, { multiple: !0 });
   }
-  __name(init115, "init");
+  __name(init116, "init");
 
   // src/content/features/profile/showcase.js
   init_observer();
@@ -154977,7 +155142,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), closeGroupDropdown = /* @__PURE__ */ __name(() => groupDropdown.toggleVisibility(!1), "closeGroupDropdown");
   }
   __name(addShowcaseTab, "addShowcaseTab");
-  async function init116() {
+  async function init117() {
     await settings.profileShowcaseEnabled && observeElement(
       ".profile-tabs",
       (tabs) => addShowcaseTab(tabs).catch((error2) => {
@@ -154989,7 +155154,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init116, "init");
+  __name(init117, "init");
 
   // src/content/features/profile/header/status.js
   init_observer();
@@ -155291,7 +155456,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(addHomeStatusHover, "addHomeStatusHover");
-  async function init117() {
+  async function init118() {
     if (!await settings.statusBubbleEnabled) return;
     migrateLegacyStatus(), startObserving(), injectStylesheet("css/thinkingbubble.css", "rovalra-profile-status-css"), observeElement(".user-profile-header-details-avatar-container:not(.rovalra-sendrobux-avatar)", (el2) => addStatusBubble(el2), {
       multiple: !0
@@ -155299,7 +155464,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       exclude: [".rovalra-donator-card", ".user-item-clickable", ".rovalra-sendrobux-profile"]
     }));
   }
-  __name(init117, "init");
+  __name(init118, "init");
 
   // src/content/features/profile/header/lastplayed.js
   init_friendslist();
@@ -155406,14 +155571,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initLastPlayed, "initLastPlayed");
-  function init118() {
+  function init119() {
     chrome.storage.local.get({ lastOnlineEnabled: !0 }, (data) => {
       data.lastOnlineEnabled && initLastOnline();
     }), chrome.storage.local.get({ lastPlayedTogetherEnabled: !0 }, (data) => {
       data.lastPlayedTogetherEnabled && initLastPlayed();
     });
   }
-  __name(init118, "init");
+  __name(init119, "init");
 
   // src/content/features/profile/header/profileViews.js
   init_idExtractor();
@@ -155497,10 +155662,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initProfileViews, "initProfileViews");
-  function init119() {
+  function init120() {
     initProfileViews();
   }
-  __name(init119, "init");
+  __name(init120, "init");
 
   // src/content/features/profile/header/pronouns.js
   init_idExtractor();
@@ -155612,10 +155777,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(initProfilePronouns, "initProfilePronouns");
-  function init120() {
+  function init121() {
     initProfilePronouns();
   }
-  __name(init120, "init");
+  __name(init121, "init");
 
   // src/content/features/profile/header/profileNotes.js
   init_idExtractor();
@@ -155820,10 +155985,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(startStorageListener, "startStorageListener");
-  function init121() {
+  function init122() {
     startStorageListener(), initProfileNotes();
   }
-  __name(init121, "init");
+  __name(init122, "init");
 
   // src/content/features/profile/header/currentlyPlayingSubplace.js
   init_idExtractor();
@@ -156848,7 +157013,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), scheduleProfileScans());
   }
   __name(registerProfileFallbackSubplaces, "registerProfileFallbackSubplaces");
-  async function init122() {
+  async function init123() {
     if (!await settings.currentlyPlayingSubplaceEnabled) {
       cleanupHomeSubplaceCards(), cleanupProfileSubplaceCards();
       return;
@@ -156866,7 +157031,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     }), await scheduleProfileScans();
   }
-  __name(init122, "init");
+  __name(init123, "init");
 
   // src/content/features/profile/header/idVerificationBadge.js
   init_api();
@@ -156972,7 +157137,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     userId && initProfileAboutDialogObserver(userId);
   }
   __name(run, "run");
-  function init123() {
+  function init124() {
     if (watcherSet) return;
     watcherSet = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -156980,7 +157145,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run();
   }
-  __name(init123, "init");
+  __name(init124, "init");
 
   // src/content/features/profile/friends/friendsSince.js
   init_idExtractor();
@@ -157192,7 +157357,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(run2, "run");
-  async function init124() {
+  async function init125() {
     if (watcherSet2) return;
     watcherSet2 = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -157200,7 +157365,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run2();
   }
-  __name(init124, "init");
+  __name(init125, "init");
 
   // src/content/features/profile/friends/unfriend.js
   init_observer();
@@ -157500,7 +157665,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initializeIfOnFriendsPage, "initializeIfOnFriendsPage");
-  async function init125() {
+  async function init126() {
     if (!(await chrome.storage.local.get("bulkUnfriendEnabled")).bulkUnfriendEnabled)
       return;
     let handlePageChange = /* @__PURE__ */ __name(async () => {
@@ -157521,7 +157686,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !1 }
     ), window.addEventListener("popstate", handlePageChange);
   }
-  __name(init125, "init");
+  __name(init126, "init");
 
   // src/content/features/profile/header/avatarDownload.js
   init_observer();
@@ -157631,12 +157796,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     button.classList.replace("text-label-medium", "text-label-large"), button.classList.add(buttonIdentifier), toggleContainer.style.display = "flex", toggleContainer.style.gap = "10px", toggleContainer.prepend(button);
   }
   __name(addDownloadButton, "addDownloadButton");
-  async function init126() {
+  async function init127() {
     await settings.avatarDownloadEnabled && observeElement(".avatar-toggle-button", addDownloadButton, {
       multiple: !0
     });
   }
-  __name(init126, "init");
+  __name(init127, "init");
 
   // src/content/index.js
   init_avatarBorder();
@@ -157645,7 +157810,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_observer();
   init_handlesettings();
   var PROFILE_AVATAR_SELECTOR = ".user-profile-header-details-avatar-container .avatar.avatar-card-fullbody", AVATAR_CLASS = "rovalra-improved-avatar-card";
-  async function init127() {
+  async function init128() {
     try {
       if (!(await loadSettings()).improvedAvatarCard) return;
       observeElement(
@@ -157657,7 +157822,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       console.error("RoValra: Improved avatar card init failed", error2);
     }
   }
-  __name(init127, "init");
+  __name(init128, "init");
 
   // src/content/core/catalog/purchasePromptItemId.js
   init_observer();
@@ -157932,7 +158097,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "tryProcess");
     tryProcess();
   }, "attachItemDataToPurchasePrompt");
-  function init128() {
+  function init129() {
     observeElement(
       ".modal-dialog .modal-content, .modal-content, .unified-purchase-dialog-content",
       (element) => {
@@ -157999,7 +158164,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       "color: #FF4500;"
     );
   }
-  __name(init128, "init");
+  __name(init129, "init");
 
   // src/content/features/profile/currencytransfer.js
   init_api();
@@ -158081,14 +158246,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     menuItems.length > 0 ? menuItems[0].insertAdjacentElement("afterend", button) : container.appendChild(button);
   }
   __name(addCurrencyTransferButton, "addCurrencyTransferButton");
-  function init129() {
+  function init130() {
     chrome.storage.local.get({ currencyTransferEnabled: !0 }, (settings2) => {
       settings2.currencyTransferEnabled && registerProfileContextMenuAction(addCurrencyTransferButton, () => {
         getCurrencyTransferStatus();
       });
     });
   }
-  __name(init129, "init");
+  __name(init130, "init");
 
   // src/content/features/profile/header/usernameColor.js
   init_observer();
@@ -158125,9 +158290,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     el2 && (el2.style.color = colors[value2]);
   }
   __name(addUsernameColor, "addUsernameColor");
-  async function init130() {
+  async function init131() {
     await settings.usernameColor && observeElement(
-      ".stylistic-alts-username",
+      ".stylistic-alts-username, .deleted-user-container .user-name",
       (el2) => {
         let runUpdate = /* @__PURE__ */ __name(() => el2.innerText.trim() !== "" ? (addUsernameColor(el2.innerText, el2), !0) : !1, "runUpdate");
         if (!runUpdate()) {
@@ -158139,7 +158304,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init130, "init");
+  __name(init131, "init");
 
   // src/content/features/profile/header/chatEligibilityTooltip.js
   init_idExtractor();
@@ -158231,12 +158396,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(processPotentialChatOverlay, "processPotentialChatOverlay");
-  async function init131() {
+  async function init132() {
     observerRegistered2 || !getUserIdFromUrl() || !await settings.chatEligibilityTooltipEnabled || (observerRegistered2 = !0, observeElement(PRESENTATION_SELECTOR, processPotentialChatOverlay, {
       multiple: !0
     }));
   }
-  __name(init131, "init");
+  __name(init132, "init");
 
   // src/content/features/profile/profileCustomization.js
   init_api();
@@ -158742,10 +158907,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )));
   }
   __name(initProfileCustomization, "initProfileCustomization");
-  function init132() {
+  function init133() {
     initProfileCustomization();
   }
-  __name(init132, "init");
+  __name(init133, "init");
 
   // src/content/features/settings/index.js
   init_assets();
@@ -162174,10 +162339,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init133() {
+  function init134() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init133, "init");
+  __name(init134, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -162374,7 +162539,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init134() {
+  function init135() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -162386,7 +162551,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init134, "init");
+  __name(init135, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -162444,7 +162609,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init135() {
+  async function init136() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -162455,7 +162620,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init135, "init");
+  __name(init136, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -162747,7 +162912,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init136() {
+  async function init137() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
@@ -162758,7 +162923,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init136, "init");
+  __name(init137, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -163342,7 +163507,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init137() {
+  async function init138() {
     if (!initialized17) {
       if (await settings.homeLayoutEnabled === !1) {
         initialized17 = !0, publishHomeLayoutState([], []);
@@ -163381,7 +163546,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init137, "init");
+  __name(init138, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
@@ -163462,14 +163627,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init138() {
+  function init139() {
     initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error2) => console.error("RoValra: Failed to open custom background settings.", error2)
       );
     }));
   }
-  __name(init138, "init");
+  __name(init139, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -163748,7 +163913,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init139() {
+  async function init140() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -163763,7 +163928,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error2);
     }));
   }
-  __name(init139, "init");
+  __name(init140, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
@@ -163818,14 +163983,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init140() {
+  async function init141() {
     if (registerStorageListener(), enabled = await settings.HideAddFriendsButton === !0, !enabled) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init140, "init");
+  __name(init141, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -164105,7 +164270,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init141() {
+  function init142() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -164120,7 +164285,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init141, "init");
+  __name(init142, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -166650,7 +166815,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init142() {
+  async function init143() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -166660,7 +166825,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -166671,8 +166836,8 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init133,
-        init65,
+        init134,
+        init66,
         init7,
         init8,
         init6,
@@ -166694,22 +166859,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init27,
         init28,
         init10,
-        init110,
+        init111,
         init30,
         init31,
         init24,
-        init112,
+        init113,
         init32,
         init34,
         init35,
-        init117,
+        init118,
         init33,
         init21,
-        init48,
+        init49,
         init2,
         init29,
-        init128,
-        init122,
+        init129,
+        init123,
         init23,
         initializeModernIcons,
         init37,
@@ -166720,20 +166885,21 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init42,
         init43,
         init44,
-        init46,
+        init45,
         init47,
-        init138,
+        init48,
+        init139,
         initNotificationCenter
       ]
     },
     // pretty much just the 40% method
     {
       paths: ["/catalog", "/bundles", "/game-pass", "/games"],
-      features: [init3, init59, init101]
+      features: [init3, init60, init102]
     },
     {
       paths: ["/developer-product/"],
-      features: [init59, init78]
+      features: [init60, init79]
     },
     // Game pass viewer for 404 pages
     {
@@ -166744,73 +166910,73 @@ ${locale4.suggestOnDiscord}`), subtitle;
     {
       paths: ["/catalog", "/bundles"],
       features: [
-        init54,
-        init53,
         init55,
-        init57,
+        init54,
+        init56,
         init58,
-        init60,
+        init59,
         init61,
         init62,
         init63,
-        init142
+        init64,
+        init143
       ]
     },
     // Avatar pages
     {
       paths: ["/looks"],
-      features: [init62]
+      features: [init63]
     },
     // Group pages
     {
       paths: ["/communities/"],
       features: [
-        init91,
         init92,
         init93,
         init94,
-        init96,
+        init95,
         init97,
-        init62
+        init98,
+        init63
       ]
     },
     // Communities list page (My Communities) — matches /communities and /communities/...
     {
       paths: ["/communities"],
-      features: [init95]
+      features: [init96]
     },
     // Game pages
     {
       paths: ["/games/"],
       features: [
-        init77,
+        init78,
         init20,
         initServerIdExtraction,
-        init64,
-        init70,
+        init65,
         init71,
-        init74,
-        init73,
+        init72,
         init75,
+        init74,
+        init76,
         initRecentServers,
-        init69,
-        init79,
-        init109,
-        init142,
-        init81
+        init70,
+        init80,
+        init110,
+        init143,
+        init82
       ]
     },
     // private games and game pages
     {
       paths: ["/games/", "/private-games"],
       features: [
-        init76,
-        init72,
-        init80,
+        init77,
+        init73,
+        init81,
         init22,
-        init66,
         init67,
-        init68
+        init68,
+        init69
       ]
     },
     // Private games page and unavailable game redirects
@@ -166822,72 +166988,76 @@ ${locale4.suggestOnDiscord}`), subtitle;
     {
       paths: ["/my/avatar"],
       features: [
-        init49,
         init50,
         init51,
-        init52
+        init52,
+        init53
       ]
     },
     // Roblox Plus Page
     {
       paths: ["/plus"],
-      features: [init98, init99]
+      features: [init99, init100]
     },
     // User profile pages
     {
       paths: ["/users/"],
       features: [
-        init101,
-        init127,
-        init100,
         init102,
+        init128,
+        init101,
         init103,
         init104,
-        init106,
-        init113,
+        init105,
+        init107,
         init114,
         init115,
         init116,
-        init123,
+        init117,
         init124,
         init125,
-        init118,
-        init120,
-        init121,
-        init119,
-        init122,
-        init108,
-        init129,
-        init107,
         init126,
-        init131,
+        init119,
+        init121,
+        init122,
+        init120,
+        init123,
+        init109,
+        init130,
+        init108,
+        init127,
         init132,
+        init133,
         initProfileButton
       ]
     },
     {
       paths: ["/users/", "/banned-users/"],
-      features: [init111, init105, init130]
+      features: [init112, init106, init131]
+    },
+    {
+      paths: ["/deleted-users/"],
+      features: [init131]
     },
     // Transactions page
     {
       paths: ["/transactions"],
-      features: [init82, init83, init84]
+      features: [init83, init84, init85]
     },
     {
       paths: ["/upgrades/paymentmethods"],
-      features: [init45]
+      features: [init46]
     },
     // Trading
     {
       paths: ["/trades", "/trade", "/users"],
       features: [
-        init85,
         init86,
         init87,
         init88,
         init89,
-        init90
+        init90,
+        init91
       ]
     },
     // API Docs
@@ -166903,20 +167073,20 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init141]
+      features: [init142]
     },
     {
       paths: ["/home"],
       features: [
+        init138,
+        init140,
         init137,
-        init139,
-        init136,
-        init140
+        init141
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init134, init135]
+      features: [init135, init136]
     },
     // Scam prevention
     {
@@ -166971,11 +167141,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init143) => {
-        if (!featuresRunThisPass.has(init143) && !(route.once && initializedPersistentFeatures.has(init143))) {
-          featuresRunThisPass.add(init143), route.once && initializedPersistentFeatures.add(init143);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init144) => {
+        if (!featuresRunThisPass.has(init144) && !(route.once && initializedPersistentFeatures.has(init144))) {
+          featuresRunThisPass.add(init144), route.once && initializedPersistentFeatures.add(init144);
           try {
-            init143();
+            init144();
           } catch (error2) {
             console.error("RoValra: Feature init failed", error2);
           }
