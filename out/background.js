@@ -1362,6 +1362,16 @@
           ],
           type: "checkbox",
           default: !0
+        },
+        groupPendingFundsEnabled: {
+          label: "Pending Community Funds",
+          description: [
+            "Shows a community's pending Robux in the funds section of its info dialog.",
+            "If funds are showing publicly."
+          ],
+          type: "checkbox",
+          default: !0,
+          contributors: ["587159802"]
         }
       }
     },

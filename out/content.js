@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init144 = {
+          let init145 = {
             ...params,
             headers
           };
-          return this.onSite && (init144.credentials = "include"), (this._fetchFn ?? fetch)(url, init144);
+          return this.onSite && (init145.credentials = "include"), (this._fetchFn ?? fetch)(url, init145);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init144 } = response2;
-              resolve(new Response(body2, init144));
+              let { body: body2, ...init145 } = response2;
+              resolve(new Response(body2, init145));
             }
           );
         });
@@ -3541,6 +3541,16 @@ Never used outside your local device.`;
               ],
               type: "checkbox",
               default: !0
+            },
+            groupPendingFundsEnabled: {
+              label: "Pending Community Funds",
+              description: [
+                "Shows a community's pending Robux in the funds section of its info dialog.",
+                "If funds are showing publicly."
+              ],
+              type: "checkbox",
+              default: !0,
+              contributors: ["587159802"]
             }
           }
         },
@@ -13602,32 +13612,35 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
   function setPixelStyle(element, name2, value2) {
     element.style[name2] = `${value2}px`;
   }
-  function getHomeHeaderAvatarLink(container) {
-    return container.closest(
-      "#roseal-home-header a.user-avatar-container.avatar.avatar-headshot"
-    );
+  function isInlineContainer(container) {
+    let tagName = container.tagName;
+    return tagName === "SPAN" || tagName === "A";
   }
-  function getBorderHost(container) {
-    return getHomeHeaderAvatarLink(container) || container;
-  }
-  function getBorderElements(container) {
-    return getBorderHost(container).querySelectorAll(
-      ":scope > .rovalra-avatar-border"
-    );
+  function isBorderManagedChild(child) {
+    return child.nodeType === Node.ELEMENT_NODE && child.matches(`${BORDER_CHILD_SELECTOR}, ${OVERLAY_CHILD_SELECTOR}`);
   }
   function getOrCreateClip(container) {
-    return container.querySelector(":scope > .rovalra-avatar-border-clip");
+    let clip = container.querySelector(":scope > .rovalra-avatar-border-clip");
+    return clip || (clip = document.createElement(
+      isInlineContainer(container) ? "span" : "div"
+    ), clip.className = "rovalra-avatar-border-clip", container.prepend(clip), clip);
   }
   function syncBorderClipChildren(container) {
     let clip = getOrCreateClip(container);
+    for (let child of [...container.childNodes])
+      child === clip || isBorderManagedChild(child) || clip.appendChild(child);
     return syncBorderMetrics(container), clip;
   }
   function syncBorderMetrics(container) {
     let clip = container.querySelector(
       ":scope > .rovalra-avatar-border-clip"
-    ), host = getBorderHost(container), containerBox = getLocalLayoutBox(host === container ? container : host), clipBox = clip ? getLayoutBox(clip) : host === container ? containerBox : getLayoutBox(container);
+    );
+    if (!clip) return;
+    let containerBox = getLocalLayoutBox(container), clipBox = getLayoutBox(clip);
     if (!(!containerBox.width || !containerBox.height) && !(!clipBox.width || !clipBox.height))
-      for (let border of getBorderElements(container))
+      for (let border of container.querySelectorAll(
+        ":scope > .rovalra-avatar-border"
+      ))
         syncBorderImageMetrics(containerBox, clipBox, border);
   }
   function ensureStackingLayer(element, zIndex) {
@@ -13646,7 +13659,9 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     ), addOverlays(container.parentElement), overlays;
   }
   function syncOverlayStacking(container) {
-    for (let border of getBorderElements(container))
+    for (let border of container.querySelectorAll(
+      ":scope > .rovalra-avatar-border"
+    ))
       border.style.zIndex = BORDER_Z_INDEX;
     for (let overlay of getRelatedOverlayElements(container))
       ensureStackingLayer(overlay, OVERLAY_Z_INDEX);
@@ -13716,26 +13731,30 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     };
   }
   function ensureBorderContainerLayout(container) {
-    window.getComputedStyle(container).display === "inline" && (container.style.display = "inline-block"), container.style.position = "relative", container.style.overflow = getHomeHeaderAvatarLink(container) ? "hidden" : "visible";
-    let host = getHomeHeaderAvatarLink(container);
-    host && (host.style.position = "relative", host.style.overflow = "visible");
+    window.getComputedStyle(container).display === "inline" && (container.style.display = "inline-block"), container.style.position = "relative", container.style.overflow = "visible";
   }
   function removeBorderFromContainer(container) {
     if (!container) return;
     delete container.dataset.rovalraBorderLoading, delete container.dataset.rovalraIntendedBorder;
-    for (let border of getBorderElements(container))
+    for (let border of container.querySelectorAll(
+      ":scope > .rovalra-avatar-border"
+    ))
       border.remove();
     let clip = container.querySelector(
       ":scope > .rovalra-avatar-border-clip"
     );
-    clip && clip.replaceWith(...Array.from(clip.childNodes));
+    if (clip) {
+      for (; clip.firstChild; )
+        container.insertBefore(clip.firstChild, clip);
+      clip.remove();
+    }
   }
   function ensureBorderStructure(container) {
     ensureBorderContainerLayout(container);
     let clip = syncBorderClipChildren(container);
     return syncOverlayStacking(container), container.dataset.rovalraBorderClipObserver || (container.dataset.rovalraBorderClipObserver = "true", observeChildren(container, () => {
       syncBorderClipChildren(container), syncOverlayStacking(container);
-    }), observeResize(container, () => syncBorderMetrics(container)), clip && observeResize(clip, () => syncBorderMetrics(container))), clip;
+    }), observeResize(container, () => syncBorderMetrics(container)), observeResize(clip, () => syncBorderMetrics(container))), clip;
   }
   async function applyBorderToContainer(container, borderUrl, alwaysPlay = !1) {
     if (!borderUrl) return;
@@ -13757,7 +13776,9 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         }
         if (isConfigured) break;
       }
-    let existingBorders = [...getBorderElements(container)];
+    let existingBorders = [
+      ...container.querySelectorAll(":scope > .rovalra-avatar-border")
+    ];
     if (existingBorders.length > 0 && container.dataset.rovalraIntendedBorder !== borderUrl)
       removeBorderFromContainer(container);
     else if (existingBorders.length > 0) {
@@ -13775,21 +13796,29 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     container.dataset.rovalraBorderLoading = "true", container.dataset.rovalraIntendedBorder = borderUrl;
     let img = document.createElement("img");
     img.className = "rovalra-avatar-border", img.crossOrigin = "anonymous", img.onload = async () => {
-      if (delete container.dataset.rovalraBorderLoading, !(container.querySelector(".rovalra-avatar-border") || container.dataset.rovalraIntendedBorder !== borderUrl))
-        if (img.decode && await img.decode().catch(() => {
-        }), await getBorderContentBounds(img), ensureBorderStructure(container), syncOverlayStacking(container), alwaysPlay || !animatedLink || animatedLink === staticLink)
-          getBorderHost(container).appendChild(img), syncBorderMetrics(container), syncOverlayStacking(container);
-        else {
-          let animImg = document.createElement("img");
-          animImg.className = "rovalra-avatar-border", animImg.crossOrigin = "anonymous", animImg.style.display = "none", animImg.onload = async () => {
-            animImg.decode && await animImg.decode().catch(() => {
-            }), await getBorderContentBounds(animImg), syncBorderMetrics(container);
-          }, getBorderHost(container).appendChild(img), getBorderHost(container).appendChild(animImg), syncBorderMetrics(container), syncOverlayStacking(container), container.addEventListener("mouseenter", () => {
-            img.style.display = "none", animImg.style.display = "block", startAnimatedBorder(animImg, animatedLink), syncOverlayStacking(container);
-          }), container.addEventListener("mouseleave", () => {
-            img.style.display = "block", animImg.style.display = "none", stopAnimatedBorder(animImg), syncOverlayStacking(container);
-          });
-        }
+      if (delete container.dataset.rovalraBorderLoading, container.querySelector(".rovalra-avatar-border") || container.dataset.rovalraIntendedBorder !== borderUrl)
+        return;
+      img.decode && await img.decode().catch(() => {
+      }), await getBorderContentBounds(img);
+      let overlays = [];
+      for (let child of container.children)
+        child.matches(OVERLAY_CHILD_SELECTOR) && overlays.push(child);
+      ensureBorderStructure(container);
+      for (let overlay of overlays)
+        container.appendChild(overlay);
+      if (syncOverlayStacking(container), alwaysPlay || !animatedLink || animatedLink === staticLink)
+        container.appendChild(img), syncBorderMetrics(container), syncOverlayStacking(container);
+      else {
+        let animImg = document.createElement("img");
+        animImg.className = "rovalra-avatar-border", animImg.crossOrigin = "anonymous", animImg.style.display = "none", animImg.onload = async () => {
+          animImg.decode && await animImg.decode().catch(() => {
+          }), await getBorderContentBounds(animImg), syncBorderMetrics(container);
+        }, container.appendChild(img), container.appendChild(animImg), syncBorderMetrics(container), syncOverlayStacking(container), container.addEventListener("mouseenter", () => {
+          img.style.display = "none", animImg.style.display = "block", startAnimatedBorder(animImg, animatedLink), syncOverlayStacking(container);
+        }), container.addEventListener("mouseleave", () => {
+          img.style.display = "block", animImg.style.display = "none", stopAnimatedBorder(animImg), syncOverlayStacking(container);
+        });
+      }
     }, img.onerror = () => {
       delete container.dataset.rovalraBorderLoading;
     }, img.src = alwaysPlay && animatedLink ? animatedLink : staticLink;
@@ -13848,7 +13877,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       console.error("RoValra: Avatar border init failed", error2);
     }
   }
-  var OVERLAY_CHILD_SELECTOR, BORDER_SCALE, BORDER_Z_INDEX, OVERLAY_Z_INDEX, MAX_ALPHA_CENTER_CORRECTION, borderContentBoundsCache, init_avatarBorder = __esm({
+  var BORDER_CHILD_SELECTOR, OVERLAY_CHILD_SELECTOR, BORDER_SCALE, BORDER_Z_INDEX, OVERLAY_Z_INDEX, MAX_ALPHA_CENTER_CORRECTION, borderContentBoundsCache, init_avatarBorder = __esm({
     "src/content/features/profile/avatarBorder.js"() {
       init_observer();
       init_idExtractor();
@@ -13856,11 +13885,10 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       init_settingHandler();
       init_borders();
       init_userCardElements();
-      OVERLAY_CHILD_SELECTOR = ".rovalra-status-bubble-wrapper, .avatar-status, .avatar-card-label, .icon-label", BORDER_SCALE = 1.24, BORDER_Z_INDEX = "2", OVERLAY_Z_INDEX = "4", MAX_ALPHA_CENTER_CORRECTION = 0.04, borderContentBoundsCache = /* @__PURE__ */ new Map();
+      BORDER_CHILD_SELECTOR = ".rovalra-avatar-border, .rovalra-avatar-border-clip", OVERLAY_CHILD_SELECTOR = ".rovalra-status-bubble-wrapper, .avatar-status, .avatar-card-label, .icon-label", BORDER_SCALE = 1.24, BORDER_Z_INDEX = "2", OVERLAY_Z_INDEX = "4", MAX_ALPHA_CENTER_CORRECTION = 0.04, borderContentBoundsCache = /* @__PURE__ */ new Map();
       __name(setPixelStyle, "setPixelStyle");
-      __name(getHomeHeaderAvatarLink, "getHomeHeaderAvatarLink");
-      __name(getBorderHost, "getBorderHost");
-      __name(getBorderElements, "getBorderElements");
+      __name(isInlineContainer, "isInlineContainer");
+      __name(isBorderManagedChild, "isBorderManagedChild");
       __name(getOrCreateClip, "getOrCreateClip");
       __name(syncBorderClipChildren, "syncBorderClipChildren");
       __name(syncBorderMetrics, "syncBorderMetrics");
@@ -17517,7 +17545,16 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         );
       }), "loadSettings"), enforceSettingOverrides = /* @__PURE__ */ __name(async () => {
         try {
-          let settings2 = await loadSettings(), data = await chrome.storage.local.get([
+          let settings2 = await loadSettings(), settingNames = [];
+          for (let category of Object.values(SETTINGS_CONFIG))
+            for (let [settingName, config] of Object.entries(
+              category.settings
+            ))
+              settingNames.push(settingName), config.childSettings && settingNames.push(...Object.keys(config.childSettings));
+          let storedSettings = await chrome.storage.local.get([
+            ...settingNames,
+            "rovalra_settings"
+          ]), bundledSettings = storedSettings.rovalra_settings || {}, getStoredSetting = /* @__PURE__ */ __name((name2) => Object.prototype.hasOwnProperty.call(storedSettings, name2) ? storedSettings[name2] : bundledSettings[name2], "getStoredSetting"), data = await chrome.storage.local.get([
             "profile3DRenderForceDisabled"
           ]), userTier = currentUserTier, overrides = {};
           data.profile3DRenderForceDisabled === !0 && !settings2.profile3DRenderBypassCheck && settings2.profile3DRenderEnabled === !0 && (overrides.profile3DRenderEnabled = !1);
@@ -17526,7 +17563,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
               category.settings
             )) {
               let processSetting = /* @__PURE__ */ __name((name2, conf) => {
-                conf.donatorTier && userTier < conf.donatorTier && settings2[name2] === !0 && (overrides[name2] = !1), conf.locked && settings2[name2] === !0 && (overrides[name2] = !1);
+                conf.donatorTier && userTier < conf.donatorTier && settings2[name2] === !0 && (overrides[name2] = !1), (conf.locked || conf.deprecated) && getStoredSetting(name2) === !0 && (overrides[name2] = !1);
               }, "processSetting");
               if (processSetting(settingName, config), config.childSettings)
                 for (let [childName, childConfig] of Object.entries(
@@ -58437,7 +58474,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init144 = /* @__PURE__ */ __name(() => {
+      let init145 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58463,7 +58500,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init144() : window.addEventListener("load", init144, { once: !0 });
+      document.readyState === "complete" ? init145() : window.addEventListener("load", init145, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -59920,16 +59957,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init144) {
-    return init144?.body !== void 0 ? init144.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init145) {
+    return init145?.body !== void 0 ? init145.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init144 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init144.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init144.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init145 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init145.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init145.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -59937,8 +59974,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init144),
-      credentials: init144.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init145),
+      credentials: init145.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -59947,9 +59984,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init144 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init144.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init144) : await originalFetch(input, init144);
+    window.fetch = async (input, init145 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init145.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init145) : await originalFetch(input, init145);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62105,7 +62142,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init144 = /* @__PURE__ */ __name(() => {
+    let init145 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62122,7 +62159,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init144() : window.addEventListener("load", init144, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init145() : window.addEventListener("load", init145, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -85370,10 +85407,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init144() {
+    function init145() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init144, "init");
+    __name(init145, "init");
     function getNextRenderItem(object, geometry, material, groupOrder, z2, group) {
       let renderItem = renderItems2[renderItemsIndex];
       return renderItem === void 0 ? (renderItem = {
@@ -85413,7 +85450,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init144,
+      init: init145,
       push,
       unshift,
       finish,
@@ -85658,10 +85695,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [];
-    function init144(camera) {
+    function init145(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0;
     }
-    __name(init144, "init");
+    __name(init145, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -85686,7 +85723,7 @@ Program Info Log: ` + programLog + `
       transmissionRenderTarget: {}
     };
     return {
-      init: init144,
+      init: init145,
       state: state4,
       setupLights,
       setupLightsView,
@@ -107582,9 +107619,25 @@ Bundled Items:
     }), await renderNavbarTotal();
   }
   __name(syncSettingsAndRender, "syncSettingsAndRender");
+  var PENDING_ROW_STYLE_ID = "rovalra-group-funds-pending-row-style";
+  function injectPendingRowStyle() {
+    if (document.getElementById(PENDING_ROW_STYLE_ID)) return;
+    let style = document.createElement("style");
+    style.id = PENDING_ROW_STYLE_ID, style.textContent = `
+        .rovalra-funds-pending-row,
+        .rovalra-funds-pending-row:hover {
+            cursor: default !important;
+            background: transparent !important;
+        }
+        .rovalra-funds-pending-row * {
+            cursor: default !important;
+        }
+    `, (document.head || document.documentElement).appendChild(style);
+  }
+  __name(injectPendingRowStyle, "injectPendingRowStyle");
   function init32() {
     if (state.initialized) return;
-    state.initialized = !0;
+    state.initialized = !0, injectPendingRowStyle();
     let renderSection = /* @__PURE__ */ __name((popover) => {
       let menu = popover.querySelector(".dropdown-menu");
       if (!menu) return;
@@ -107608,8 +107661,10 @@ Bundled Items:
         iconContainer.style.width = "28px", iconContainer.style.height = "28px", iconContainer.style.marginRight = "8px", iconContainer.style.display = "inline-block", leftContainer.appendChild(iconContainer), fundsLink.appendChild(leftContainer);
         let amountSpan = document.createElement("span");
         fundsLink.appendChild(amountSpan), fundsLi.appendChild(fundsLink), section.appendChild(fundsLi);
-        let pendingLi = document.createElement("li"), pendingLink = document.createElement("a");
-        pendingLink.className = "rbx-menu-item", pendingLink.style.paddingTop = "0", pendingLink.style.paddingBottom = "5px", pendingLink.style.fontSize = "12px", pendingLink.style.color = "gray", pendingLink.style.textAlign = "right", pendingLink.style.pointerEvents = "none", pendingLink.textContent = "", pendingLi.appendChild(pendingLink), section.appendChild(pendingLi);
+        let pendingLi = document.createElement("li");
+        pendingLi.className = "rovalra-funds-pending-row";
+        let pendingLink = document.createElement("a");
+        pendingLink.className = "rbx-menu-item", pendingLink.style.paddingTop = "0", pendingLink.style.paddingBottom = "5px", pendingLink.style.fontSize = "12px", pendingLink.style.color = "gray", pendingLink.style.textAlign = "right", pendingLink.style.cursor = "default", pendingLink.textContent = "", pendingLi.appendChild(pendingLink), section.appendChild(pendingLi);
         let renderIcon = /* @__PURE__ */ __name((data) => {
           if (data) {
             let img = createThumbnailElement(data, "Group", "", {
@@ -107623,9 +107678,7 @@ Bundled Items:
           amountSpan.innerHTML = "";
           let rbxIcon = document.createElement("span");
           rbxIcon.className = "icon-robux-16x16", rbxIcon.style.verticalAlign = "text-bottom", rbxIcon.style.marginRight = "3px";
-          let text2 = document.createTextNode(
-            amount.toLocaleString()
-          );
+          let text2 = document.createTextNode(amount.toLocaleString());
           amountSpan.appendChild(rbxIcon), amountSpan.appendChild(text2);
         }, "renderFunds"), renderPending = /* @__PURE__ */ __name((amount) => {
           pendingLink.innerHTML = "";
@@ -107633,9 +107686,7 @@ Bundled Items:
             ts2("groupFunds.pending") + " "
           ), icon = document.createElement("span");
           icon.className = "icon-robux-16x16", icon.style.verticalAlign = "text-bottom", icon.style.marginLeft = "3px", icon.style.marginRight = "2px", icon.style.filter = "grayscale(100%) opacity(0.6)";
-          let value2 = document.createTextNode(
-            amount.toLocaleString()
-          );
+          let value2 = document.createTextNode(amount.toLocaleString());
           pendingLink.append(label, icon, value2);
         }, "renderPending"), updateFromData = /* @__PURE__ */ __name((data) => {
           data.icon && renderIcon(data.icon), data.funds !== void 0 && renderFunds(data.funds), data.pending !== void 0 && renderPending(data.pending);
@@ -147327,6 +147378,79 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(init98, "init");
 
+  // src/content/features/groups/groupPendingFunds.js
+  init_observer();
+  init_idExtractor();
+  init_api();
+  init_i18n();
+  var PROCESSED_ATTR = "data-rovalra-pending-funds-processed", PENDING_ROW_CLASS = "rovalra-group-pending-funds", ROBUX_ICON_VIEWBOX = "0 0 28 28";
+  async function fetchPendingRobux(groupId) {
+    let data = await callRobloxApiJson({
+      subdomain: "apis",
+      endpoint: `/transaction-records/v1/groups/${groupId}/revenue/summary/day`
+    });
+    return Number(data?.pendingRobux) || 0;
+  }
+  __name(fetchPendingRobux, "fetchPendingRobux");
+  function findFundsSection(dialogBody) {
+    let headers = dialogBody.querySelectorAll(
+      ".group-description-dialog-body-header"
+    );
+    for (let header of Array.from(headers))
+      if ((header.textContent || "").trim().toLowerCase() === "funds") {
+        let section = header.parentElement;
+        if (section && section.querySelector(".group-description-dialog-body-content"))
+          return section;
+      }
+    let robuxIcon = dialogBody.querySelector(
+      `.group-description-dialog-body-content svg[viewBox="${ROBUX_ICON_VIEWBOX}"]`
+    );
+    return robuxIcon ? robuxIcon.closest(".group-description-dialog-body-content")?.parentElement : null;
+  }
+  __name(findFundsSection, "findFundsSection");
+  async function injectPendingFunds(dialogBody) {
+    let section = findFundsSection(dialogBody);
+    if (!section || section.hasAttribute(PROCESSED_ATTR) || section.querySelector(`.${PENDING_ROW_CLASS}`)) return;
+    let groupId = getGroupIdFromUrl();
+    if (!groupId) return;
+    section.setAttribute(PROCESSED_ATTR, "true");
+    let pendingRobux;
+    try {
+      pendingRobux = await fetchPendingRobux(groupId);
+    } catch {
+      section.removeAttribute(PROCESSED_ATTR);
+      return;
+    }
+    if (!document.body.contains(section)) return;
+    let content = section.querySelector(".group-description-dialog-body-content");
+    if (!content) return;
+    let sourceIcon = content.querySelector(
+      `svg[viewBox="${ROBUX_ICON_VIEWBOX}"]`
+    ), pendingRow = document.createElement("span");
+    pendingRow.className = `flex items-center gap-xsmall ${PENDING_ROW_CLASS}`, pendingRow.style.marginTop = "4px";
+    let label = document.createElement("span");
+    label.className = "text-body-medium content-default", label.textContent = await t2("groupFunds.pending"), pendingRow.appendChild(label), sourceIcon && pendingRow.appendChild(sourceIcon.cloneNode(!0));
+    let amount = document.createElement("span");
+    amount.className = "content-default", amount.textContent = pendingRobux.toLocaleString(), pendingRow.appendChild(amount), content.appendChild(pendingRow);
+  }
+  __name(injectPendingFunds, "injectPendingFunds");
+  function init99() {
+    chrome.storage.local.get(
+      { groupPendingFundsEnabled: !0 },
+      (settings2) => {
+        settings2.groupPendingFundsEnabled && observeElement(".group-description-dialog-body", (dialogBody) => {
+          injectPendingFunds(dialogBody).catch((error2) => {
+            console.warn(
+              "RoValra: Failed to inject group pending funds",
+              error2
+            );
+          });
+        });
+      }
+    );
+  }
+  __name(init99, "init");
+
   // src/content/features/plus/stats.js
   init_i18n();
   init_dompurify();
@@ -147491,7 +147615,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         </div>`, parent.appendChild(containerDiv), !0;
   }
   __name(makeHtml, "makeHtml");
-  function init99() {
+  function init100() {
     chrome.storage.local.get(
       {
         plusStatsEnabled: !0
@@ -147504,7 +147628,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init99, "init");
+  __name(init100, "init");
 
   // src/content/features/plus/transferLimits.js
   init_observer();
@@ -147890,7 +148014,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(attachTransferLimitListener, "attachTransferLimitListener");
-  async function init100() {
+  async function init101() {
     if (!await isFeatureEnabled()) {
       removeTransferLimits();
       return;
@@ -147903,7 +148027,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     });
   }
-  __name(init100, "init");
+  __name(init101, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_observer();
@@ -148183,7 +148307,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addUserRapDisplay, "addUserRapDisplay");
-  function init101() {
+  function init102() {
     chrome.storage.local.get({ userRapEnabled: !0 }, function(data) {
       data.userRapEnabled && observeElement(
         ".flex-nowrap.gap-small.flex, .profile-header-names",
@@ -148192,7 +148316,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init101, "init");
+  __name(init102, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_purify_es();
@@ -148450,7 +148574,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     targetContainer.appendChild(donationButton);
   }
   __name(addDonationButton, "addDonationButton");
-  function init102() {
+  function init103() {
     if (window.location.pathname.includes("/game-pass") && window.location.search.includes("RoValra-Auto-Buy")) {
       let runAutoBuy = /* @__PURE__ */ __name(() => {
         observeElement('button[data-button-action="buy"]', (btn) => {
@@ -148476,7 +148600,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init102, "init");
+  __name(init103, "init");
 
   // src/content/features/profile/header/instantjoiner.js
   init_observer();
@@ -148713,7 +148837,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_purify_es();
   init_idExtractor();
   init_i18n();
-  function init103() {
+  function init104() {
     chrome.storage.local.get(
       { userSniperEnabled: !1, deeplinkEnabled: !0 },
       function(settings2) {
@@ -148932,7 +149056,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init103, "init");
+  __name(init104, "init");
 
   // src/content/features/profile/outfits.js
   init_review();
@@ -148945,7 +149069,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_dompurify();
   init_overlay();
   init_i18n();
-  function init104() {
+  function init105() {
     chrome.storage.local.get("useroutfitsEnabled", function(data) {
       if (data.useroutfitsEnabled !== !0)
         return;
@@ -149543,7 +149667,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       });
     });
   }
-  __name(init104, "init");
+  __name(init105, "init");
 
   // src/content/features/profile/privateserver.js
   init_observer();
@@ -149874,7 +149998,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), selectAllButton.addEventListener("click", handleSelectAll), mainButtonInactive.addEventListener("click", () => handleBulkAction(!1)), mainButtonActive.addEventListener("click", () => handleBulkAction(!0)), updateButtonStates();
   }
   __name(handlePageUpdate, "handlePageUpdate");
-  function init105() {
+  function init106() {
     chrome.storage.local.get({ PrivateServerBulkEnabled: !0 }, (data) => {
       if (data.PrivateServerBulkEnabled === !0) {
         let wrapHistory = /* @__PURE__ */ __name((type) => {
@@ -149888,7 +150012,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     });
   }
-  __name(init105, "init");
+  __name(init106, "init");
 
   // src/content/features/profile/header/RoValraBadges.js
   init_observer();
@@ -150449,7 +150573,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addProfileBadgeButtons, "addProfileBadgeButtons");
-  function init106() {
+  function init107() {
     settings.robloxGroupFeaturesEnabled.then((enabled2) => {
       document.dispatchEvent(
         new CustomEvent("rovalra:settingsState", {
@@ -150495,7 +150619,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init106, "init");
+  __name(init107, "init");
 
   // src/content/features/profile/hiddengames.js
   init_observer();
@@ -150805,7 +150929,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(getUserId, "getUserId");
   var isInitialized9 = !1;
-  function init107() {
+  function init108() {
     chrome.storage.local.get(["userGamesEnabled"], (result) => {
       if (result.userGamesEnabled !== !0 || isInitialized9) return;
       isInitialized9 = !0;
@@ -150839,7 +150963,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       window.addEventListener("hashchange", checkEmptyState), observeElement(".profile-tab-content", checkEmptyState);
     });
   }
-  __name(init107, "init");
+  __name(init108, "init");
 
   // src/content/features/profile/grouprole.js
   init_api();
@@ -150917,7 +151041,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return joinDatePromises.delete(groupId), result;
   }
   __name(getJoinDate, "getJoinDate");
-  function init108() {
+  function init109() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get({ groupFiltersEnabled: !0 }, (settings2) => {
       settings2.groupFiltersEnabled && observeElement(
@@ -151040,7 +151164,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init108, "init");
+  __name(init109, "init");
 
   // src/content/features/profile/grouprole.js
   init_i18n();
@@ -151061,7 +151185,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     })()), rolesPromise;
   }
   __name(getGroupRoles, "getGroupRoles");
-  function init109() {
+  function init110() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get(
       { groupRoleEnabled: !0, groupJoinedDateEnabled: !0 },
@@ -151142,7 +151266,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init109, "init");
+  __name(init110, "init");
 
   // src/content/features/games/plusPrivateServerTooltip.js
   init_observer();
@@ -151153,7 +151277,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_assets();
   init_i18n();
   init_games();
-  async function init110() {
+  async function init111() {
     chrome.storage.local.get(
       { PlusPrivateServerTooltipEnabled: !0 },
       async (settings2) => {
@@ -151240,7 +151364,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init110, "init");
+  __name(init111, "init");
 
   // src/content/features/sitewide/PreviousPrice.js
   init_observer();
@@ -151272,7 +151396,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addPriceIconToCard, "addPriceIconToCard");
-  function init111() {
+  function init112() {
     chrome.storage.local.get("PreviousPriceEnabled", (result) => {
       result.PreviousPriceEnabled === !0 && (listenersAttached || (listenersAttached = !0, observeElement(
         "#offsale-since-date",
@@ -151386,7 +151510,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       )));
     });
   }
-  __name(init111, "init");
+  __name(init112, "init");
   function handleItemCard(card) {
     if (!card.isConnected) return;
     let link = card.querySelector(".item-card-link") || card.querySelector(".rovalra-item-card-link");
@@ -151938,7 +152062,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     !card || card.parentElement === targetGrid || (targetGrid.appendChild(card), syncDiscoveredCategories(), refreshPillToggle());
   }
   __name(moveAssetCardToCategory, "moveAssetCardToCategory");
-  async function init112() {
+  async function init113() {
     let result = await new Promise(
       (resolve) => chrome.storage.local.get(
         [
@@ -152028,7 +152152,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       content && loadCurrentlyWearing(content);
     });
   }
-  __name(init112, "init");
+  __name(init113, "init");
 
   // src/content/features/profile/bannedusers.js
   init_api();
@@ -152135,7 +152259,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/profile/bannedusers.js
   init_i18n();
-  function init113() {
+  function init114() {
     chrome.storage.local.get(
       {
         bannedUserViewerEnabled: !1,
@@ -152277,7 +152401,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init113, "init");
+  __name(init114, "init");
   async function renderBannedUserProfile(user, settings2) {
     let content = document.getElementById("content");
     if (!content) return;
@@ -153078,7 +153202,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(addTrustedFriendButton, "addTrustedFriendButton");
-  function init114() {
+  function init115() {
     chrome.storage.local.get(
       { trustedConnectionsEnabledv2: !0 },
       async (settings2) => {
@@ -153089,7 +153213,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init114, "init");
+  __name(init115, "init");
 
   // src/content/features/profile/header/ProfileRender.js
   init_observer();
@@ -154502,7 +154626,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     profileRenderObserversSetup && (removeRoblox3dObserver?.disconnect(), renderContainerObserver?.disconnect(), autoSwitchObserver?.disconnect(), removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, profileRenderObserversSetup = !1, removeStylesheet("rovalra-thumbnail-holder-css"));
   }
   __name(teardownProfileRenderObservers, "teardownProfileRenderObservers");
-  function init115() {
+  function init116() {
     migrateLegacyEnvironment();
     let userId = getUserIdFromUrl();
     if (!userId) {
@@ -154525,7 +154649,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init115, "init");
+  __name(init116, "init");
 
   // src/content/features/profile/testTab.js
   init_observer();
@@ -154591,10 +154715,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     contentPane.textContent = "test";
   }
   __name(addTestTab, "addTestTab");
-  async function init116() {
+  async function init117() {
     await settings.profileTestTabEnabled && observeElement(".profile-tabs", addTestTab, { multiple: !0 });
   }
-  __name(init116, "init");
+  __name(init117, "init");
 
   // src/content/features/profile/showcase.js
   init_observer();
@@ -155142,7 +155266,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), closeGroupDropdown = /* @__PURE__ */ __name(() => groupDropdown.toggleVisibility(!1), "closeGroupDropdown");
   }
   __name(addShowcaseTab, "addShowcaseTab");
-  async function init117() {
+  async function init118() {
     await settings.profileShowcaseEnabled && observeElement(
       ".profile-tabs",
       (tabs) => addShowcaseTab(tabs).catch((error2) => {
@@ -155154,7 +155278,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init117, "init");
+  __name(init118, "init");
 
   // src/content/features/profile/header/status.js
   init_observer();
@@ -155456,7 +155580,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(addHomeStatusHover, "addHomeStatusHover");
-  async function init118() {
+  async function init119() {
     if (!await settings.statusBubbleEnabled) return;
     migrateLegacyStatus(), startObserving(), injectStylesheet("css/thinkingbubble.css", "rovalra-profile-status-css"), observeElement(".user-profile-header-details-avatar-container:not(.rovalra-sendrobux-avatar)", (el2) => addStatusBubble(el2), {
       multiple: !0
@@ -155464,7 +155588,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       exclude: [".rovalra-donator-card", ".user-item-clickable", ".rovalra-sendrobux-profile"]
     }));
   }
-  __name(init118, "init");
+  __name(init119, "init");
 
   // src/content/features/profile/header/lastplayed.js
   init_friendslist();
@@ -155571,14 +155695,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initLastPlayed, "initLastPlayed");
-  function init119() {
+  function init120() {
     chrome.storage.local.get({ lastOnlineEnabled: !0 }, (data) => {
       data.lastOnlineEnabled && initLastOnline();
     }), chrome.storage.local.get({ lastPlayedTogetherEnabled: !0 }, (data) => {
       data.lastPlayedTogetherEnabled && initLastPlayed();
     });
   }
-  __name(init119, "init");
+  __name(init120, "init");
 
   // src/content/features/profile/header/profileViews.js
   init_idExtractor();
@@ -155662,10 +155786,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initProfileViews, "initProfileViews");
-  function init120() {
+  function init121() {
     initProfileViews();
   }
-  __name(init120, "init");
+  __name(init121, "init");
 
   // src/content/features/profile/header/pronouns.js
   init_idExtractor();
@@ -155777,10 +155901,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(initProfilePronouns, "initProfilePronouns");
-  function init121() {
+  function init122() {
     initProfilePronouns();
   }
-  __name(init121, "init");
+  __name(init122, "init");
 
   // src/content/features/profile/header/profileNotes.js
   init_idExtractor();
@@ -155985,10 +156109,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(startStorageListener, "startStorageListener");
-  function init122() {
+  function init123() {
     startStorageListener(), initProfileNotes();
   }
-  __name(init122, "init");
+  __name(init123, "init");
 
   // src/content/features/profile/header/currentlyPlayingSubplace.js
   init_idExtractor();
@@ -157013,7 +157137,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), scheduleProfileScans());
   }
   __name(registerProfileFallbackSubplaces, "registerProfileFallbackSubplaces");
-  async function init123() {
+  async function init124() {
     if (!await settings.currentlyPlayingSubplaceEnabled) {
       cleanupHomeSubplaceCards(), cleanupProfileSubplaceCards();
       return;
@@ -157031,7 +157155,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     }), await scheduleProfileScans();
   }
-  __name(init123, "init");
+  __name(init124, "init");
 
   // src/content/features/profile/header/idVerificationBadge.js
   init_api();
@@ -157137,7 +157261,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     userId && initProfileAboutDialogObserver(userId);
   }
   __name(run, "run");
-  function init124() {
+  function init125() {
     if (watcherSet) return;
     watcherSet = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -157145,7 +157269,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run();
   }
-  __name(init124, "init");
+  __name(init125, "init");
 
   // src/content/features/profile/friends/friendsSince.js
   init_idExtractor();
@@ -157357,7 +157481,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(run2, "run");
-  async function init125() {
+  async function init126() {
     if (watcherSet2) return;
     watcherSet2 = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -157365,7 +157489,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run2();
   }
-  __name(init125, "init");
+  __name(init126, "init");
 
   // src/content/features/profile/friends/unfriend.js
   init_observer();
@@ -157665,7 +157789,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initializeIfOnFriendsPage, "initializeIfOnFriendsPage");
-  async function init126() {
+  async function init127() {
     if (!(await chrome.storage.local.get("bulkUnfriendEnabled")).bulkUnfriendEnabled)
       return;
     let handlePageChange = /* @__PURE__ */ __name(async () => {
@@ -157686,7 +157810,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !1 }
     ), window.addEventListener("popstate", handlePageChange);
   }
-  __name(init126, "init");
+  __name(init127, "init");
 
   // src/content/features/profile/header/avatarDownload.js
   init_observer();
@@ -157796,12 +157920,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     button.classList.replace("text-label-medium", "text-label-large"), button.classList.add(buttonIdentifier), toggleContainer.style.display = "flex", toggleContainer.style.gap = "10px", toggleContainer.prepend(button);
   }
   __name(addDownloadButton, "addDownloadButton");
-  async function init127() {
+  async function init128() {
     await settings.avatarDownloadEnabled && observeElement(".avatar-toggle-button", addDownloadButton, {
       multiple: !0
     });
   }
-  __name(init127, "init");
+  __name(init128, "init");
 
   // src/content/index.js
   init_avatarBorder();
@@ -157810,7 +157934,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_observer();
   init_handlesettings();
   var PROFILE_AVATAR_SELECTOR = ".user-profile-header-details-avatar-container .avatar.avatar-card-fullbody", AVATAR_CLASS = "rovalra-improved-avatar-card";
-  async function init128() {
+  async function init129() {
     try {
       if (!(await loadSettings()).improvedAvatarCard) return;
       observeElement(
@@ -157822,7 +157946,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       console.error("RoValra: Improved avatar card init failed", error2);
     }
   }
-  __name(init128, "init");
+  __name(init129, "init");
 
   // src/content/core/catalog/purchasePromptItemId.js
   init_observer();
@@ -158097,7 +158221,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "tryProcess");
     tryProcess();
   }, "attachItemDataToPurchasePrompt");
-  function init129() {
+  function init130() {
     observeElement(
       ".modal-dialog .modal-content, .modal-content, .unified-purchase-dialog-content",
       (element) => {
@@ -158164,7 +158288,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       "color: #FF4500;"
     );
   }
-  __name(init129, "init");
+  __name(init130, "init");
 
   // src/content/features/profile/currencytransfer.js
   init_api();
@@ -158246,14 +158370,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     menuItems.length > 0 ? menuItems[0].insertAdjacentElement("afterend", button) : container.appendChild(button);
   }
   __name(addCurrencyTransferButton, "addCurrencyTransferButton");
-  function init130() {
+  function init131() {
     chrome.storage.local.get({ currencyTransferEnabled: !0 }, (settings2) => {
       settings2.currencyTransferEnabled && registerProfileContextMenuAction(addCurrencyTransferButton, () => {
         getCurrencyTransferStatus();
       });
     });
   }
-  __name(init130, "init");
+  __name(init131, "init");
 
   // src/content/features/profile/header/usernameColor.js
   init_observer();
@@ -158290,7 +158414,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     el2 && (el2.style.color = colors[value2]);
   }
   __name(addUsernameColor, "addUsernameColor");
-  async function init131() {
+  async function init132() {
     await settings.usernameColor && observeElement(
       ".stylistic-alts-username, .deleted-user-container .user-name",
       (el2) => {
@@ -158304,7 +158428,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init131, "init");
+  __name(init132, "init");
 
   // src/content/features/profile/header/chatEligibilityTooltip.js
   init_idExtractor();
@@ -158396,12 +158520,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(processPotentialChatOverlay, "processPotentialChatOverlay");
-  async function init132() {
+  async function init133() {
     observerRegistered2 || !getUserIdFromUrl() || !await settings.chatEligibilityTooltipEnabled || (observerRegistered2 = !0, observeElement(PRESENTATION_SELECTOR, processPotentialChatOverlay, {
       multiple: !0
     }));
   }
-  __name(init132, "init");
+  __name(init133, "init");
 
   // src/content/features/profile/profileCustomization.js
   init_api();
@@ -158907,10 +159031,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )));
   }
   __name(initProfileCustomization, "initProfileCustomization");
-  function init133() {
+  function init134() {
     initProfileCustomization();
   }
-  __name(init133, "init");
+  __name(init134, "init");
 
   // src/content/features/settings/index.js
   init_assets();
@@ -162339,10 +162463,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init134() {
+  function init135() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init134, "init");
+  __name(init135, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -162539,7 +162663,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init135() {
+  function init136() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -162551,7 +162675,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init135, "init");
+  __name(init136, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -162609,7 +162733,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init136() {
+  async function init137() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -162620,7 +162744,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init136, "init");
+  __name(init137, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -162912,7 +163036,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init137() {
+  async function init138() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
@@ -162923,7 +163047,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init137, "init");
+  __name(init138, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -163507,7 +163631,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init138() {
+  async function init139() {
     if (!initialized17) {
       if (await settings.homeLayoutEnabled === !1) {
         initialized17 = !0, publishHomeLayoutState([], []);
@@ -163546,7 +163670,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init138, "init");
+  __name(init139, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
@@ -163627,14 +163751,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init139() {
+  function init140() {
     initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error2) => console.error("RoValra: Failed to open custom background settings.", error2)
       );
     }));
   }
-  __name(init139, "init");
+  __name(init140, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -163913,7 +164037,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init140() {
+  async function init141() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -163928,7 +164052,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error2);
     }));
   }
-  __name(init140, "init");
+  __name(init141, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
@@ -163983,14 +164107,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init141() {
+  async function init142() {
     if (registerStorageListener(), enabled = await settings.HideAddFriendsButton === !0, !enabled) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init141, "init");
+  __name(init142, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -164270,7 +164394,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init142() {
+  function init143() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -164285,7 +164409,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -166815,7 +166939,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init143() {
+  async function init144() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -166825,7 +166949,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init143, "init");
+  __name(init144, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -166836,7 +166960,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init134,
+        init135,
         init66,
         init7,
         init8,
@@ -166859,22 +166983,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init27,
         init28,
         init10,
-        init111,
+        init112,
         init30,
         init31,
         init24,
-        init113,
+        init114,
         init32,
         init34,
         init35,
-        init118,
+        init119,
         init33,
         init21,
         init49,
         init2,
         init29,
-        init129,
-        init123,
+        init130,
+        init124,
         init23,
         initializeModernIcons,
         init37,
@@ -166888,14 +167012,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init45,
         init47,
         init48,
-        init139,
+        init140,
         initNotificationCenter
       ]
     },
     // pretty much just the 40% method
     {
       paths: ["/catalog", "/bundles", "/game-pass", "/games"],
-      features: [init3, init60, init102]
+      features: [init3, init60, init103]
     },
     {
       paths: ["/developer-product/"],
@@ -166919,7 +167043,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init143
+        init144
       ]
     },
     // Avatar pages
@@ -166937,6 +167061,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init95,
         init97,
         init98,
+        init99,
         init63
       ]
     },
@@ -166961,8 +167086,8 @@ ${locale4.suggestOnDiscord}`), subtitle;
         initRecentServers,
         init70,
         init80,
-        init110,
-        init143,
+        init111,
+        init144,
         init82
       ]
     },
@@ -166997,47 +167122,47 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // Roblox Plus Page
     {
       paths: ["/plus"],
-      features: [init99, init100]
+      features: [init100, init101]
     },
     // User profile pages
     {
       paths: ["/users/"],
       features: [
-        init102,
-        init128,
-        init101,
         init103,
+        init129,
+        init102,
         init104,
         init105,
-        init107,
-        init114,
+        init106,
+        init108,
         init115,
         init116,
         init117,
-        init124,
+        init118,
         init125,
         init126,
-        init119,
-        init121,
-        init122,
-        init120,
-        init123,
-        init109,
-        init130,
-        init108,
         init127,
-        init132,
+        init120,
+        init122,
+        init123,
+        init121,
+        init124,
+        init110,
+        init131,
+        init109,
+        init128,
         init133,
+        init134,
         initProfileButton
       ]
     },
     {
       paths: ["/users/", "/banned-users/"],
-      features: [init112, init106, init131]
+      features: [init113, init107, init132]
     },
     {
       paths: ["/deleted-users/"],
-      features: [init131]
+      features: [init132]
     },
     // Transactions page
     {
@@ -167073,20 +167198,20 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init142]
+      features: [init143]
     },
     {
       paths: ["/home"],
       features: [
+        init139,
+        init141,
         init138,
-        init140,
-        init137,
-        init141
+        init142
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init135, init136]
+      features: [init136, init137]
     },
     // Scam prevention
     {
@@ -167141,11 +167266,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init144) => {
-        if (!featuresRunThisPass.has(init144) && !(route.once && initializedPersistentFeatures.has(init144))) {
-          featuresRunThisPass.add(init144), route.once && initializedPersistentFeatures.add(init144);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init145) => {
+        if (!featuresRunThisPass.has(init145) && !(route.once && initializedPersistentFeatures.has(init145))) {
+          featuresRunThisPass.add(init145), route.once && initializedPersistentFeatures.add(init145);
           try {
-            init144();
+            init145();
           } catch (error2) {
             console.error("RoValra: Feature init failed", error2);
           }
@@ -167184,7 +167309,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }, "scheduleSettingsMaintenance"), startFeatures = /* @__PURE__ */ __name(async () => {
       let featureStartTime = performance.now();
       await t2("__i18n_ready__").catch(() => {
-      }), runFeaturesForPage(), scheduleSettingsMaintenance();
+      }), await enforceSettingOverrides(), runFeaturesForPage(), scheduleSettingsMaintenance();
       let endTime = performance.now();
       console.log(
         "%cRoValra Initialized",
@@ -167201,9 +167326,21 @@ Total Load Time: ${(endTime - startTime).toFixed(2)}ms`
     let rovalraIconsWOFF = document.createElement("link");
     rovalraIconsWOFF.rel = "preload", rovalraIconsWOFF.href = "https://www.rovalra.com/static/fonts/RoValraIcons.woff2", rovalraIconsWOFF.as = "font", rovalraIconsWOFF.type = "font/woff2", rovalraIconsWOFF.crossOrigin = "anonymous";
     let googleIcons = document.createElement("link");
-    googleIcons.rel = "preload", googleIcons.href = "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons&display=swap", googleIcons.rel = "stylesheet", googleIcons.crossOrigin = "anonymous", document.head ? document.head.append(googleIcons, rovalraIconsWOFF, builderIconsReg, builderIconsFill) : new MutationObserver((_2, obs) => {
-      document.head && (obs.disconnect(), document.head.append(googleIcons, rovalraIconsWOFF, builderIconsReg, builderIconsFill));
-    }).observe(document.documentElement, { childList: !0 }), document.body ? startFeatures().catch(
+    googleIcons.rel = "preload", googleIcons.href = "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined|Material+Icons&display=swap", googleIcons.rel = "stylesheet", googleIcons.crossOrigin = "anonymous", document.head ? document.head.append(
+      googleIcons,
+      rovalraIconsWOFF,
+      builderIconsReg,
+      builderIconsFill
+    ) : new MutationObserver((_2, obs) => {
+      document.head && (obs.disconnect(), document.head.append(
+        googleIcons,
+        rovalraIconsWOFF,
+        builderIconsReg,
+        builderIconsFill
+      ));
+    }).observe(document.documentElement, {
+      childList: !0
+    }), document.body ? startFeatures().catch(
       (error2) => console.error("RoValra: Feature initialization failed", error2)
     ) : new MutationObserver((_2, obs) => {
       document.body && (obs.disconnect(), startFeatures().catch(
@@ -167212,7 +167349,9 @@ Total Load Time: ${(endTime - startTime).toFixed(2)}ms`
           error2
         )
       ));
-    }).observe(document.documentElement, { childList: !0 });
+    }).observe(document.documentElement, {
+      childList: !0
+    });
   }
   __name(initializePage, "initializePage");
   async function handleUrlChange() {
