@@ -2299,8 +2299,7 @@ Never used outside your local device.`;
               description: [
                 "This adds a button allowing you to save 40% on items on the marketplace",
                 "Keep in mind a group is required for this to work.",
-                "**When buying something there will be a 'Save X Robux' Button which when pressed will set up the experience required for it to work for you, if not already set up.**",
-                "**Roblox is breaking the ability to save 10% Robux on gamepasses on may 29th.**"
+                "**When buying something there will be a 'Save X Robux' Button which when pressed will set up the experience required for it to work for you, if not already set up.**"
               ],
               type: "checkbox",
               default: !0,
@@ -13868,6 +13867,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
           ".avatar-card.profile-avatar .thumbnail-2d-container"
         ].join(", "),
         (element) => {
+          if (element.closest("#rovalra-banned-avatar-container"))
+            return;
           let target = element.parentElement || element;
           applyBorderToContainer(target, borderUrl, !0);
         },
@@ -18789,15 +18790,77 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       throw e;
     }
   }
-  async function getUniverseIdFromPlaceId(placeId) {
-    let data = await (await callRobloxApi({
-      subdomain: "games",
-      endpoint: `/v1/games/multiget-place-details?placeIds=${placeId}`,
-      method: "GET"
-    })).json();
-    if (Array.isArray(data) && data[0] && data[0].universeId)
-      return data[0].universeId;
-    throw new Error("Place not found");
+  function flushPlaceQueue() {
+    let currentMap = new Map(placeQueue);
+    placeQueue.clear(), placeTimer = null;
+    let ids = Array.from(currentMap.keys());
+    for (let i2 = 0; i2 < ids.length; i2 += MAX_BATCH) {
+      let chunk = ids.slice(i2, i2 + MAX_BATCH), query = chunk.map((id) => `placeIds=${encodeURIComponent(id)}`).join("&");
+      fetchWithRetry("games", `/v1/games/multiget-place-details?${query}`).then((data) => {
+        let detailsByPlaceId = new Map(
+          (Array.isArray(data) ? data : []).map((detail) => [
+            String(detail.placeId),
+            detail
+          ])
+        );
+        chunk.forEach((id) => {
+          let resolvers = currentMap.get(id), detail = detailsByPlaceId.get(id);
+          detail ? resolvers.forEach(
+            (resolver) => resolver.resolve(detail)
+          ) : resolvers.forEach(
+            (resolver) => resolver.reject(new Error("Place not found"))
+          );
+        });
+      }).catch((error2) => {
+        chunk.forEach((id) => {
+          let resolvers = currentMap.get(id);
+          resolvers && resolvers.forEach((resolver) => resolver.reject(error2));
+        });
+      });
+    }
+  }
+  function getPlaceDetails2(placeId) {
+    let id = String(placeId);
+    return new Promise((resolve, reject) => {
+      placeQueue.has(id) || placeQueue.set(id, []), placeQueue.get(id).push({ resolve, reject }), placeTimer || (placeTimer = setTimeout(flushPlaceQueue, BATCH_WAIT));
+    });
+  }
+  function flushFallbackVoteQueue() {
+    let currentMap = new Map(fallbackVoteQueue);
+    fallbackVoteQueue.clear(), fallbackVoteTimer = null;
+    let ids = Array.from(currentMap.keys());
+    for (let i2 = 0; i2 < ids.length; i2 += MAX_BATCH) {
+      let chunk = ids.slice(i2, i2 + MAX_BATCH);
+      fetchWithRetry(
+        "games",
+        `/v1/games/votes?universeIds=${chunk.join(",")}`
+      ).then((data) => {
+        let voteMap = new Map(
+          (data?.data || []).map((vote) => [String(vote.id), vote])
+        );
+        chunk.forEach((id) => {
+          let vote = voteMap.get(id) || {
+            upVotes: 0,
+            downVotes: 0
+          };
+          currentMap.get(id).forEach((resolver) => resolver.resolve(vote));
+        });
+      }).catch((error2) => {
+        chunk.forEach((id) => {
+          currentMap.get(id).forEach((resolver) => resolver.reject(error2));
+        });
+      });
+    }
+  }
+  function getFallbackVote(universeId) {
+    let id = String(universeId);
+    return new Promise((resolve, reject) => {
+      fallbackVoteQueue.has(id) || fallbackVoteQueue.set(id, []), fallbackVoteQueue.get(id).push({ resolve, reject }), fallbackVoteTimer || (fallbackVoteTimer = setTimeout(flushFallbackVoteQueue, BATCH_WAIT));
+    });
+  }
+  function getGameVote(game) {
+    let upVotes = game?.upVotes ?? game?.likes ?? game?.voteData?.upVotes ?? null, downVotes = game?.downVotes ?? game?.dislikes ?? game?.voteData?.downVotes ?? null;
+    return !Number.isFinite(upVotes) || !Number.isFinite(downVotes) ? null : { upVotes, downVotes };
   }
   function flushUniverseQueue() {
     let currentMap = new Map(universeQueue);
@@ -18805,18 +18868,12 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     let ids = Array.from(currentMap.keys());
     if (ids.length !== 0)
       for (let i2 = 0; i2 < ids.length; i2 += MAX_BATCH) {
-        let chunk = ids.slice(i2, i2 + MAX_BATCH), idsStr = chunk.length > 2 ? chunk.join(",") : `1,${chunk.join(",")}`;
-        Promise.all([
-          fetchWithRetry("games", `/v1/games?universeIds=${idsStr}`),
-          fetchWithRetry("games", `/v1/games/votes?universeIds=${idsStr}`)
-        ]).then(([gamesData, votesData]) => {
-          let games = gamesData.data || [], votes = votesData.data || [], gameMap = new Map(games.map((g2) => [g2.id, g2])), voteMap = new Map(votes.map((v2) => [v2.id, v2]));
+        let chunk = ids.slice(i2, i2 + MAX_BATCH), idsStr = [1, ...chunk].join(",");
+        fetchWithRetry("games", `/v1/games?universeIds=${idsStr}`).then((gamesData) => {
+          let games = gamesData?.data || [], gameMap = new Map(games.map((g2) => [g2.id, g2]));
           chunk.forEach((id) => {
-            let resolvers = currentMap.get(id), game = gameMap.get(id), vote = voteMap.get(id) || {
-              upVotes: 0,
-              downVotes: 0
-            };
-            game ? resolvers.forEach((r) => r.resolve({ game, vote })) : resolvers.forEach(
+            let resolvers = currentMap.get(id), game = gameMap.get(id);
+            game ? resolvers.forEach((r) => r.resolve({ game })) : resolvers.forEach(
               (r) => r.reject(new Error("Game not found"))
             );
           });
@@ -18864,14 +18921,13 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
             <div class="game-card-name game-name-title game-name-title-half shimmer"></div>
         `, (async () => {
         try {
-          let targetUniverseId = gameId || game?.id, targetPlaceId = placeId || game?.rootPlaceId;
-          if (!targetUniverseId && targetPlaceId && (targetUniverseId = await getUniverseIdFromPlaceId(targetPlaceId)), !targetUniverseId)
+          let targetUniverseId = gameId || game?.id || game?.universeId, targetPlaceId = placeId || game?.rootPlaceId || game?.universeRootPlaceId || game?.placeId, placeDetails = null;
+          if (targetPlaceId && (placeDetails = await getPlaceDetails2(targetPlaceId).catch(
+            () => null
+          ), targetUniverseId ||= placeDetails?.universeId), !targetUniverseId)
             throw new Error("Could not resolve Universe ID");
           let userId = document.querySelector('meta[name="user-data"]')?.dataset?.userid, promises = [
-            getGameData(targetUniverseId).catch(() => ({
-              game: null,
-              vote: { upVotes: 0, downVotes: 0 }
-            })),
+            getGameData(targetUniverseId).catch(() => null),
             fetchThumbnails(
               [{ id: targetUniverseId }],
               "GameIcon",
@@ -18879,9 +18935,24 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
             )
           ];
           userId && promises.push(getOnlineFriends(userId));
-          let results = await Promise.all(promises), { game: gameInfo, vote: voteInfo } = results[0], thumbMap = results[1], friendsData = userId ? results[2] : null, finalGame = game || gameInfo;
+          let results = await Promise.all(promises), gameInfo = results[0]?.game, thumbMap = results[1], friendsData = userId ? results[2] : null, needsFallback = !(gameInfo && String(gameInfo.id) === String(targetUniverseId) && gameInfo.rootPlaceId > 0 && gameInfo.name !== "[TITLE UNAVAILABLE]");
+          needsFallback && !placeDetails && targetPlaceId && (placeDetails = await getPlaceDetails2(targetPlaceId).catch(
+            () => null
+          ));
+          let finalGame = game?.id ? game : needsFallback ? {
+            ...gameInfo || {},
+            id: Number(targetUniverseId),
+            rootPlaceId: Number(
+              placeDetails?.universeRootPlaceId || targetPlaceId || 0
+            ),
+            name: placeDetails?.name || placeDetails?.sourceName || gameInfo?.name,
+            playing: 0
+          } : gameInfo;
           if (!finalGame) throw new Error("Game not found");
-          let universeId = finalGame.id, fetchedStats = {
+          let voteInfo = getGameVote(gameInfo) || await getFallbackVote(targetUniverseId).catch(() => ({
+            upVotes: 0,
+            downVotes: 0
+          })), universeId = finalGame.id, fetchedStats = {
             likes: /* @__PURE__ */ new Map([
               [
                 universeId,
@@ -18995,7 +19066,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       )
     ), card;
   }
-  var BATCH_WAIT, MAX_BATCH, universeQueue, universeTimer, friendCachePromise, init_gameCard = __esm({
+  var BATCH_WAIT, MAX_BATCH, placeQueue, placeTimer, universeQueue, universeTimer, fallbackVoteQueue, fallbackVoteTimer, friendCachePromise, init_gameCard = __esm({
     "src/content/core/ui/games/gameCard.js"() {
       init_thumbnails();
       init_dompurify();
@@ -19003,9 +19074,13 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       init_api();
       init_friendListOverlay();
       init_friendslist();
-      BATCH_WAIT = 50, MAX_BATCH = 50, universeQueue = /* @__PURE__ */ new Map(), universeTimer = null;
+      BATCH_WAIT = 50, MAX_BATCH = 50, placeQueue = /* @__PURE__ */ new Map(), placeTimer = null, universeQueue = /* @__PURE__ */ new Map(), universeTimer = null, fallbackVoteQueue = /* @__PURE__ */ new Map(), fallbackVoteTimer = null;
       __name(fetchWithRetry, "fetchWithRetry");
-      __name(getUniverseIdFromPlaceId, "getUniverseIdFromPlaceId");
+      __name(flushPlaceQueue, "flushPlaceQueue");
+      __name(getPlaceDetails2, "getPlaceDetails");
+      __name(flushFallbackVoteQueue, "flushFallbackVoteQueue");
+      __name(getFallbackVote, "getFallbackVote");
+      __name(getGameVote, "getGameVote");
       __name(flushUniverseQueue, "flushUniverseQueue");
       __name(getGameData, "getGameData");
       friendCachePromise = null;
@@ -59248,7 +59323,37 @@ function run() {
   init_api();
   init_assets();
   init_i18n();
-  var batchQueue2 = [], batchTimeout2 = null, BATCH_DELAY = 50;
+  var batchQueue2 = [], batchTimeout2 = null, BATCH_DELAY = 50, DEVELOP_ASSET_BATCH_SIZE = 50;
+  async function fetchDevelopAssetDetails(assetIds) {
+    let assetMap = /* @__PURE__ */ new Map();
+    return await Promise.all(
+      Array.from(
+        { length: Math.ceil(assetIds.length / DEVELOP_ASSET_BATCH_SIZE) },
+        (_2, index) => {
+          let batch = assetIds.slice(
+            index * DEVELOP_ASSET_BATCH_SIZE,
+            (index + 1) * DEVELOP_ASSET_BATCH_SIZE
+          );
+          return callRobloxApi({
+            subdomain: "develop",
+            endpoint: `/v1/assets?assetIds=${batch.join(",")}`,
+            method: "GET"
+          }).then(async (developRes) => {
+            if (!developRes.ok) return;
+            (await developRes.json()).data?.forEach((assetInfo) => {
+              assetMap.set(assetInfo.id, assetInfo);
+            });
+          }).catch((e) => {
+            console.warn(
+              "RoValra: Develop fallback batch failed",
+              e
+            );
+          });
+        }
+      )
+    ), assetMap;
+  }
+  __name(fetchDevelopAssetDetails, "fetchDevelopAssetDetails");
   function getCollectibleLowestResalePrice(data) {
     let resalePrice = data?.CollectiblesItemDetails?.CollectibleLowestResalePrice ?? data?.collectiblesItemDetails?.collectibleLowestResalePrice ?? data?.lowestResalePrice;
     return typeof resalePrice == "number" && resalePrice > 0 ? resalePrice : null;
@@ -59382,7 +59487,15 @@ function run() {
         looksDetailsMap.set(item.id, item), item.assetsInBundle?.forEach((bundleAsset) => {
           looksDetailsMap.has(bundleAsset.id) || looksDetailsMap.set(bundleAsset.id, item);
         });
-      }), await Promise.all(
+      });
+      let developAssetMap = await fetchDevelopAssetDetails(
+        [
+          ...new Set(
+            currentBatch.filter((request) => !catalogDetailsMap.has(request.id)).map((request) => request.id)
+          )
+        ]
+      );
+      await Promise.all(
         currentBatch.map(async (request) => {
           let catalogItemData = catalogDetailsMap.get(request.id), looksItemData = looksDetailsMap.get(request.id), itemData = looksItemData || catalogItemData;
           if (catalogItemData) {
@@ -59440,36 +59553,23 @@ function run() {
               looksItemData,
               catalogItemData
             );
-            if (!item)
-              try {
-                let developRes = await callRobloxApi({
-                  subdomain: "develop",
-                  endpoint: `/v1/assets?assetIds=${request.id}`,
-                  method: "GET"
-                });
-                if (developRes.ok) {
-                  let assetInfo = (await developRes.json()).data?.[0];
-                  assetInfo && (item = {
-                    assetId: request.id,
-                    name: assetInfo.name,
-                    assetType: {
-                      id: assetInfo.typeId,
-                      name: assetInfo.type
-                    },
-                    recentAveragePrice: 0,
-                    itemRestrictions: [],
-                    itemType: "Asset",
-                    isOnHold: !1,
-                    bundleId: null,
-                    priceText: "Off Sale"
-                  });
-                }
-              } catch (e) {
-                console.warn(
-                  `RoValra: Develop fallback failed for item ${request.id}`,
-                  e
-                );
-              }
+            if (!item) {
+              let assetInfo = developAssetMap.get(request.id);
+              assetInfo && (item = {
+                assetId: request.id,
+                name: assetInfo.name,
+                assetType: {
+                  id: assetInfo.typeId,
+                  name: assetInfo.type
+                },
+                recentAveragePrice: 0,
+                itemRestrictions: [],
+                itemType: "Asset",
+                isOnHold: !1,
+                bundleId: null,
+                priceText: "Off Sale"
+              });
+            }
             if (item) {
               item.isHiddenFromMarketplace = !0;
               let realCard = createItemCard(
@@ -59727,7 +59827,7 @@ function run() {
     let frecard = createGameCard(4924922222);
     container.appendChild(frecard);
     let Longcard = createGameCard(14056754882);
-    container.appendChild(Longcard);
+    container.appendChild(Longcard), container.appendChild(createGameCard(82217838505836));
     let itemCard = createItemCard(48894692);
     container.appendChild(itemCard);
     let freeitemCard = createItemCard(3443038622);
@@ -59786,7 +59886,17 @@ function run() {
       rovalra: !0,
       size: "xx-large"
     });
-    container.append(document.createElement("br"), builderIconsHeader, document.createElement("br"), builderIcon, builderIconFilled, materialIcon, materialIconFilled, rovalraIcon, rovalraContributorIcon), removeHomeElement2();
+    container.append(
+      document.createElement("br"),
+      builderIconsHeader,
+      document.createElement("br"),
+      builderIcon,
+      builderIconFilled,
+      materialIcon,
+      materialIconFilled,
+      rovalraIcon,
+      rovalraContributorIcon
+    ), removeHomeElement2();
   }
   __name(renderTestPage, "renderTestPage");
   function init14() {
@@ -61821,7 +61931,7 @@ function run() {
     };
   }
   __name(getTransactionData, "getTransactionData");
-  async function getUniverseIdFromPlaceId2(placeId) {
+  async function getUniverseIdFromPlaceId(placeId) {
     try {
       let response = await callRobloxApiJson({
         subdomain: "apis",
@@ -61839,7 +61949,7 @@ function run() {
     }
     return null;
   }
-  __name(getUniverseIdFromPlaceId2, "getUniverseIdFromPlaceId");
+  __name(getUniverseIdFromPlaceId, "getUniverseIdFromPlaceId");
   async function getGameSpending(id) {
     let data = await getTransactionData();
     if (!data)
@@ -61857,7 +61967,7 @@ function run() {
         totalTransactions,
         isScanning
       };
-    let universeId = await getUniverseIdFromPlaceId2(id);
+    let universeId = await getUniverseIdFromPlaceId(id);
     if (universeId)
       for (let key in data.creators) {
         let creator = data.creators[key];
@@ -110475,7 +110585,7 @@ Bundled Items:
   init_games();
   init_observer();
   init_getSettings();
-  var BATCH_SIZE2 = 50, PLACE_BATCH_SIZE = 25, BATCH_STAGGER_MS = 1200, RATE_LIMIT_COOLDOWN_MS = 8e3, PLAYING_TTL_MS = 600 * 1e3, VOTES_TTL_MS = 360 * 60 * 1e3, CACHE_CLEANUP_INTERVAL = 600 * 1e3, REFRESH_ROOT_MARGIN_PX = 700, TILE_SELECTOR = '[data-testid="wide-game-tile"]', GAME_LINK_SELECTOR = `${TILE_SELECTOR} a.game-card-link[href*="/games/"]`, BASE_METADATA_SELECTOR = ".wide-game-tile-metadata .base-metadata", RATING_BLOCK_SELECTOR = '[data-testid="game-tile-stats-rating"]', PLAYERS_BLOCK_SELECTOR = '[data-testid="game-tile-stats-player-count"]', SPONSORED_FOOTER_SELECTOR = '[data-testid="wide-game-tile-sponsored-footer"]', EXCLUDED_TILE_SELECTOR = [
+  var BATCH_SIZE2 = 50, PLACE_BATCH_SIZE = 25, BATCH_STAGGER_MS = 1200, RATE_LIMIT_COOLDOWN_MS = 8e3, PLAYING_TTL_MS = 600 * 1e3, VOTES_TTL_MS = 360 * 60 * 1e3, CACHE_CLEANUP_INTERVAL = 600 * 1e3, REFRESH_ROOT_MARGIN_PX = 700, TILE_SELECTOR = '[data-testid="wide-game-tile"]', GAME_LINK_SELECTOR = `${TILE_SELECTOR} a.game-card-link[href*="/games/"]`, BASE_METADATA_SELECTOR = ".wide-game-tile-metadata .base-metadata", RATING_BLOCK_SELECTOR = '[data-testid="game-tile-stats-rating"]', PLAYERS_BLOCK_SELECTOR = '[data-testid="game-tile-stats-player-count"]', ONLINE_FRIENDS_BLOCK_SELECTOR = '[data-testid="game-tile-stats-online-friends-facepile"]', SPONSORED_FOOTER_SELECTOR = '[data-testid="wide-game-tile-sponsored-footer"]', EXCLUDED_TILE_SELECTOR = [
     ".experience-events-tile",
     '[data-testid="event-experience-link"]'
   ].join(", "), EXCLUDED_FOOTER_SELECTOR = [
@@ -110649,6 +110759,14 @@ Bundled Items:
     return !base || base.querySelector(`[${MOUNTED_ATTRIBUTE}]`) ? !1 : !!(base.querySelector(".vote-percentage-label") && base.querySelector(".playing-counts-label"));
   }
   __name(hasCompleteNativeStats, "hasCompleteNativeStats");
+  function hasNativeOnlineFriends(tile) {
+    return !!tile?.querySelector(ONLINE_FRIENDS_BLOCK_SELECTOR);
+  }
+  __name(hasNativeOnlineFriends, "hasNativeOnlineFriends");
+  function removeMountedStats(tile) {
+    tile?.querySelector(`[${MOUNTED_ATTRIBUTE}]`)?.remove();
+  }
+  __name(removeMountedStats, "removeMountedStats");
   function queuePlaceId(placeId) {
     placeToUniverse.has(placeId) || inFlightPlaceIds.has(placeId) || (retryPlaceAfter.get(placeId) || 0) > Date.now() || pendingPlaceIds.add(placeId);
   }
@@ -110676,6 +110794,10 @@ Bundled Items:
       let tile = getTileRoot(anchor);
       if (!isEligibleTile(tile, anchor)) continue;
       let item = itemsByAnchor.get(anchor);
+      if (hasNativeOnlineFriends(tile)) {
+        removeMountedStats(tile), item && removeItem(item);
+        continue;
+      }
       if (hasCompleteNativeStats(tile)) {
         item && removeItem(item);
         continue;
@@ -110834,7 +110956,7 @@ Bundled Items:
     let { tile, anchor, universeId } = item || {};
     if (!tile?.isConnected || !isEligibleTile(tile, anchor)) return;
     let currentIds = getExperienceIdsFromTile(tile, anchor);
-    if ((currentIds.universeId || placeToUniverse.get(currentIds.placeId)) !== universeId || hasCompleteNativeStats(tile)) return;
+    if ((currentIds.universeId || placeToUniverse.get(currentIds.placeId)) !== universeId || hasCompleteNativeStats(tile) || hasNativeOnlineFriends(tile)) return;
     let base = getBaseMeta(tile);
     if (!base) return;
     let renderKey = [
@@ -111199,8 +111321,14 @@ Bundled Items:
   init_api();
   init_cacheHandler();
   var SETTING_NAME = "FreeRobloxPlusThemesEnabled", SESSION_SETTING_KEY = "rovalra_freeRobloxPlusThemes", CACHE_SECTION2 = "freeRobloxPlusThemes", CACHE_KEY3 = "userSettings", CACHE_TTL_MS = 300 * 1e3, THEME_SECTION_SELECTOR = ".app-theme-section", NOTICE_ID = "rovalra-free-roblox-plus-themes-notice", injectedThemeClass = null, initialized8 = !1, accountThemeRequest = null, themeSectionObserver = null;
+  function removeThemeNotices() {
+    document.querySelectorAll(`#${NOTICE_ID}`).forEach((notice) => {
+      notice.remove();
+    });
+  }
+  __name(removeThemeNotices, "removeThemeNotices");
   async function addThemeNotice(themeSection) {
-    if (!(themeSection instanceof Element) || themeSection.querySelector(`#${NOTICE_ID}`)) return;
+    if (!freeRobloxPlusThemesEnabled || !(themeSection instanceof Element) || themeSection.querySelector(`#${NOTICE_ID}`)) return;
     let notice = document.createElement("p");
     notice.id = NOTICE_ID, notice.className = "flex items-center gap-small text-body-medium content-muted margin-none";
     let logo = document.createElement("img");
@@ -111273,12 +111401,19 @@ Bundled Items:
       sessionStorage.setItem(SESSION_SETTING_KEY, String(isEnabled3));
     } catch {
     }
-    isEnabled3 ? loadAccountTheme().catch(
+    isEnabled3 ? (document.querySelectorAll(THEME_SECTION_SELECTOR).forEach((themeSection) => {
+      addThemeNotice(themeSection).catch(
+        (error2) => console.warn(
+          "RoValra: Failed to add the theme notice.",
+          error2
+        )
+      );
+    }), loadAccountTheme().catch(
       (error2) => console.warn(
         "RoValra: Failed to load Roblox user settings.",
         error2
       )
-    ) : removeInjectedThemeClass();
+    )) : (removeThemeNotices(), removeInjectedThemeClass());
   }
   __name(setEnabled, "setEnabled");
   function publishInitialSettingState(enabled2) {
@@ -134557,7 +134692,6 @@ void main() {
         width: "fit-content",
         maxWidth: "100%",
         verticalAlign: "middle",
-        marginLeft: "auto",
         marginTop: "20px",
         marginLeft: "12px"
       }), Object.assign(pill.style, {
@@ -152430,11 +152564,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             </div>
 
                 <div class="relative flex flex-col items-center" style="height: 300px; width: 100%;">
-                <div class="profile-avatar-gradient" style="width: 100%; height: 300px;">
-                    <div style="background: var(--rovalra-profile-main-gradient); width: 100vw; margin-left: calc(50% - 50vw); height: 300px; margin-top: -24px; position: relative; background-color: var(--rovalra-profile-header-bg); padding: 0 12px;"></div>
-                    <div class="cover-gradient-overlay" style="position: absolute; bottom: 0; width: 100vw; margin-left: calc(50% - 50vw); left: 0; height: 64px; z-index: 10; pointer-events: none; mask-image: linear-gradient(rgba(255,255,255,0) 0%, rgba(255,255,255,.5) 40%, rgba(255,255,255,.8) 60%, #fff 100%); background: var(--rovalra-profile-overlay-gradient);"></div>
+                <div class="profile-avatar-gradient" style="width: 970px; max-width: 100%; height: 300px; border-radius: 8px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; overflow: hidden; background: var(--rovalra-profile-main-gradient); background-color: var(--rovalra-profile-header-bg);">
+                    <div style="background: var(--rovalra-profile-main-gradient); width: 100vw; margin-left: calc(50% - 50vw); height: 324px; margin-top: -24px; position: relative; background-color: var(--rovalra-profile-header-bg); padding: 0 12px;"></div>
                 </div>
-                    <div class="thumbnail-holder" style="position: absolute; top: -25px; left: 0; right: 0; bottom: 0; z-index: 1; display: flex; justify-content: center; align-items: center; pointer-events: none; overflow: hidden; height: 300px;">
+                    <div class="thumbnail-holder" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1; display: flex; justify-content: center; align-items: center; pointer-events: none; overflow: hidden; height: 300px;">
                         <div class="thumbnail-3d-container" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
                             <div id="rovalra-banned-avatar-wrapper" class="avatar-thumbnail-container" style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%; max-width: 100%; max-height: 100%;">
                         </div>
@@ -152442,12 +152575,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
                 </div>
             </div>
 
-            <div style="width: 100%; position: relative; margin-top: -64px; z-index: 20;">
+            <div style="width: 100%; position: relative; margin-top: 0; z-index: 20;">
                 <div id="user-profile-header-bg" style="max-width: 1140px; margin: 0 auto;">
                     <div class="user-profile-header flex flex-col gap-large" style="padding: 0 15px;">
                         <div class="user-profile-header-info flex justify-between items-center">
                             <div class="flex gap-medium items-center min-width-0">
-                                <div id="rovalra-banned-avatar-container" class="user-profile-header-details-avatar-container avatar-headshot-lg" style="width: 120px; height: 120px; min-width: 120px;">
+                                <div id="rovalra-banned-avatar-container" class="user-profile-header-details-avatar-container avatar-headshot-lg" style="width: 120px; height: 120px; min-width: 120px; transform: translateY(-24px);">
                                     <div class="avatar avatar-card-fullbody">
                                         <div id="rovalra-banned-headshot-placeholder"></div>
                                         <div class="avatar-status">
@@ -152802,8 +152935,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
                         <a href="https://www.roblox.com/users/${userId}/friends#!/friends" class="btn-secondary-xs btn-more see-all-link-icon">${ts2("bannedUsers.seeAll")}</a>
                     </div>
                     <div class="friends-carousel-container">
-                        <div class="friends-carousel-list-container">
-                            <div id="rovalra-banned-friends-list" style="display: flex; gap: 35px; overflow-x: auto; padding-bottom: 10px;"></div>
+                        <div class="friends-carousel-list-container rovalra-banned-friends-scroll">
+                            <div id="rovalra-banned-friends-list" class="rovalra-banned-friends-list"></div>
                         </div>
                     </div>
                 </div>
@@ -152819,7 +152952,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             fields: [
               "names.combinedName",
               "isVerified",
-              "names.username"
+              "names.username",
+              "hasRobloxSubscription"
             ]
           }
         }),
@@ -152838,7 +152972,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         let thumbData = isHidden ? { state: "Error" } : friendThumbMap.get(item.id), displayName = isHidden ? ts2("bannedUsers.hiddenUser") : profile.names.combinedName, username = isHidden ? "" : `@${profile.names.username}`, tile = createFriendTile(item, thumbData, {
           displayName,
           username,
-          isHidden
+          isHidden,
+          isVerified: profile?.isVerified || !1,
+          isSubscribed: profile?.hasRobloxSubscription || !1
         });
         friendsList.appendChild(tile);
       });
@@ -152887,7 +153023,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
                 <div class="base-tile">
                     <a class="flex flex-col" href="https://www.roblox.com/groups/${group.id}/-" style="text-decoration: none;">
                         <span class="thumbnail-2d-container radius-medium" style="width: 150px; height: 150px; display: block; background: var(--rovalra-button-background-color); border-radius: 8px; overflow: hidden;"></span>
-                        <div style="font-weight: 600; margin-top: 8px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--rovalra-main-text-color); display: flex; align-items: center;">${group.name}${verifiedBadge}</div>
+                        <div style="font-weight: 600; margin-top: 8px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: var(--rovalra-main-text-color);"><span style="display: inline;">${group.name}${verifiedBadge}</span></div>
                         <div style="font-size: 14px; color: var(--rovalra-secondary-text-color);">${memberCountStr} ${ts2("bannedUsers.members")}</div>
                         <div style="font-size: 14px; color: var(--rovalra-secondary-text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.role.name}</div>
                     </a>
@@ -155324,10 +155460,37 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_purify_es();
   init_userCardElements();
   init_getSettings();
-  var MAX_STATUS_LENGTH = 128, REPORTING_ENABLED = !1, activeHomeStatusBubble = null, homeStatusControllers = /* @__PURE__ */ new WeakMap();
+  var MAX_STATUS_LENGTH = 128, REPORTING_ENABLED = !1, activeHomeStatusBubble = null, homeStatusControllers = /* @__PURE__ */ new WeakMap(), statusUrlPattern = /\b(?:https?:\/\/|www\.)[^\s<]+/gi, trailingUrlPunctuationPattern = /[.,!?;:)\]}]+$/;
+  function linkifyStatusContent(container) {
+    let walker = document.createTreeWalker(
+      container,
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode: /* @__PURE__ */ __name((node2) => node2.parentElement?.closest("a, code") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT, "acceptNode")
+      }
+    ), textNodes = [], node;
+    for (; node = walker.nextNode(); ) textNodes.push(node);
+    for (let textNode of textNodes) {
+      let text2 = textNode.nodeValue, lastIndex = 0, match, fragment2 = document.createDocumentFragment();
+      for (statusUrlPattern.lastIndex = 0; match = statusUrlPattern.exec(text2); ) {
+        let urlText = match[0], trailingPunctuation = urlText.match(
+          trailingUrlPunctuationPattern
+        )?.[0] || "";
+        if (trailingPunctuation && (urlText = urlText.slice(0, -trailingPunctuation.length)), !urlText) continue;
+        fragment2.append(text2.slice(lastIndex, match.index));
+        let link = document.createElement("a");
+        link.href = urlText.startsWith("www.") ? `https://${urlText}` : urlText, link.textContent = urlText, link.target = "_blank", link.rel = "noopener noreferrer", link.style.textDecoration = "underline", link.addEventListener(
+          "click",
+          (event) => event.stopPropagation()
+        ), fragment2.append(link, trailingPunctuation), lastIndex = match.index + match[0].length;
+      }
+      lastIndex !== 0 && (fragment2.append(text2.slice(lastIndex)), textNode.replaceWith(fragment2));
+    }
+  }
+  __name(linkifyStatusContent, "linkifyStatusContent");
   function renderStatusBubbleContent(bubble, statusText) {
     let html2 = parseUntrustedMarkdown(statusText);
-    bubble.innerHTML = html2;
+    bubble.innerHTML = html2, linkifyStatusContent(bubble);
   }
   __name(renderStatusBubbleContent, "renderStatusBubbleContent");
   function cleanupStatusElements(container) {
