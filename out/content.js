@@ -3823,13 +3823,13 @@ Never used outside your local device.`;
               default: !0,
               contributors: ["447170745", "546872490"]
             },
-            FreeRobloxPlusThemesEnabled: {
+            FreeRobloxPlusThemesEnabledv2: {
               label: "Free Roblox Plus Themes",
               description: [
                 "Allows you to use Roblox Plus Themes on the site without Roblox Plus"
               ],
               type: "checkbox",
-              default: !1,
+              default: !0,
               contributors: ["447170745", "4866259395"]
             },
             currencyTransferEnabled: {
@@ -18320,6 +18320,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         return `${fromText} ${ts2("friendsSince.originFriendLink")}`;
       case 10:
         return `${fromText} ${ts2("friendsSince.originPeopleYouMayKnow")}`;
+      case 11:
+        return `${fromText} ${ts2("friendsSince.originschoolmemberlist")}`;
       default:
         return `${fromText} ${ts2("friendsSince.originUnknown")}`;
     }
@@ -111320,7 +111322,7 @@ Bundled Items:
   init_getSettings();
   init_api();
   init_cacheHandler();
-  var SETTING_NAME = "FreeRobloxPlusThemesEnabled", SESSION_SETTING_KEY = "rovalra_freeRobloxPlusThemes", CACHE_SECTION2 = "freeRobloxPlusThemes", CACHE_KEY3 = "userSettings", CACHE_TTL_MS = 300 * 1e3, THEME_SECTION_SELECTOR = ".app-theme-section", NOTICE_ID = "rovalra-free-roblox-plus-themes-notice", injectedThemeClass = null, initialized8 = !1, accountThemeRequest = null, themeSectionObserver = null;
+  var SETTING_NAME = "FreeRobloxPlusThemesEnabledv2", SESSION_SETTING_KEY = "rovalra_freeRobloxPlusThemes", CACHE_SECTION2 = "freeRobloxPlusThemes", CACHE_KEY3 = "userSettings", CACHE_TTL_MS = 300 * 1e3, THEME_SECTION_SELECTOR = ".app-theme-section", NOTICE_ID = "rovalra-free-roblox-plus-themes-notice", injectedThemeClass = null, initialized8 = !1, accountThemeRequest = null, themeSectionObserver = null;
   function removeThemeNotices() {
     document.querySelectorAll(`#${NOTICE_ID}`).forEach((notice) => {
       notice.remove();
@@ -111328,7 +111330,7 @@ Bundled Items:
   }
   __name(removeThemeNotices, "removeThemeNotices");
   async function addThemeNotice(themeSection) {
-    if (!freeRobloxPlusThemesEnabled || !(themeSection instanceof Element) || themeSection.querySelector(`#${NOTICE_ID}`)) return;
+    if (!FreeRobloxPlusThemesEnabledv2 || !(themeSection instanceof Element) || themeSection.querySelector(`#${NOTICE_ID}`)) return;
     let notice = document.createElement("p");
     notice.id = NOTICE_ID, notice.className = "flex items-center gap-small text-body-medium content-muted margin-none";
     let logo = document.createElement("img");
@@ -111390,13 +111392,13 @@ Bundled Items:
     !accountThemeChanged && !cacheExpired || (await set(CACHE_SECTION2, CACHE_KEY3, {
       settings: settingsData,
       expiresAt: Date.now() + CACHE_TTL_MS
-    }), freeRobloxPlusThemesEnabled && applyAccountTheme(settingsData.accountTheme));
+    }), FreeRobloxPlusThemesEnabledv2 && applyAccountTheme(settingsData.accountTheme));
   }
   __name(handleUserSettingsResponse, "handleUserSettingsResponse");
-  var freeRobloxPlusThemesEnabled = !1;
+  var FreeRobloxPlusThemesEnabledv2 = !1;
   function setEnabled(value2) {
     let isEnabled3 = value2 === !0;
-    freeRobloxPlusThemesEnabled = isEnabled3;
+    FreeRobloxPlusThemesEnabledv2 = isEnabled3;
     try {
       sessionStorage.setItem(SESSION_SETTING_KEY, String(isEnabled3));
     } catch {
@@ -111432,7 +111434,7 @@ Bundled Items:
     }), settings[SETTING_NAME].then((enabled2) => {
       setEnabled(enabled2), publishInitialSettingState(enabled2);
     }), document.addEventListener("rovalra:user-settings-response", (event) => {
-      freeRobloxPlusThemesEnabled && handleUserSettingsResponse(event.detail).catch(
+      FreeRobloxPlusThemesEnabledv2 && handleUserSettingsResponse(event.detail).catch(
         (error2) => console.warn(
           "RoValra: Failed to cache Roblox user settings.",
           error2
@@ -160348,7 +160350,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   // src/content/features/settings/index.js
   var assets6 = getAssets(), CREDITS_USER_IDS = [
     .../* @__PURE__ */ new Set([CREATOR_USER_ID, ...CONTRIBUTOR_USER_IDS])
-  ], REGIONS3 = {}, DONATOR_PERKS_UNIVERSE_ID = "9452973012", DONATOR_PERKS_GAME_URL = "https://www.roblox.com/games/store-section/" + DONATOR_PERKS_UNIVERSE_ID, DONATOR_PERKS_FALLBACK_ONSALE_URL = "https://www.roblox.com/catalog?taxonomy=tZsUsd2BqGViQrJ9Vs3Wah&CreatorName=Valra&CreatorType=Group&salesTypeFilter=1", requestedDonatorGameUnblock = !1, requestedDonatorGameUnblockChecked = !1, donatorGameUnblockConsentId = 0, parentAttchedToAccount = !1, parentAttchedToAccountChecked = !1, CHANGELOGS_ENDPOINT = "/static/json/changelogs.json";
+  ], REGIONS3 = {}, DONATOR_PERKS_UNIVERSE_ID = "9452973012", DONATOR_PERKS_GAME_URL = "https://www.roblox.com/games/store-section/" + DONATOR_PERKS_UNIVERSE_ID, DONATOR_PERKS_FALLBACK_ONSALE_URL = "https://www.roblox.com/catalog?taxonomy=2a2rf9qyeTd8W5iegK2Prc&CreatorName=Valra&CreatorType=Group&salesTypeFilter=1", requestedDonatorGameUnblock = !1, requestedDonatorGameUnblockChecked = !1, donatorGameUnblockConsentId = 0, parentAttchedToAccount = !1, parentAttchedToAccountChecked = !1, CHANGELOGS_ENDPOINT = "/static/json/changelogs.json";
   var APPEAL_STATUSES2 = [
     "Not appealed",
     "Appeal Pending",
@@ -161066,7 +161068,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     for (let contributor of CONTRIBUTOR_USER_IDS)
       contributions[String(contributor)] = [];
     for (let category of Object.values(SETTINGS_CONFIG))
-      for (let [settingName, settingData] of Object.entries(category.settings)) {
+      for (let [settingName, settingData] of Object.entries(
+        category.settings
+      )) {
         if (settingData.contributors !== void 0)
           for (let contributor of settingData.contributors)
             contributions[String(contributor)] === void 0 && (contributions[String(contributor)] = []), contributions[String(contributor)].push({
@@ -161079,7 +161083,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             key: settingName
           });
         if (settingData.childSettings) {
-          for (let [subSettingName, subSettingData] of Object.entries(settingData.childSettings))
+          for (let [subSettingName, subSettingData] of Object.entries(
+            settingData.childSettings
+          ))
             if (subSettingData.contributors !== void 0)
               for (let contributor of subSettingData.contributors)
                 contributions[String(contributor)] === void 0 && (contributions[String(contributor)] = []), contributions[String(contributor)].push({
@@ -161195,13 +161201,17 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             overlay.close();
           }, "onClick")
         }), overlay = createOverlay({
-          title: await t2("settings.credits.ui.popup.title", { user: user.displayName }),
+          title: await t2("settings.credits.ui.popup.title", {
+            user: user.displayName
+          }),
           bodyContent,
           actions: [okayBtn],
           showLogo: !0,
           maxWidth: "50%"
         });
-      }), link.appendChild(createContributorProfile(user, thumbMap.get(String(id)))), item.appendChild(link), item.appendChild(count), listContainer.appendChild(item);
+      }), link.appendChild(
+        createContributorProfile(user, thumbMap.get(String(id)))
+      ), item.appendChild(link), item.appendChild(count), listContainer.appendChild(item);
     }), container.append(sortBar, listContainer), backendContributors.length === 0) return;
     let backendNote = document.createElement("p");
     backendNote.className = "rovalra-backend-contributors-note", backendNote.textContent = ts2("settings.credits.backendContributorsNote");
@@ -161832,7 +161842,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   async function renderAccountStanding(container) {
     container.innerHTML = "";
     let discordCard = document.createElement("div");
-    if (discordCard.className = "rovalra-account-standing-card", discordCard.style.cssText = "background-color: var(--rovalra-container-background-color); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 24px;", container.appendChild(discordCard), discordCard.innerHTML = purify.sanitize(`
+    if (discordCard.className = "rovalra-account-standing-card", discordCard.style.cssText = "background-color: var(--rovalra-container-background-color); border-radius: 12px; padding: 24px; display: flex; flex-direction: column; gap: 24px;", container.appendChild(discordCard), discordCard.innerHTML = purify.sanitize(
+      `
         <div style="display: flex; align-items: flex-start; gap: 20px;">
             <div class="standing-status-icon-bg" style="width: 48px; height: 48px; border-radius: 50%; background-color: #23a55a; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: background-color 0.3s;">
                 <icon size="large" style="transform: translate(1px, 1px)">check-large</icon>
@@ -161846,12 +161857,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             <div style="height: 12px; background: rgba(128,128,128,0.2); border-radius: 6px; position: relative; margin-bottom: 25px;">
                 <div class="standing-status-fill" style="position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: #23a55a; border-radius: 6px; transition: width 0.5s ease, background-color 0.3s;"></div>
                 ${ACCOUNT_STANDING_LEVELS.map((level, index) => {
-      let leftPos = index / (ACCOUNT_STANDING_LEVELS.length - 1) * 100;
-      return `
+        let leftPos = index / (ACCOUNT_STANDING_LEVELS.length - 1) * 100;
+        return `
                         <div class="standing-status-dot" data-index="${index}" style="position: absolute; left: ${leftPos}%; top: 50%; transform: translate(-50%, -50%); width: 20px; height: 20px; border-radius: 50%; background: ${index === 0 ? level.color : "#4f545c"}; border: 4px solid var(--rovalra-container-background-color); z-index: 2; transition: background 0.3s;"></div>
                         <div class="standing-status-label" data-index="${index}" style="font-size: 12px; font-weight: 600; color: ${index === 0 ? "var(--rovalra-main-text-color)" : "var(--rovalra-secondary-text-color)"}; opacity: ${index === 0 ? "1" : "0.5"}; text-align: center; width: 60px; margin-left: -30px; position: absolute; left: ${leftPos}%; margin-top: 15px; transition: color 0.3s, opacity 0.3s;">${level.label}</div>
                     `;
-    }).join("")}
+      }).join("")}
             </div>
         </div>
         <div class="standing-policy-anchor"></div>
@@ -161859,7 +161870,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: var(--rovalra-secondary-text-color);">RoValra Safety Policy</div>
             Accounts found in violation of the <a href="https://www.rovalra.com/tou/" target="_blank" style="color: inherit; text-decoration: underline;">RoValra Terms of Service</a> or deemed a risk via third-party detections will have specific features disabled. Please note that while specific online capabilities may be restricted, the RoValra safety team will <strong>never</strong> disable the entire extension or fully local features.
         </div>
-    `, { ...CUSTOM_ADDED_TAGS }), standingCache) {
+    `,
+      { ...CUSTOM_ADDED_TAGS }
+    ), standingCache) {
       updateAccountStandingUI(
         discordCard,
         standingCache,
@@ -162429,30 +162442,37 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             [userId],
             "AvatarHeadshot",
             "60x60"
-          ))[0]?.imageUrl;
-          if (userThumbUrl) {
-            let tierContainer = contentContainer.querySelector(
-              `#donator-tier-${userTier}-header`
+          ))[0]?.imageUrl, tierContainer = contentContainer.querySelector(
+            `#donator-tier-${userTier}-header`
+          );
+          if (tierContainer) {
+            let currentTierPill = createPill(
+              ts2("settings.donatorPerks.currentTier"),
+              null,
+              { size: "small" }
             );
-            if (tierContainer) {
-              let tierCopy = tierContainer.querySelector(
-                ".rovalra-donator-tier-copy"
-              ), tierBadge = document.createElement("span");
-              tierBadge.dataset.rovalraSkipUsdEstimate = "true", tierBadge.style.cssText = "margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; background-color: var(--rovalra-container-background-color, rgba(0,0,0,0.1)); padding: 2px 7px 2px 2px; border-radius: 16px; border: 1px solid var(--rovalra-border-color); color: var(--rovalra-main-text-color); white-space: nowrap; width: fit-content;";
-              let img = document.createElement("img");
-              img.src = userThumbUrl, img.style.cssText = "width: 19px; height: 19px; border-radius: 50%; flex-shrink: 0;", tierBadge.appendChild(img);
-              let totalDonated = getTotalDonatedFromBadgesResponse(badgesResponse), totalDonatedLabel = null;
-              if (totalDonated !== null) {
-                totalDonatedLabel = totalDonated.toLocaleString();
-                let donationTotal = document.createElement("span"), robuxIcon = document.createElement("span");
-                robuxIcon.className = "icon-robux-16x16", robuxIcon.style.marginRight = "2px", donationTotal.append(robuxIcon, totalDonatedLabel), donationTotal.style.cssText = "display: inline-flex; align-items: center; gap: 1px; color: var(--rovalra-main-text-color); font-size: 11px; font-weight: 700;", tierBadge.appendChild(donationTotal);
-              }
-              addTooltip(
-                tierBadge,
-                totalDonatedLabel ? `Your total donated to RoValra: ${totalDonatedLabel}` : "Your donator tier",
-                { position: "top" }
-              ), (tierCopy || tierContainer).appendChild(tierBadge);
+            currentTierPill.classList.add(
+              "rovalra-donator-current-tier-pill"
+            ), tierContainer.appendChild(currentTierPill);
+          }
+          if (userThumbUrl && tierContainer) {
+            let tierCopy = tierContainer.querySelector(
+              ".rovalra-donator-tier-copy"
+            ), tierBadge = document.createElement("span");
+            tierBadge.dataset.rovalraSkipUsdEstimate = "true", tierBadge.style.cssText = "margin-top: 6px; display: inline-flex; align-items: center; gap: 5px; background-color: var(--rovalra-container-background-color, rgba(0,0,0,0.1)); padding: 2px 7px 2px 2px; border-radius: 16px; border: 1px solid var(--rovalra-border-color); color: var(--rovalra-main-text-color); white-space: nowrap; width: fit-content;";
+            let img = document.createElement("img");
+            img.src = userThumbUrl, img.style.cssText = "width: 19px; height: 19px; border-radius: 50%; flex-shrink: 0;", tierBadge.appendChild(img);
+            let totalDonated = getTotalDonatedFromBadgesResponse(badgesResponse), totalDonatedLabel = null;
+            if (totalDonated !== null) {
+              totalDonatedLabel = totalDonated.toLocaleString();
+              let donationTotal = document.createElement("span"), robuxIcon = document.createElement("span");
+              robuxIcon.className = "icon-robux-16x16", robuxIcon.style.marginRight = "2px", donationTotal.append(robuxIcon, totalDonatedLabel), donationTotal.style.cssText = "display: inline-flex; align-items: center; gap: 1px; color: var(--rovalra-main-text-color); font-size: 11px; font-weight: 700;", tierBadge.appendChild(donationTotal);
             }
+            addTooltip(
+              tierBadge,
+              totalDonatedLabel ? `Your total donated to RoValra: ${totalDonatedLabel}` : "Your donator tier",
+              { position: "top" }
+            ), (tierCopy || tierContainer).appendChild(tierBadge);
           }
         }
       }

@@ -1644,13 +1644,13 @@
           default: !0,
           contributors: ["447170745", "546872490"]
         },
-        FreeRobloxPlusThemesEnabled: {
+        FreeRobloxPlusThemesEnabledv2: {
           label: "Free Roblox Plus Themes",
           description: [
             "Allows you to use Roblox Plus Themes on the site without Roblox Plus"
           ],
           type: "checkbox",
-          default: !1,
+          default: !0,
           contributors: ["447170745", "4866259395"]
         },
         currencyTransferEnabled: {
