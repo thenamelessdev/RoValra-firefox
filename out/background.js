@@ -850,7 +850,7 @@
           type: "checkbox",
           default: !0
         },
-        trustedConnectionsEnabledv2: {
+        trustedConnectionsEnabledv3: {
           label: "Trusted Friends",
           description: [
             "This feature allows you to accept, request and remove trusted friends on the site by pressing the (...) on their profile, this will only work for eligible friends.",
@@ -858,9 +858,9 @@
             "**Note:** Roblox uses an algorithm that may prevent adding someone even if they meet these requirements. [Learn more here.](https://en.help.roblox.com/hc/en-us/articles/46158344285204)"
           ],
           type: "checkbox",
-          default: !1,
-          isPermanent: !0,
-          locked: "Seemingly broke after a Roblox update. And Roblox is rolling out their own version of it."
+          default: !1
+          //isPermanent: true,
+          //locked: 'Seemingly broke after a Roblox update. And Roblox is rolling out their own version of it.',
         },
         lastOnlineEnabled: {
           label: "Show Last Online / Last Seen",

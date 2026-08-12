@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init145 = {
+          let init146 = {
             ...params,
             headers
           };
-          return this.onSite && (init145.credentials = "include"), (this._fetchFn ?? fetch)(url, init145);
+          return this.onSite && (init146.credentials = "include"), (this._fetchFn ?? fetch)(url, init146);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init145 } = response2;
-              resolve(new Response(body2, init145));
+              let { body: body2, ...init146 } = response2;
+              resolve(new Response(body2, init146));
             }
           );
         });
@@ -3029,7 +3029,7 @@ Never used outside your local device.`;
               type: "checkbox",
               default: !0
             },
-            trustedConnectionsEnabledv2: {
+            trustedConnectionsEnabledv3: {
               label: "Trusted Friends",
               description: [
                 "This feature allows you to accept, request and remove trusted friends on the site by pressing the (...) on their profile, this will only work for eligible friends.",
@@ -3037,9 +3037,9 @@ Never used outside your local device.`;
                 "**Note:** Roblox uses an algorithm that may prevent adding someone even if they meet these requirements. [Learn more here.](https://en.help.roblox.com/hc/en-us/articles/46158344285204)"
               ],
               type: "checkbox",
-              default: !1,
-              isPermanent: !0,
-              locked: "Seemingly broke after a Roblox update. And Roblox is rolling out their own version of it."
+              default: !1
+              //isPermanent: true,
+              //locked: 'Seemingly broke after a Roblox update. And Roblox is rolling out their own version of it.',
             },
             lastOnlineEnabled: {
               label: "Show Last Online / Last Seen",
@@ -8864,10 +8864,14 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
     onConfirm,
     onCancel,
     onCloseBtn,
-    closeBtnCallsCancel = !0
+    closeBtnCallsCancel = !0,
+    preventBackdropClose = !1,
+    closeDelay = 0
   }) {
     let bodyContent = document.createElement("div");
-    bodyContent.innerHTML = purify.sanitize(`<p class="text-body" style="margin: 0; font-size: 14px; line-height: 1.5;">${message}</p>`);
+    bodyContent.innerHTML = purify.sanitize(
+      `<p class="text-body" style="margin: 0; font-size: 14px; line-height: 1.5;">${message}</p>`
+    );
     let isConfirmed = !1, isCanceled = !1, confirmBtn = createButton(confirmText, confirmType, {
       onClick: /* @__PURE__ */ __name(() => {
         isConfirmed = !0, close(), onConfirm && onConfirm();
@@ -8876,16 +8880,29 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       onClick: /* @__PURE__ */ __name(() => {
         isCanceled = !0, close();
       }, "onClick")
-    }), { close } = createOverlay({
+    }), { close, overlay } = createOverlay({
       title,
       bodyContent,
       actions: [cancelBtn, confirmBtn],
       maxWidth: "400px",
       showLogo: !0,
+      preventBackdropClose,
       onClose: /* @__PURE__ */ __name(() => {
         !isConfirmed && onCancel && (closeBtnCallsCancel || isCanceled) && onCancel(), !closeBtnCallsCancel && !isConfirmed && !isCanceled && onCloseBtn && onCloseBtn();
       }, "onClose")
     });
+    if (closeDelay > 0) {
+      let closeButton = overlay.querySelector(
+        ".rovalra-overlay-close button"
+      ), remainingSeconds = Math.ceil(closeDelay / 1e3), countdownId, setDisabled = /* @__PURE__ */ __name((button, disabled) => {
+        button.disabled = disabled, button.setAttribute("aria-disabled", String(disabled));
+      }, "setDisabled");
+      setDisabled(cancelBtn, !0), setDisabled(confirmBtn, !0), closeButton && setDisabled(closeButton, !0);
+      let updateCountdown = /* @__PURE__ */ __name(() => {
+        remainingSeconds > 0 ? (cancelBtn.textContent = `${cancelText} (${remainingSeconds})`, remainingSeconds -= 1) : (cancelBtn.textContent = cancelText, setDisabled(cancelBtn, !1), setDisabled(confirmBtn, !1), closeButton && setDisabled(closeButton, !1), clearInterval(countdownId));
+      }, "updateCountdown");
+      updateCountdown(), countdownId = setInterval(updateCountdown, 1e3), window.setTimeout(() => clearInterval(countdownId), closeDelay + 1e3);
+    }
   }
   var init_confirmationPrompt = __esm({
     "src/content/core/ui/confirmationPrompt.js"() {
@@ -58551,7 +58568,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init145 = /* @__PURE__ */ __name(() => {
+      let init146 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58577,7 +58594,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init145() : window.addEventListener("load", init145, { once: !0 });
+      document.readyState === "complete" ? init146() : window.addEventListener("load", init146, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -60069,16 +60086,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init145) {
-    return init145?.body !== void 0 ? init145.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init146) {
+    return init146?.body !== void 0 ? init146.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init145 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init145.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init145.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init146 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init146.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init146.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -60086,8 +60103,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init145),
-      credentials: init145.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init146),
+      credentials: init146.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -60096,9 +60113,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init145 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init145.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init145) : await originalFetch(input, init145);
+    window.fetch = async (input, init146 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init146.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init146) : await originalFetch(input, init146);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62254,7 +62271,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init145 = /* @__PURE__ */ __name(() => {
+    let init146 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62271,7 +62288,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init145() : window.addEventListener("load", init145, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init146() : window.addEventListener("load", init146, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -85519,10 +85536,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init145() {
+    function init146() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init145, "init");
+    __name(init146, "init");
     function getNextRenderItem(object, geometry, material, groupOrder, z2, group) {
       let renderItem = renderItems2[renderItemsIndex];
       return renderItem === void 0 ? (renderItem = {
@@ -85562,7 +85579,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init145,
+      init: init146,
       push,
       unshift,
       finish,
@@ -85807,10 +85824,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [];
-    function init145(camera) {
+    function init146(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0;
     }
-    __name(init145, "init");
+    __name(init146, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -85835,7 +85852,7 @@ Program Info Log: ` + programLog + `
       transmissionRenderTarget: {}
     };
     return {
-      init: init145,
+      init: init146,
       state: state4,
       setupLights,
       setupLightsView,
@@ -142450,6 +142467,46 @@ Markdown test
   }
   __name(init79, "init");
 
+  // src/content/features/games/btrDonationWarning.js
+  init_confirmationPrompt();
+  var STORE_SECTION_PATH = "/games/store-section/", WARNING_MARKER = "data-rovalra-btr-warning-shown", observerStarted = !1;
+  function isStoreSectionPage() {
+    return window.location.pathname.toLowerCase().replace(/^\/[a-z]{2}(?:-[a-z]{2})?\//, "/").startsWith(STORE_SECTION_PATH);
+  }
+  __name(isStoreSectionPage, "isStoreSectionPage");
+  function showBtrWarning() {
+    let html2 = document.documentElement;
+    !isStoreSectionPage() || html2?.getAttribute("btr-loaded") !== "true" || html2.getAttribute(WARNING_MARKER) !== window.location.href && (html2.setAttribute(WARNING_MARKER, window.location.href), showConfirmationPrompt({
+      title: "IMPORTANT: disable BTRoblox",
+      message: `
+                <p style="margin: 0 0 10px; line-height: 1.5;">BTRoblox was detected. It may interfere with Roblox\u2019s purchase flow. If you have trouble purchasing, try disabling BTRoblox temporarily and reload the page.</p>
+                <p style="margin: 0; line-height: 1.5; font-weight: 700;">Please disable BTRoblox, reload this page, and then try your purchase again.</p>
+        
+        `,
+      confirmText: "Continue anyway",
+      cancelText: "Close",
+      confirmType: "primary-destructive",
+      closeBtnCallsCancel: !1,
+      preventBackdropClose: !0,
+      closeDelay: 3e3
+    }));
+  }
+  __name(showBtrWarning, "showBtrWarning");
+  function init80() {
+    showBtrWarning();
+    let html2 = document.documentElement;
+    if (!html2 || observerStarted) return;
+    observerStarted = !0, new MutationObserver((mutations) => {
+      mutations.some(
+        (mutation) => mutation.attributeName === "btr-loaded"
+      ) && showBtrWarning();
+    }).observe(html2, {
+      attributes: !0,
+      attributeFilter: ["btr-loaded"]
+    });
+  }
+  __name(init80, "init");
+
   // src/content/features/games/tab/updateHistory.js
   init_observer();
   init_api();
@@ -142687,7 +142744,7 @@ Markdown test
   // src/content/features/games/tab/updateHistory.js
   init_i18n();
   init_games();
-  function init80() {
+  function init81() {
     chrome.storage.local.get({ updateHistoryEnabled: !1 }, (settings2) => {
       settings2.updateHistoryEnabled && observeElement(
         "#horizontal-tabs",
@@ -142725,7 +142782,7 @@ Markdown test
       );
     });
   }
-  __name(init80, "init");
+  __name(init81, "init");
   async function loadAndRenderHeatmap(placeId, parentElement) {
     let container = document.createElement("div");
     container.style.position = "relative", parentElement.appendChild(container);
@@ -142825,7 +142882,7 @@ Markdown test
   init_idExtractor();
   init_i18n();
   var isTotalSpentGamesInitialized = !1;
-  function init81() {
+  function init82() {
     isTotalSpentGamesInitialized || (isTotalSpentGamesInitialized = !0, observeElement(
       "#rbx-game-passes, #roseal-game-passes",
       async (container) => {
@@ -142871,7 +142928,7 @@ Markdown test
       }
     ));
   }
-  __name(init81, "init");
+  __name(init82, "init");
 
   // src/content/features/games/underReviewPill.js
   init_games();
@@ -142959,7 +143016,7 @@ Markdown test
     (await getUniverseEligibility(universeId))?.underReview === !0 ? insertUnderReviewPill(container) : removeExistingPill(container);
   }
   __name(updateUnderReviewPill, "updateUnderReviewPill");
-  function init82() {
+  function init83() {
     let currentContainer = document.querySelector(CAROUSEL_SELECTOR);
     currentContainer && updateUnderReviewPill(currentContainer), !observerInitialized2 && (observerInitialized2 = !0, observeElement(CAROUSEL_SELECTOR, updateUnderReviewPill), observeElement(ACTIONS_SELECTOR, () => {
       let container = document.querySelector(CAROUSEL_SELECTOR);
@@ -142969,7 +143026,7 @@ Markdown test
       container && updateUnderReviewPill(container);
     }));
   }
-  __name(init82, "init");
+  __name(init83, "init");
 
   // src/content/features/transactions/totalspent.js
   init_review();
@@ -143467,7 +143524,7 @@ Markdown test
     ), container.appendChild(totalSpentButton);
   }
   __name(onElementFound, "onElementFound");
-  function init83() {
+  function init84() {
     chrome.storage.local.get("totalspentEnabled", (result) => {
       result.totalspentEnabled && observeElement(
         ".dropdown-container.container-header",
@@ -143475,7 +143532,7 @@ Markdown test
       );
     });
   }
-  __name(init83, "init");
+  __name(init84, "init");
 
   // src/content/features/transactions/pendingRobuxTrans.js
   init_observer();
@@ -143721,7 +143778,7 @@ Markdown test
     storeResults(state2.userId, finalResults), injectResultElement(rowToInjectInto, finalResults);
   }
   __name(onElementFound2, "onElementFound");
-  function init84() {
+  function init85() {
     chrome.storage.local.get({ pendingrobuxtrans: !0 }, async (settings2) => {
       if (!(!settings2.pendingrobuxtrans || !window.location.pathname.includes("/transactions")))
         try {
@@ -143744,7 +143801,7 @@ Markdown test
         }
     });
   }
-  __name(init84, "init");
+  __name(init85, "init");
 
   // src/content/features/transactions/totalearned.js
   init_observer();
@@ -144077,7 +144134,7 @@ Markdown test
     ), container.appendChild(totalEarnedButton);
   }
   __name(onElementFound3, "onElementFound");
-  function init85() {
+  function init86() {
     chrome.storage.local.get("totalearnedEnabled", (result) => {
       result.totalearnedEnabled && observeElement(
         ".dropdown-container.container-header",
@@ -144085,7 +144142,7 @@ Markdown test
       );
     });
   }
-  __name(init85, "init");
+  __name(init86, "init");
 
   // src/content/features/trading/confirmtrade.js
   init_observer();
@@ -144477,7 +144534,7 @@ Markdown test
     });
   }
   __name(hydrateTradePreviewThumbnails, "hydrateTradePreviewThumbnails");
-  function init86() {
+  function init87() {
     chrome.storage.local.get({ confirmTradeEnabled: !0 }, (settings2) => {
       if (!settings2.confirmTradeEnabled) return;
       let path = window.location.pathname;
@@ -144533,7 +144590,7 @@ Markdown test
       ));
     });
   }
-  __name(init86, "init");
+  __name(init87, "init");
   function startPrefetching() {
     prefetchRequests.forEach((req) => req.active = !1), prefetchRequests = [];
     let handleLink = /* @__PURE__ */ __name((el2) => {
@@ -144697,7 +144754,7 @@ Markdown test
     tradeShowTotalDemand: !0,
     tradeShowDiffPills: !0
   }, includeRobuxInCalculation = !0;
-  function init87() {
+  function init88() {
     chrome.storage.local.get(
       {
         tradeValuesEnabled: !0,
@@ -144776,7 +144833,7 @@ Markdown test
       }
     );
   }
-  __name(init87, "init");
+  __name(init88, "init");
   function onRolimonsUpdate(e) {
     let updatedIds = e.detail;
     Array.isArray(updatedIds) && (updatedIds.forEach((id) => {
@@ -145304,7 +145361,7 @@ Markdown test
     }
   }
   __name(onTradesData, "onTradesData");
-  function init88() {
+  function init89() {
     chrome.storage.local.get(
       { tradePreviewEnabled: !0 },
       async (settings2) => {
@@ -145326,7 +145383,7 @@ Markdown test
       }
     );
   }
-  __name(init88, "init");
+  __name(init89, "init");
 
   // src/content/features/trading/tradefilter.js
   init_input();
@@ -145338,7 +145395,7 @@ Markdown test
   document.addEventListener("rovalra-rolimons-data-update", () => {
     currentQuery && filterTrades(currentQuery);
   });
-  async function init89() {
+  async function init90() {
     !(await chrome.storage.local.get({
       tradeFilterEnabled: !0
     })).tradeFilterEnabled || !window.location.pathname.startsWith("/trades") || (myUserId = await getAuthenticatedUserId(), observeElement(".trade-row-list", (list) => {
@@ -145362,7 +145419,7 @@ Markdown test
       noResults.id = "rovalra-trade-filter-no-results", noResults.innerText = "No results found", noResults.className = "text-secondary", noResults.style.display = "none", noResults.style.textAlign = "center", noResults.style.marginTop = "8px", wrapper.appendChild(noResults), list.insertBefore(wrapper, scrollContainer);
     }));
   }
-  __name(init89, "init");
+  __name(init90, "init");
   async function getTradeDetails(tradeId) {
     let cached = await get("trade_history", tradeId, "local");
     if (Array.isArray(cached))
@@ -145456,7 +145513,7 @@ Markdown test
   init_observer();
   init_idExtractor();
   var PAGING_COOLDOWN = 100, activeSearches = /* @__PURE__ */ new WeakMap(), searchButtons = /* @__PURE__ */ new WeakMap();
-  function init90() {
+  function init91() {
     chrome.storage.local.get({ tradeSearchEnabled: !0 }, (settings2) => {
       if (!settings2.tradeSearchEnabled) return;
       let path = window.location.pathname;
@@ -145471,7 +145528,7 @@ Markdown test
       );
     });
   }
-  __name(init90, "init");
+  __name(init91, "init");
   function injectSearchInput(dropdown) {
     let { container, input } = createStyledInput({
       id: `rovalra-trade-search-${Math.random().toString(36).substr(2, 9)}`,
@@ -145571,7 +145628,7 @@ Markdown test
   // src/content/features/trading/tradeProof.js
   init_observer();
   init_user();
-  function init91() {
+  function init92() {
     chrome.storage.local.get({ tradeProofEnabled: !0 }, (settings2) => {
       !settings2.tradeProofEnabled || !window.location.pathname.startsWith("/trades") || observeElement(".trades-list-detail", (container) => {
         if (container.querySelector(".rovalra-copy-proof-btn")) return;
@@ -145587,7 +145644,7 @@ Markdown test
       });
     });
   }
-  __name(init91, "init");
+  __name(init92, "init");
   async function copyTradeProof(container, btn) {
     if (container.querySelectorAll(".trade-list-detail-offer").length < 2) return;
     let activeRow = document.querySelector(".trade-row.active"), tradeId = activeRow?.dataset.tradeId || getLatestTradeDetailsId(), myUserId2 = await getAuthenticatedUserId(), analysis = tradeId ? await getTradeAnalysis(tradeId, { myUserId: myUserId2 }).catch(() => null) : null;
@@ -145931,8 +145988,8 @@ D:${formattedDate}`;
       }
     }
   };
-  function init92() {
-    init92._run || (init92._run = !0, chrome.storage.local.get(["groupGamesEnabled"], (result) => {
+  function init93() {
+    init93._run || (init93._run = !0, chrome.storage.local.get(["groupGamesEnabled"], (result) => {
       if (result.groupGamesEnabled !== !0) return;
       let isInserting = !1, ensureSingleButton = /* @__PURE__ */ __name(() => {
         let all = document.querySelectorAll(
@@ -145986,7 +146043,7 @@ D:${formattedDate}`;
       setInterval(checkForUrlChange, 500), window.addEventListener("popstate", checkForUrlChange), getGroupIdFromUrl() && tryInsert();
     }));
   }
-  __name(init92, "init");
+  __name(init93, "init");
 
   // src/content/features/groups/Antibots.js
   init_review();
@@ -146725,10 +146782,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )) : !active2 && isAntiBotScriptActive && antiBotsFullCleanup();
   }
   __name(checkUrlAndManageState, "checkUrlAndManageState");
-  function init93() {
+  function init94() {
     isInitialized8 || (isInitialized8 = !0, window.rovalra || (window.rovalra = {}), window.rovalra.ui || (window.rovalra.ui = {}), window.addEventListener("hashchange", checkUrlAndManageState), checkUrlAndManageState());
   }
-  __name(init93, "init");
+  __name(init94, "init");
 
   // src/content/features/groups/pendingRobux.js
   init_observer();
@@ -146922,12 +146979,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     storeResults2(state3.groupId, finalResults), await injectResultElement2(targetElement, finalResults);
   }
   __name(onElementFound4, "onElementFound");
-  function init94() {
+  function init95() {
     chrome.storage.local.get({ pendingRobuxEnabled: !0 }, (settings2) => {
       settings2.pendingRobuxEnabled && window.location.pathname.includes("communities/configure") && observeElement(TARGET_ELEMENT_SELECTOR2, onElementFound4);
     });
   }
-  __name(init94, "init");
+  __name(init95, "init");
 
   // src/content/features/groups/draggableGroups.js
   init_observer();
@@ -146942,14 +146999,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     holdTimer: null,
     preventClick: !1
   }, dropIndicator = null, isEnabled2 = !1;
-  function init95() {
+  function init96() {
     chrome.storage.local.get(["draggableGroupsEnabled"], (result) => {
       isEnabled2 = result.draggableGroupsEnabled !== !1, isEnabled2 && (startObserving(), initializeDragSystem());
     }), chrome.storage.onChanged.addListener((changes) => {
       changes.draggableGroupsEnabled && (isEnabled2 = changes.draggableGroupsEnabled.newValue !== !1, isEnabled2 ? initializeDragSystem() : destroyDragSystem());
     });
   }
-  __name(init95, "init");
+  __name(init96, "init");
   function initializeDragSystem() {
     observeElement("a.groups-list-item", (link) => {
       if (link.closest(".pending-join-requests"))
@@ -147351,8 +147408,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, 500));
   }
   __name(showSuccessAlertIfNeeded, "showSuccessAlertIfNeeded");
-  async function init96() {
-    (await chrome.storage.local.get("bulkLeaveGroupsEnabled")).bulkLeaveGroupsEnabled !== !1 && (init96._run || (init96._run = !0, showSuccessAlertIfNeeded(), fetchUserGroups(), document.addEventListener("click", onDocumentClickCapture, !0), observeElement(
+  async function init97() {
+    (await chrome.storage.local.get("bulkLeaveGroupsEnabled")).bulkLeaveGroupsEnabled !== !1 && (init97._run || (init97._run = !0, showSuccessAlertIfNeeded(), fetchUserGroups(), document.addEventListener("click", onDocumentClickCapture, !0), observeElement(
       ".groups-list-items-container",
       (container) => {
         injectToolbar(container);
@@ -147378,7 +147435,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     )));
   }
-  __name(init96, "init");
+  __name(init97, "init");
 
   // src/content/features/groups/placevisits.js
   init_api();
@@ -147405,7 +147462,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(fetchTotalVisits, "fetchTotalVisits");
-  function init97() {
+  function init98() {
     chrome.storage.local.get({ groupPlaceVisitsEnabled: !0 }, (settings2) => {
       settings2.groupPlaceVisitsEnabled && observeElement(
         ".profile-insights-container.flex.gap-small",
@@ -147432,7 +147489,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init97, "init");
+  __name(init98, "init");
 
   // src/content/features/groups/createDate.js
   init_observer();
@@ -147467,7 +147524,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/groups/createDate.js
   init_i18n();
-  function init98() {
+  function init99() {
     chrome.storage.local.get({ groupCreateDateEnabled: !0 }, (settings2) => {
       settings2.groupCreateDateEnabled && (observeElement(
         ".roseal-group-stats .group-created-date",
@@ -147512,7 +147569,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       ));
     });
   }
-  __name(init98, "init");
+  __name(init99, "init");
 
   // src/content/features/groups/groupPendingFunds.js
   init_observer();
@@ -147570,7 +147627,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     amount.className = "content-default", amount.textContent = pendingRobux.toLocaleString(), pendingRow.appendChild(amount), content.appendChild(pendingRow);
   }
   __name(injectPendingFunds, "injectPendingFunds");
-  function init99() {
+  function init100() {
     chrome.storage.local.get(
       { groupPendingFundsEnabled: !0 },
       (settings2) => {
@@ -147585,7 +147642,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init99, "init");
+  __name(init100, "init");
 
   // src/content/features/plus/stats.js
   init_i18n();
@@ -147751,7 +147808,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         </div>`, parent.appendChild(containerDiv), !0;
   }
   __name(makeHtml, "makeHtml");
-  function init100() {
+  function init101() {
     chrome.storage.local.get(
       {
         plusStatsEnabled: !0
@@ -147764,7 +147821,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init100, "init");
+  __name(init101, "init");
 
   // src/content/features/plus/transferLimits.js
   init_observer();
@@ -148011,9 +148068,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   __name(initRobuxTransferTracking, "initRobuxTransferTracking");
 
   // src/content/features/plus/transferLimits.js
-  var legacyParentElementQuerySelector = "#roblox-subscription-container > .clip-x > .flex > .width-full.flex.flex-col.self-stretch", containerClasses = "gap-y-small flex flex-col rovalra-plus-transfer-limits", containerObserver2 = null, changeListenerAttached = !1, renderPromise = null, initialized14 = !1, hasRenderedRealData = !1;
+  var legacyParentElementQuerySelector = "#roblox-subscription-container > .clip-x > .flex > .width-full.flex.flex-col.self-stretch", containerClasses = "gap-y-small flex flex-col rovalra-plus-transfer-limits", containerObserver2 = null, changeListenerAttached = !1, renderPromise = null, upsertPromise = Promise.resolve(), initialized14 = !1, hasRenderedRealData = !1;
   function removeTransferLimits() {
-    document.querySelector(".rovalra-plus-transfer-limits")?.remove();
+    document.querySelectorAll(".rovalra-plus-transfer-limits").forEach((element) => element.remove());
   }
   __name(removeTransferLimits, "removeTransferLimits");
   async function isFeatureEnabled() {
@@ -148082,11 +148139,11 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     } : null;
   }
   __name(findInsertionPoint, "findInsertionPoint");
-  async function upsertTransferLimits(data = null) {
+  async function upsertTransferLimitsNow(data = null) {
     let insertionPoint = findInsertionPoint();
     if (!insertionPoint?.parent) return !1;
     if (!data && hasRenderedRealData) return !0;
-    insertionPoint.parent.querySelector(".rovalra-plus-transfer-limits")?.remove();
+    removeTransferLimits();
     let container = document.createElement("div");
     container.className = containerClasses;
     let dailyLimit = data?.dailyLimit, monthlyLimit = data?.monthlyLimit, [
@@ -148119,6 +148176,16 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         </div>
         ${caption}`, data && (hasRenderedRealData = !0), insertionPoint.after?.parentElement === insertionPoint.parent ? insertionPoint.after.insertAdjacentElement("afterend", container) : insertionPoint.parent.appendChild(container), !0;
   }
+  __name(upsertTransferLimitsNow, "upsertTransferLimitsNow");
+  function upsertTransferLimits(data = null) {
+    let update = upsertPromise.then(
+      () => upsertTransferLimitsNow(data),
+      () => upsertTransferLimitsNow(data)
+    );
+    return upsertPromise = update.then(() => {
+    }, () => {
+    }), update;
+  }
   __name(upsertTransferLimits, "upsertTransferLimits");
   async function renderTransferLimits() {
     return renderPromise || (renderPromise = (async () => {
@@ -148150,7 +148217,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(attachTransferLimitListener, "attachTransferLimitListener");
-  async function init101() {
+  async function init102() {
     if (!await isFeatureEnabled()) {
       removeTransferLimits();
       return;
@@ -148163,7 +148230,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     });
   }
-  __name(init101, "init");
+  __name(init102, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_observer();
@@ -148443,7 +148510,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addUserRapDisplay, "addUserRapDisplay");
-  function init102() {
+  function init103() {
     chrome.storage.local.get({ userRapEnabled: !0 }, function(data) {
       data.userRapEnabled && observeElement(
         ".flex-nowrap.gap-small.flex, .profile-header-names",
@@ -148452,7 +148519,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init102, "init");
+  __name(init103, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_purify_es();
@@ -148710,7 +148777,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     targetContainer.appendChild(donationButton);
   }
   __name(addDonationButton, "addDonationButton");
-  function init103() {
+  function init104() {
     if (window.location.pathname.includes("/game-pass") && window.location.search.includes("RoValra-Auto-Buy")) {
       let runAutoBuy = /* @__PURE__ */ __name(() => {
         observeElement('button[data-button-action="buy"]', (btn) => {
@@ -148736,7 +148803,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init103, "init");
+  __name(init104, "init");
 
   // src/content/features/profile/header/instantjoiner.js
   init_observer();
@@ -148973,7 +149040,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_purify_es();
   init_idExtractor();
   init_i18n();
-  function init104() {
+  function init105() {
     chrome.storage.local.get(
       { userSniperEnabled: !1, deeplinkEnabled: !0 },
       function(settings2) {
@@ -149192,7 +149259,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init104, "init");
+  __name(init105, "init");
 
   // src/content/features/profile/outfits.js
   init_review();
@@ -149205,7 +149272,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_dompurify();
   init_overlay();
   init_i18n();
-  function init105() {
+  function init106() {
     chrome.storage.local.get("useroutfitsEnabled", function(data) {
       if (data.useroutfitsEnabled !== !0)
         return;
@@ -149803,7 +149870,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       });
     });
   }
-  __name(init105, "init");
+  __name(init106, "init");
 
   // src/content/features/profile/privateserver.js
   init_observer();
@@ -150134,7 +150201,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), selectAllButton.addEventListener("click", handleSelectAll), mainButtonInactive.addEventListener("click", () => handleBulkAction(!1)), mainButtonActive.addEventListener("click", () => handleBulkAction(!0)), updateButtonStates();
   }
   __name(handlePageUpdate, "handlePageUpdate");
-  function init106() {
+  function init107() {
     chrome.storage.local.get({ PrivateServerBulkEnabled: !0 }, (data) => {
       if (data.PrivateServerBulkEnabled === !0) {
         let wrapHistory = /* @__PURE__ */ __name((type) => {
@@ -150148,7 +150215,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     });
   }
-  __name(init106, "init");
+  __name(init107, "init");
 
   // src/content/features/profile/header/RoValraBadges.js
   init_observer();
@@ -150709,7 +150776,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addProfileBadgeButtons, "addProfileBadgeButtons");
-  function init107() {
+  function init108() {
     settings.robloxGroupFeaturesEnabled.then((enabled2) => {
       document.dispatchEvent(
         new CustomEvent("rovalra:settingsState", {
@@ -150755,7 +150822,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init107, "init");
+  __name(init108, "init");
 
   // src/content/features/profile/hiddengames.js
   init_observer();
@@ -150964,7 +151031,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         await t2("hiddenGamesProfile.buttonText"),
         "secondary"
       );
-      btn.classList.add("hidden-games-button"), btn.style.marginLeft = "5px", btn.addEventListener("click", onClick2), header.appendChild(btn);
+      btn.classList.add("hidden-games-button"), btn.style.marginLeft = "5px", btn.addEventListener("click", onClick2);
+      let buttonContainer = header.querySelector(".container-buttons");
+      buttonContainer ? header.insertBefore(btn, buttonContainer) : header.appendChild(btn);
     },
     async createEmptyState(onClick2) {
       let container = document.createElement("div");
@@ -151065,7 +151134,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(getUserId, "getUserId");
   var isInitialized9 = !1;
-  function init108() {
+  function init109() {
     chrome.storage.local.get(["userGamesEnabled"], (result) => {
       if (result.userGamesEnabled !== !0 || isInitialized9) return;
       isInitialized9 = !0;
@@ -151074,10 +151143,11 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         userId && new HiddenGamesManager2(userId).openOverlay();
       }, "handleButtonClick");
       observeElement(
-        ".btr-profile-right .profile-game .container-header, .profile-tab-content .container-header, .placeholder-games .container-header",
+        ".profile-experiences.profile-game .container-header, .btr-profile-right .profile-game .container-header, .placeholder-games .container-header",
         (header) => {
           header.dataset.rovalraProcessed || (header.dataset.rovalraProcessed = "true", UI.injectButton(header, handleButtonClick));
-        }
+        },
+        { multiple: !0 }
       );
       let checkEmptyState = /* @__PURE__ */ __name(async () => {
         if (!window.location.hash.includes("#creations")) return;
@@ -151099,7 +151169,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       window.addEventListener("hashchange", checkEmptyState), observeElement(".profile-tab-content", checkEmptyState);
     });
   }
-  __name(init108, "init");
+  __name(init109, "init");
 
   // src/content/features/profile/grouprole.js
   init_api();
@@ -151177,7 +151247,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return joinDatePromises.delete(groupId), result;
   }
   __name(getJoinDate, "getJoinDate");
-  function init109() {
+  function init110() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get({ groupFiltersEnabled: !0 }, (settings2) => {
       settings2.groupFiltersEnabled && observeElement(
@@ -151300,7 +151370,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init109, "init");
+  __name(init110, "init");
 
   // src/content/features/profile/grouprole.js
   init_i18n();
@@ -151321,7 +151391,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     })()), rolesPromise;
   }
   __name(getGroupRoles, "getGroupRoles");
-  function init110() {
+  function init111() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get(
       { groupRoleEnabled: !0, groupJoinedDateEnabled: !0 },
@@ -151402,7 +151472,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init110, "init");
+  __name(init111, "init");
 
   // src/content/features/games/plusPrivateServerTooltip.js
   init_observer();
@@ -151413,7 +151483,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_assets();
   init_i18n();
   init_games();
-  async function init111() {
+  async function init112() {
     chrome.storage.local.get(
       { PlusPrivateServerTooltipEnabled: !0 },
       async (settings2) => {
@@ -151500,7 +151570,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init111, "init");
+  __name(init112, "init");
 
   // src/content/features/sitewide/PreviousPrice.js
   init_observer();
@@ -151532,7 +151602,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addPriceIconToCard, "addPriceIconToCard");
-  function init112() {
+  function init113() {
     chrome.storage.local.get("PreviousPriceEnabled", (result) => {
       result.PreviousPriceEnabled === !0 && (listenersAttached || (listenersAttached = !0, observeElement(
         "#offsale-since-date",
@@ -151646,7 +151716,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       )));
     });
   }
-  __name(init112, "init");
+  __name(init113, "init");
   function handleItemCard(card) {
     if (!card.isConnected) return;
     let link = card.querySelector(".item-card-link") || card.querySelector(".rovalra-item-card-link");
@@ -152198,7 +152268,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     !card || card.parentElement === targetGrid || (targetGrid.appendChild(card), syncDiscoveredCategories(), refreshPillToggle());
   }
   __name(moveAssetCardToCategory, "moveAssetCardToCategory");
-  async function init113() {
+  async function init114() {
     let result = await new Promise(
       (resolve) => chrome.storage.local.get(
         [
@@ -152288,7 +152358,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       content && loadCurrentlyWearing(content);
     });
   }
-  __name(init113, "init");
+  __name(init114, "init");
 
   // src/content/features/profile/bannedusers.js
   init_api();
@@ -152395,7 +152465,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/profile/bannedusers.js
   init_i18n();
-  function init114() {
+  function init115() {
     chrome.storage.local.get(
       {
         bannedUserViewerEnabled: !1,
@@ -152537,7 +152607,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init114, "init");
+  __name(init115, "init");
   async function renderBannedUserProfile(user, settings2) {
     let content = document.getElementById("content");
     if (!content) return;
@@ -153340,18 +153410,18 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(addTrustedFriendButton, "addTrustedFriendButton");
-  function init115() {
+  function init116() {
     chrome.storage.local.get(
-      { trustedConnectionsEnabledv2: !0 },
+      { trustedConnectionsEnabledv3: !0 },
       async (settings2) => {
-        settings2.trustedConnectionsEnabledv2 && registerProfileContextMenuAction(addTrustedFriendButton, () => {
+        settings2.trustedConnectionsEnabledv3 && registerProfileContextMenuAction(addTrustedFriendButton, () => {
           let userId = getUserIdFromUrl();
           userId && getProfileStatus(userId);
         });
       }
     );
   }
-  __name(init115, "init");
+  __name(init116, "init");
 
   // src/content/features/profile/header/ProfileRender.js
   init_observer();
@@ -154764,7 +154834,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     profileRenderObserversSetup && (removeRoblox3dObserver?.disconnect(), renderContainerObserver?.disconnect(), autoSwitchObserver?.disconnect(), removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, profileRenderObserversSetup = !1, removeStylesheet("rovalra-thumbnail-holder-css"));
   }
   __name(teardownProfileRenderObservers, "teardownProfileRenderObservers");
-  function init116() {
+  function init117() {
     migrateLegacyEnvironment();
     let userId = getUserIdFromUrl();
     if (!userId) {
@@ -154787,7 +154857,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init116, "init");
+  __name(init117, "init");
 
   // src/content/features/profile/testTab.js
   init_observer();
@@ -154853,10 +154923,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     contentPane.textContent = "test";
   }
   __name(addTestTab, "addTestTab");
-  async function init117() {
+  async function init118() {
     await settings.profileTestTabEnabled && observeElement(".profile-tabs", addTestTab, { multiple: !0 });
   }
-  __name(init117, "init");
+  __name(init118, "init");
 
   // src/content/features/profile/showcase.js
   init_observer();
@@ -155404,7 +155474,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), closeGroupDropdown = /* @__PURE__ */ __name(() => groupDropdown.toggleVisibility(!1), "closeGroupDropdown");
   }
   __name(addShowcaseTab, "addShowcaseTab");
-  async function init118() {
+  async function init119() {
     await settings.profileShowcaseEnabled && observeElement(
       ".profile-tabs",
       (tabs) => addShowcaseTab(tabs).catch((error2) => {
@@ -155416,7 +155486,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init118, "init");
+  __name(init119, "init");
 
   // src/content/features/profile/header/status.js
   init_observer();
@@ -155745,7 +155815,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(addHomeStatusHover, "addHomeStatusHover");
-  async function init119() {
+  async function init120() {
     if (!await settings.statusBubbleEnabled) return;
     migrateLegacyStatus(), startObserving(), injectStylesheet("css/thinkingbubble.css", "rovalra-profile-status-css"), observeElement(".user-profile-header-details-avatar-container:not(.rovalra-sendrobux-avatar)", (el2) => addStatusBubble(el2), {
       multiple: !0
@@ -155753,7 +155823,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       exclude: [".rovalra-donator-card", ".user-item-clickable", ".rovalra-sendrobux-profile"]
     }));
   }
-  __name(init119, "init");
+  __name(init120, "init");
 
   // src/content/features/profile/header/lastplayed.js
   init_friendslist();
@@ -155860,14 +155930,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initLastPlayed, "initLastPlayed");
-  function init120() {
+  function init121() {
     chrome.storage.local.get({ lastOnlineEnabled: !0 }, (data) => {
       data.lastOnlineEnabled && initLastOnline();
     }), chrome.storage.local.get({ lastPlayedTogetherEnabled: !0 }, (data) => {
       data.lastPlayedTogetherEnabled && initLastPlayed();
     });
   }
-  __name(init120, "init");
+  __name(init121, "init");
 
   // src/content/features/profile/header/profileViews.js
   init_idExtractor();
@@ -155951,10 +156021,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initProfileViews, "initProfileViews");
-  function init121() {
+  function init122() {
     initProfileViews();
   }
-  __name(init121, "init");
+  __name(init122, "init");
 
   // src/content/features/profile/header/pronouns.js
   init_idExtractor();
@@ -156066,10 +156136,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(initProfilePronouns, "initProfilePronouns");
-  function init122() {
+  function init123() {
     initProfilePronouns();
   }
-  __name(init122, "init");
+  __name(init123, "init");
 
   // src/content/features/profile/header/profileNotes.js
   init_idExtractor();
@@ -156274,10 +156344,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(startStorageListener, "startStorageListener");
-  function init123() {
+  function init124() {
     startStorageListener(), initProfileNotes();
   }
-  __name(init123, "init");
+  __name(init124, "init");
 
   // src/content/features/profile/header/currentlyPlayingSubplace.js
   init_idExtractor();
@@ -157302,7 +157372,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), scheduleProfileScans());
   }
   __name(registerProfileFallbackSubplaces, "registerProfileFallbackSubplaces");
-  async function init124() {
+  async function init125() {
     if (!await settings.currentlyPlayingSubplaceEnabled) {
       cleanupHomeSubplaceCards(), cleanupProfileSubplaceCards();
       return;
@@ -157320,7 +157390,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     }), await scheduleProfileScans();
   }
-  __name(init124, "init");
+  __name(init125, "init");
 
   // src/content/features/profile/header/idVerificationBadge.js
   init_api();
@@ -157426,7 +157496,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     userId && initProfileAboutDialogObserver(userId);
   }
   __name(run, "run");
-  function init125() {
+  function init126() {
     if (watcherSet) return;
     watcherSet = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -157434,7 +157504,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run();
   }
-  __name(init125, "init");
+  __name(init126, "init");
 
   // src/content/features/profile/friends/friendsSince.js
   init_idExtractor();
@@ -157646,7 +157716,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(run2, "run");
-  async function init126() {
+  async function init127() {
     if (watcherSet2) return;
     watcherSet2 = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -157654,7 +157724,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run2();
   }
-  __name(init126, "init");
+  __name(init127, "init");
 
   // src/content/features/profile/friends/unfriend.js
   init_observer();
@@ -157954,7 +158024,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initializeIfOnFriendsPage, "initializeIfOnFriendsPage");
-  async function init127() {
+  async function init128() {
     if (!(await chrome.storage.local.get("bulkUnfriendEnabled")).bulkUnfriendEnabled)
       return;
     let handlePageChange = /* @__PURE__ */ __name(async () => {
@@ -157975,7 +158045,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !1 }
     ), window.addEventListener("popstate", handlePageChange);
   }
-  __name(init127, "init");
+  __name(init128, "init");
 
   // src/content/features/profile/header/avatarDownload.js
   init_observer();
@@ -158085,12 +158155,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     button.classList.replace("text-label-medium", "text-label-large"), button.classList.add(buttonIdentifier), toggleContainer.style.display = "flex", toggleContainer.style.gap = "10px", toggleContainer.prepend(button);
   }
   __name(addDownloadButton, "addDownloadButton");
-  async function init128() {
+  async function init129() {
     await settings.avatarDownloadEnabled && observeElement(".avatar-toggle-button", addDownloadButton, {
       multiple: !0
     });
   }
-  __name(init128, "init");
+  __name(init129, "init");
 
   // src/content/index.js
   init_avatarBorder();
@@ -158099,7 +158169,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_observer();
   init_handlesettings();
   var PROFILE_AVATAR_SELECTOR = ".user-profile-header-details-avatar-container .avatar.avatar-card-fullbody", AVATAR_CLASS = "rovalra-improved-avatar-card";
-  async function init129() {
+  async function init130() {
     try {
       if (!(await loadSettings()).improvedAvatarCard) return;
       observeElement(
@@ -158111,7 +158181,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       console.error("RoValra: Improved avatar card init failed", error2);
     }
   }
-  __name(init129, "init");
+  __name(init130, "init");
 
   // src/content/core/catalog/purchasePromptItemId.js
   init_observer();
@@ -158386,7 +158456,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "tryProcess");
     tryProcess();
   }, "attachItemDataToPurchasePrompt");
-  function init130() {
+  function init131() {
     observeElement(
       ".modal-dialog .modal-content, .modal-content, .unified-purchase-dialog-content",
       (element) => {
@@ -158453,7 +158523,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       "color: #FF4500;"
     );
   }
-  __name(init130, "init");
+  __name(init131, "init");
 
   // src/content/features/profile/currencytransfer.js
   init_api();
@@ -158535,14 +158605,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     menuItems.length > 0 ? menuItems[0].insertAdjacentElement("afterend", button) : container.appendChild(button);
   }
   __name(addCurrencyTransferButton, "addCurrencyTransferButton");
-  function init131() {
+  function init132() {
     chrome.storage.local.get({ currencyTransferEnabled: !0 }, (settings2) => {
       settings2.currencyTransferEnabled && registerProfileContextMenuAction(addCurrencyTransferButton, () => {
         getCurrencyTransferStatus();
       });
     });
   }
-  __name(init131, "init");
+  __name(init132, "init");
 
   // src/content/features/profile/header/usernameColor.js
   init_observer();
@@ -158579,7 +158649,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     el2 && (el2.style.color = colors[value2]);
   }
   __name(addUsernameColor, "addUsernameColor");
-  async function init132() {
+  async function init133() {
     await settings.usernameColor && observeElement(
       ".stylistic-alts-username, .deleted-user-container .user-name",
       (el2) => {
@@ -158593,7 +158663,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init132, "init");
+  __name(init133, "init");
 
   // src/content/features/profile/header/chatEligibilityTooltip.js
   init_idExtractor();
@@ -158685,12 +158755,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(processPotentialChatOverlay, "processPotentialChatOverlay");
-  async function init133() {
+  async function init134() {
     observerRegistered2 || !getUserIdFromUrl() || !await settings.chatEligibilityTooltipEnabled || (observerRegistered2 = !0, observeElement(PRESENTATION_SELECTOR, processPotentialChatOverlay, {
       multiple: !0
     }));
   }
-  __name(init133, "init");
+  __name(init134, "init");
 
   // src/content/features/profile/profileCustomization.js
   init_api();
@@ -159196,10 +159266,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )));
   }
   __name(initProfileCustomization, "initProfileCustomization");
-  function init134() {
+  function init135() {
     initProfileCustomization();
   }
-  __name(init134, "init");
+  __name(init135, "init");
 
   // src/content/features/settings/index.js
   init_assets();
@@ -159640,6 +159710,26 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return !(sectionName === "Developer" && !options.devTabAdded || sectionName === "FunStuff" && !options.funStuffTabEnabled);
   }
   __name(shouldShowSettingsSection, "shouldShowSettingsSection");
+  function hasRoGoldEnabled() {
+    return /(^|\s)rogold(\s|$)/i.test(document.body?.className || "");
+  }
+  __name(hasRoGoldEnabled, "hasRoGoldEnabled");
+  function createRoGoldWarning() {
+    if (!hasRoGoldEnabled()) return null;
+    let warning = document.createElement("div");
+    warning.id = "rovalra-rogold-notice-banner", warning.setAttribute("role", "alert");
+    let entry = document.createElement("div");
+    entry.className = "rovalra-game-notice-entry";
+    let iconContainer = document.createElement("div");
+    iconContainer.className = "rovalra-game-notice-icon", iconContainer.innerHTML = '<icon material size="48px">warning_amber</icon>';
+    let textContainer = document.createElement("div");
+    textContainer.className = "rovalra-game-notice-text-container";
+    let title = document.createElement("div");
+    title.className = "rovalra-game-notice-title", title.textContent = "RoValra may not work properly with RoGold enabled.";
+    let description = document.createElement("div");
+    return description.className = "rovalra-game-notice-description", description.textContent = "We do not promise support for RoGold.", textContainer.append(title, description), entry.append(iconContainer, textContainer), warning.appendChild(entry), warning;
+  }
+  __name(createRoGoldWarning, "createRoGoldWarning");
   async function buildSettingsPage({
     handleSearch: handleSearch2,
     debounce: debounce5,
@@ -159682,6 +159772,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     rovalraIcon.dataset.rovalraAsset = "rovalraIcon", rovalraIcon.src = assets7.rovalraIcon, rovalraIcon.style.cssText = "width: 35px; height: 35px; margin-left: 5px;  user-select: none;";
     let rovalraHeader = document.createElement("h1");
     rovalraHeader.textContent = "RoValra Settings", rovalraHeader.style.margin = "0", rovalraHeader.style.color = "var(--rovalra-main-text-color)", headerContainer.appendChild(rovalraHeader), rovalraHeader.appendChild(rovalraIcon);
+    let roGoldWarning = createRoGoldWarning();
+    roGoldWarning && (headerContainer.style.marginBottom = "0");
     let settingsContainer = document.createElement("div");
     settingsContainer.id = "settings-container", userAccountDiv.appendChild(reactUserAccountBaseDiv), reactUserAccountBaseDiv.appendChild(headerContainer), reactUserAccountBaseDiv.appendChild(settingsContainer), contentDiv.appendChild(userAccountDiv), containerMain.appendChild(contentDiv), contentDiv.style.cssText = "width: 100% !important; height: auto !important; border-radius: 10px !important; overflow: hidden !important; padding-bottom: 25px !important; padding-top: 25px !important; min-height: 800px !important; position: relative !important;", userAccountDiv && (userAccountDiv.style.cssText = "display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; padding-left: 0px !important; padding-right: 0px !important; margin-left: auto !important; margin-right: auto !important; width: 100% !important;");
     let mobileMenuContainer = document.createElement("div");
@@ -159741,7 +159833,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "renderMobileDropdown");
     renderMobileDropdown();
     let uiContainer = document.createElement("div");
-    uiContainer.id = "rovalra-ui-container", uiContainer.style.cssText = "display: flex; flex-direction: row; gap: 10px; align-items: flex-start; position: relative; overflow: visible; width: 100%; justify-content: flex-start;", settingsContainer.appendChild(uiContainer), settingsContainer.style.cssText = "display: block; position: relative; overflow: visible; width: 100%;", settingsContainer.insertAdjacentElement("afterbegin", rovalraHeader), uiContainer.innerHTML = "";
+    uiContainer.id = "rovalra-ui-container", uiContainer.style.cssText = "display: flex; flex-direction: row; gap: 10px; align-items: flex-start; position: relative; overflow: visible; width: 100%; justify-content: flex-start;", settingsContainer.appendChild(uiContainer), settingsContainer.style.cssText = "display: block; position: relative; overflow: visible; width: 100%;", settingsContainer.insertAdjacentElement("afterbegin", rovalraHeader), roGoldWarning && rovalraHeader.insertAdjacentElement("afterend", roGoldWarning), uiContainer.innerHTML = "";
     let contentContainer = document.createElement("div");
     contentContainer.id = "content-container", contentContainer.style.cssText = `
         width: 800px; 
@@ -162646,10 +162738,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init135() {
+  function init136() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init135, "init");
+  __name(init136, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -162846,7 +162938,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init136() {
+  function init137() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -162858,7 +162950,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init136, "init");
+  __name(init137, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -162916,7 +163008,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init137() {
+  async function init138() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -162927,7 +163019,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init137, "init");
+  __name(init138, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -163219,7 +163311,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init138() {
+  async function init139() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
@@ -163230,7 +163322,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init138, "init");
+  __name(init139, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -163814,7 +163906,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init139() {
+  async function init140() {
     if (!initialized17) {
       if (await settings.homeLayoutEnabled === !1) {
         initialized17 = !0, publishHomeLayoutState([], []);
@@ -163853,7 +163945,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init139, "init");
+  __name(init140, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
@@ -163934,14 +164026,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init140() {
+  function init141() {
     initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error2) => console.error("RoValra: Failed to open custom background settings.", error2)
       );
     }));
   }
-  __name(init140, "init");
+  __name(init141, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -164220,7 +164312,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init141() {
+  async function init142() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -164235,7 +164327,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error2);
     }));
   }
-  __name(init141, "init");
+  __name(init142, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
@@ -164290,14 +164382,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init142() {
+  async function init143() {
     if (registerStorageListener(), enabled = await settings.HideAddFriendsButton === !0, !enabled) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -164577,7 +164669,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init143() {
+  function init144() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -164592,7 +164684,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init143, "init");
+  __name(init144, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -167122,7 +167214,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init144() {
+  async function init145() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -167132,7 +167224,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init144, "init");
+  __name(init145, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -167143,7 +167235,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init135,
+        init136,
         init66,
         init7,
         init8,
@@ -167166,22 +167258,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init27,
         init28,
         init10,
-        init112,
+        init113,
         init30,
         init31,
         init24,
-        init114,
+        init115,
         init32,
         init34,
         init35,
-        init119,
+        init120,
         init33,
         init21,
         init49,
         init2,
         init29,
-        init130,
-        init124,
+        init131,
+        init125,
         init23,
         initializeModernIcons,
         init37,
@@ -167195,14 +167287,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init45,
         init47,
         init48,
-        init140,
+        init141,
         initNotificationCenter
       ]
     },
     // pretty much just the 40% method
     {
       paths: ["/catalog", "/bundles", "/game-pass", "/games"],
-      features: [init3, init60, init103]
+      features: [init3, init60, init104]
     },
     {
       paths: ["/developer-product/"],
@@ -167226,7 +167318,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init144
+        init145
       ]
     },
     // Avatar pages
@@ -167238,20 +167330,20 @@ ${locale4.suggestOnDiscord}`), subtitle;
     {
       paths: ["/communities/"],
       features: [
-        init92,
         init93,
         init94,
         init95,
-        init97,
+        init96,
         init98,
         init99,
+        init100,
         init63
       ]
     },
     // Communities list page (My Communities) — matches /communities and /communities/...
     {
       paths: ["/communities"],
-      features: [init96]
+      features: [init97]
     },
     // Game pages
     {
@@ -167268,10 +167360,10 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init76,
         initRecentServers,
         init70,
-        init80,
-        init111,
-        init144,
-        init82
+        init81,
+        init112,
+        init145,
+        init83
       ]
     },
     // private games and game pages
@@ -167280,12 +167372,17 @@ ${locale4.suggestOnDiscord}`), subtitle;
       features: [
         init77,
         init73,
-        init81,
+        init82,
         init22,
         init67,
         init68,
         init69
       ]
+    },
+    // Donation store page
+    {
+      paths: ["/games/store-section/"],
+      features: [init80]
     },
     // Private games page and unavailable game redirects
     {
@@ -167305,52 +167402,52 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // Roblox Plus Page
     {
       paths: ["/plus"],
-      features: [init100, init101]
+      features: [init101, init102]
     },
     // User profile pages
     {
       paths: ["/users/"],
       features: [
-        init103,
-        init129,
-        init102,
         init104,
+        init130,
+        init103,
         init105,
         init106,
-        init108,
-        init115,
+        init107,
+        init109,
         init116,
         init117,
         init118,
-        init125,
+        init119,
         init126,
         init127,
-        init120,
-        init122,
-        init123,
-        init121,
-        init124,
-        init110,
-        init131,
-        init109,
         init128,
-        init133,
+        init121,
+        init123,
+        init124,
+        init122,
+        init125,
+        init111,
+        init132,
+        init110,
+        init129,
         init134,
+        init135,
         initProfileButton
       ]
     },
     {
       paths: ["/users/", "/banned-users/"],
-      features: [init113, init107, init132]
+      features: [init114, init108, init133]
     },
     {
       paths: ["/deleted-users/"],
-      features: [init132]
+      features: [init133]
     },
     // Transactions page
     {
       paths: ["/transactions"],
-      features: [init83, init84, init85]
+      features: [init84, init85, init86]
     },
     {
       paths: ["/upgrades/paymentmethods"],
@@ -167360,12 +167457,12 @@ ${locale4.suggestOnDiscord}`), subtitle;
     {
       paths: ["/trades", "/trade", "/users"],
       features: [
-        init86,
         init87,
         init88,
         init89,
         init90,
-        init91
+        init91,
+        init92
       ]
     },
     // API Docs
@@ -167381,20 +167478,20 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init143]
+      features: [init144]
     },
     {
       paths: ["/home"],
       features: [
+        init140,
+        init142,
         init139,
-        init141,
-        init138,
-        init142
+        init143
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init136, init137]
+      features: [init137, init138]
     },
     // Scam prevention
     {
@@ -167449,11 +167546,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init145) => {
-        if (!featuresRunThisPass.has(init145) && !(route.once && initializedPersistentFeatures.has(init145))) {
-          featuresRunThisPass.add(init145), route.once && initializedPersistentFeatures.add(init145);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init146) => {
+        if (!featuresRunThisPass.has(init146) && !(route.once && initializedPersistentFeatures.has(init146))) {
+          featuresRunThisPass.add(init146), route.once && initializedPersistentFeatures.add(init146);
           try {
-            init145();
+            init146();
           } catch (error2) {
             console.error("RoValra: Feature init failed", error2);
           }
