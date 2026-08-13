@@ -1220,6 +1220,16 @@
           default: !1,
           contributors: ["476449201"]
         },
+        friendLabelsEnabled: {
+          label: "Friend Labels",
+          description: [
+            "Lets you assign a label to your friends on the Home page."
+          ],
+          type: "checkbox",
+          default: !1,
+          storageKey: "rovalra_friend_labels",
+          contributors: ["4632962611"]
+        },
         friendUsernamesEnabled: {
           label: "Show Usernames On Friend Cards",
           description: [
@@ -3149,39 +3159,63 @@ Standards{linkEnd}.`,
           "RoValra: wearOutfit called with invalid outfitData",
           outfitData
         ), { ok: !1 };
-      let detailsRes = await callWithRetry({
-        subdomain: "avatar",
-        endpoint: `/v3/outfits/${outfitId}/details`
+      let details = await new Promise((resolve) => {
+        chrome.storage.local.get("rovalra_avatar_rotator_details", (data) => {
+          resolve(data.rovalra_avatar_rotator_details?.[String(outfitId)] || null);
+        });
       });
-      if (!detailsRes?.ok) return { ok: !1 };
-      let details = await detailsRes.json(), promises = [];
-      return details.assets && promises.push(
+      if (!details) {
+        let detailsRes = await callWithRetry({
+          subdomain: "avatar",
+          endpoint: `/v4/outfits/${outfitId}/details`
+        });
+        if (!detailsRes?.ok) return { ok: !1 };
+        details = await detailsRes.json();
+      }
+      let outfitModel = details.outfitModel || details, assets = [...outfitModel.assets || []], backgroundAsset = details.outfitConfigurations?.background?.backgroundAsset, promises = [];
+      return backgroundAsset?.id && promises.push(
+        callWithRetry({
+          subdomain: "avatar",
+          endpoint: "/v4/avatar",
+          method: "PATCH",
+          body: {
+            updateTypes: ["UpdateBackground"],
+            avatarDefinition: {
+              updateAvatarConfig: {
+                backgroundRequestModel: {
+                  id: backgroundAsset.id
+                }
+              }
+            }
+          }
+        })
+      ), assets.length > 0 && promises.push(
         callWithRetry({
           subdomain: "avatar",
           endpoint: "/v2/avatar/set-wearing-assets",
           method: "POST",
-          body: { assets: details.assets }
+          body: { assets }
         })
-      ), details.playerAvatarType && promises.push(
+      ), outfitModel.playerAvatarType && promises.push(
         callWithRetry({
           subdomain: "avatar",
           endpoint: "/v1/avatar/set-player-avatar-type",
           method: "POST",
-          body: { playerAvatarType: details.playerAvatarType }
+          body: { playerAvatarType: outfitModel.playerAvatarType }
         })
-      ), details.scale && promises.push(
+      ), outfitModel.scale && promises.push(
         callWithRetry({
           subdomain: "avatar",
           endpoint: "/v1/avatar/set-scales",
           method: "POST",
-          body: details.scale
+          body: outfitModel.scale
         })
-      ), details.bodyColor3s && promises.push(
+      ), outfitModel.bodyColor3s && promises.push(
         callWithRetry({
           subdomain: "avatar",
           endpoint: "/v2/avatar/set-body-colors",
           method: "POST",
-          body: details.bodyColor3s
+          body: outfitModel.bodyColor3s
         })
       ), { ok: (await Promise.all(promises)).every((r) => r && r.ok) };
     } catch (e) {

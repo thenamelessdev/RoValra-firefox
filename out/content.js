@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init146 = {
+          let init147 = {
             ...params,
             headers
           };
-          return this.onSite && (init146.credentials = "include"), (this._fetchFn ?? fetch)(url, init146);
+          return this.onSite && (init147.credentials = "include"), (this._fetchFn ?? fetch)(url, init147);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init146 } = response2;
-              resolve(new Response(body2, init146));
+              let { body: body2, ...init147 } = response2;
+              resolve(new Response(body2, init147));
             }
           );
         });
@@ -3398,6 +3398,16 @@ Never used outside your local device.`;
               type: "checkbox",
               default: !1,
               contributors: ["476449201"]
+            },
+            friendLabelsEnabled: {
+              label: "Friend Labels",
+              description: [
+                "Lets you assign a label to your friends on the Home page."
+              ],
+              type: "checkbox",
+              default: !1,
+              storageKey: "rovalra_friend_labels",
+              contributors: ["4632962611"]
             },
             friendUsernamesEnabled: {
               label: "Show Usernames On Friend Cards",
@@ -12821,8 +12831,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     let presence = PRESENCE_MAP[presenceType] || PRESENCE_MAP[0], presenceTitle = presenceType === 2 && gameName ? gameName : presence.title, icon = card.querySelector('[data-testid="presence-icon"]');
     icon && (icon.className = presence.class, icon.title = presenceTitle);
     let sublabel = card.querySelector(".user-card-subname");
-    sublabel && (clearSubplaceCardFromPresenceTarget(sublabel), gameName && (sublabel.textContent = gameName, sublabel.style.fontSize = "9.6px"), presenceType === 2 && gameName && presenceData && isSubplaceHoverCardEnabled().then((enabled2) => {
-      enabled2 && sublabel.isConnected && attachSubplaceCardToPresenceTarget(sublabel, presenceData);
+    sublabel && (clearSubplaceCardFromPresenceTarget(sublabel), gameName && (sublabel.textContent = gameName, sublabel.style.fontSize = "9.6px"), presenceType === 2 && gameName && presenceData && isSubplaceHoverCardEnabled().then((enabled3) => {
+      enabled3 && sublabel.isConnected && attachSubplaceCardToPresenceTarget(sublabel, presenceData);
     }).catch(() => {
     }));
   }
@@ -12890,8 +12900,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       subname && (subname.style.textDecoration = "none");
     }), presenceInfo === 2 && gameName && presenceData) {
       let sublabel = tileContainer.querySelector(".user-card-subname");
-      sublabel && isSubplaceHoverCardEnabled().then((enabled2) => {
-        enabled2 && sublabel.isConnected && attachSubplaceCardToPresenceTarget(sublabel, presenceData);
+      sublabel && isSubplaceHoverCardEnabled().then((enabled3) => {
+        enabled3 && sublabel.isConnected && attachSubplaceCardToPresenceTarget(sublabel, presenceData);
       }).catch(() => {
       });
     }
@@ -58373,8 +58383,8 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         `, style = document.createElement("style");
       style.textContent = css, (document.head || document.documentElement).appendChild(style);
     });
-  }, "applyGameTitleFix"), applyProfileUsernameSpacingFix = /* @__PURE__ */ __name((enabled2) => {
-    if (!enabled2) return;
+  }, "applyGameTitleFix"), applyProfileUsernameSpacingFix = /* @__PURE__ */ __name((enabled3) => {
+    if (!enabled3) return;
     let styleId = "rovalra-profile-username-spacing-fix";
     if (document.getElementById(styleId)) return;
     let style = document.createElement("style");
@@ -58568,7 +58578,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init146 = /* @__PURE__ */ __name(() => {
+      let init147 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58594,7 +58604,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init146() : window.addEventListener("load", init146, { once: !0 });
+      document.readyState === "complete" ? init147() : window.addEventListener("load", init147, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -60086,16 +60096,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init146) {
-    return init146?.body !== void 0 ? init146.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init147) {
+    return init147?.body !== void 0 ? init147.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init146 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init146.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init146.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init147 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init147.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init147.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -60103,8 +60113,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init146),
-      credentials: init146.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init147),
+      credentials: init147.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -60113,9 +60123,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init146 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init146.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init146) : await originalFetch(input, init146);
+    window.fetch = async (input, init147 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init147.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init147) : await originalFetch(input, init147);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62271,7 +62281,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init146 = /* @__PURE__ */ __name(() => {
+    let init147 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62288,7 +62298,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init146() : window.addEventListener("load", init146, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init147() : window.addEventListener("load", init147, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -83237,10 +83247,10 @@ void main() {
   function WebGLClipping(properties) {
     let scope = this, globalState = null, numGlobalPlanes = 0, localClippingEnabled = !1, renderingShadows = !1, plane = new Plane(), viewNormalMatrix = new Matrix3(), uniform = { value: null, needsUpdate: !1 };
     this.uniform = uniform, this.numPlanes = 0, this.numIntersection = 0, this.init = function(planes, enableLocalClipping) {
-      let enabled2 = planes.length !== 0 || enableLocalClipping || // enable state of previous frame - the clipping code has to
+      let enabled3 = planes.length !== 0 || enableLocalClipping || // enable state of previous frame - the clipping code has to
       // run another frame in order to reset the state:
       numGlobalPlanes !== 0 || localClippingEnabled;
-      return localClippingEnabled = enableLocalClipping, numGlobalPlanes = planes.length, enabled2;
+      return localClippingEnabled = enableLocalClipping, numGlobalPlanes = planes.length, enabled3;
     }, this.beginShadows = function() {
       renderingShadows = !0, projectPlanes(null);
     }, this.endShadows = function() {
@@ -85536,10 +85546,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init146() {
+    function init147() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init146, "init");
+    __name(init147, "init");
     function getNextRenderItem(object, geometry, material, groupOrder, z2, group) {
       let renderItem = renderItems2[renderItemsIndex];
       return renderItem === void 0 ? (renderItem = {
@@ -85579,7 +85589,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init146,
+      init: init147,
       push,
       unshift,
       finish,
@@ -85824,10 +85834,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [];
-    function init146(camera) {
+    function init147(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0;
     }
-    __name(init146, "init");
+    __name(init147, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -85852,7 +85862,7 @@ Program Info Log: ` + programLog + `
       transmissionRenderTarget: {}
     };
     return {
-      init: init146,
+      init: init147,
       state: state4,
       setupLights,
       setupLightsView,
@@ -106108,11 +106118,11 @@ Bundled Items:
     ].filter(Boolean);
   }
   __name(getEffectHosts, "getEffectHosts");
-  function setEffectHosts(nameEl, enabled2) {
+  function setEffectHosts(nameEl, enabled3) {
     getEffectHosts(nameEl).forEach((host) => {
       host.classList.toggle(
         "rovalra-display-name-gradient-effect-host",
-        enabled2
+        enabled3
       );
     });
   }
@@ -106237,10 +106247,10 @@ Bundled Items:
   }
   __name(applyDisplayNameGradientToElement, "applyDisplayNameGradientToElement");
   async function applyDisplayNameGradient() {
-    let enabled2 = await settings.displayNameGradientEnabled, nameEl = document.querySelector(DISPLAY_NAME_SELECTOR);
+    let enabled3 = await settings.displayNameGradientEnabled, nameEl = document.querySelector(DISPLAY_NAME_SELECTOR);
     if (!nameEl) return;
     let profileUserId = getUserIdFromUrl();
-    if (!enabled2 || !profileUserId) {
+    if (!enabled3 || !profileUserId) {
       clearDisplayNameGradient(nameEl);
       return;
     }
@@ -108514,8 +108524,8 @@ Bundled Items:
     navbarLayoutFrame === null && (navbarLayoutFrame = requestAnimationFrame(updateNavbarLayout));
   }
   __name(scheduleNavbarLayoutUpdate, "scheduleNavbarLayoutUpdate");
-  function setPushNavbarEnabled(enabled2) {
-    pushNavbarEnabled = enabled2 === !0;
+  function setPushNavbarEnabled(enabled3) {
+    pushNavbarEnabled = enabled3 === !0;
     let root = document.documentElement;
     root.classList.toggle(expandedBadgeRootClass, pushNavbarEnabled), root.style.removeProperty(navbarShiftProperty), pushNavbarEnabled && scheduleNavbarLayoutUpdate();
   }
@@ -109256,11 +109266,11 @@ Bundled Items:
   }
   __name(removeLeftNav, "removeLeftNav");
   async function initSidebarCollapse() {
-    let [enabled2, collapsed] = await Promise.all([
+    let [enabled3, collapsed] = await Promise.all([
       settings.sidebarCollapseEnabled,
       storedCollapsedPromise
     ]);
-    enabled2 && (savedCollapsedState = collapsed, window.addEventListener("resize", handleWindowResize, { passive: !0 }), observeElement(".left-nav", attachCollapseButton, {
+    enabled3 && (savedCollapsedState = collapsed, window.addEventListener("resize", handleWindowResize, { passive: !0 }), observeElement(".left-nav", attachCollapseButton, {
       onRemove: removeLeftNav
     }), observeElement(ROBLOX_NAV_MENU_SELECTOR, observeRobloxResponsiveNavButton, {
       onRemove: removeRobloxResponsiveNavButton
@@ -111307,8 +111317,8 @@ Bundled Items:
     postState(), frame.onload = postState;
   }
   __name(applyBackground, "applyBackground");
-  function applyBackgroundImage(config, enabled2) {
-    if (enabled2 !== !0 || !BG_SUPPORTED_HOSTS.has(window.location.hostname)) {
+  function applyBackgroundImage(config, enabled3) {
+    if (enabled3 !== !0 || !BG_SUPPORTED_HOSTS.has(window.location.hostname)) {
       clearBackgroundImage();
       return;
     }
@@ -111316,8 +111326,8 @@ Bundled Items:
   }
   __name(applyBackgroundImage, "applyBackgroundImage");
   async function applyStoredBackgroundImage(changes = null) {
-    let enabled2 = changes?.[BACKGROUND_IMAGE_ENABLED_SETTING] ? changes[BACKGROUND_IMAGE_ENABLED_SETTING].newValue === !0 : await settings[BACKGROUND_IMAGE_ENABLED_SETTING] === !0, config = changes?.[BACKGROUND_IMAGE_SETTING] ? changes[BACKGROUND_IMAGE_SETTING].newValue : await settings[BACKGROUND_IMAGE_SETTING];
-    applyBackgroundImage(sanitizeBackgroundImage(config || DEFAULT_BACKGROUND_IMAGE), enabled2);
+    let enabled3 = changes?.[BACKGROUND_IMAGE_ENABLED_SETTING] ? changes[BACKGROUND_IMAGE_ENABLED_SETTING].newValue === !0 : await settings[BACKGROUND_IMAGE_ENABLED_SETTING] === !0, config = changes?.[BACKGROUND_IMAGE_SETTING] ? changes[BACKGROUND_IMAGE_SETTING].newValue : await settings[BACKGROUND_IMAGE_SETTING];
+    applyBackgroundImage(sanitizeBackgroundImage(config || DEFAULT_BACKGROUND_IMAGE), enabled3);
   }
   __name(applyStoredBackgroundImage, "applyStoredBackgroundImage");
   var initialized7 = !1;
@@ -111435,10 +111445,10 @@ Bundled Items:
     )) : (removeThemeNotices(), removeInjectedThemeClass());
   }
   __name(setEnabled, "setEnabled");
-  function publishInitialSettingState(enabled2) {
+  function publishInitialSettingState(enabled3) {
     document.dispatchEvent(
       new CustomEvent("rovalra:settingSaved", {
-        detail: { name: SETTING_NAME, value: enabled2 === !0 }
+        detail: { name: SETTING_NAME, value: enabled3 === !0 }
       })
     );
   }
@@ -111448,8 +111458,8 @@ Bundled Items:
       onRemove: /* @__PURE__ */ __name(() => {
         themeSectionObserver?.disconnect(), themeSectionObserver = null;
       }, "onRemove")
-    }), settings[SETTING_NAME].then((enabled2) => {
-      setEnabled(enabled2), publishInitialSettingState(enabled2);
+    }), settings[SETTING_NAME].then((enabled3) => {
+      setEnabled(enabled3), publishInitialSettingState(enabled3);
     }), document.addEventListener("rovalra:user-settings-response", (event) => {
       FreeRobloxPlusThemesEnabledv2 && handleUserSettingsResponse(event.detail).catch(
         (error2) => console.warn(
@@ -113841,7 +113851,7 @@ Bundled Items:
         };
         let rotatorBtn = document.createElement("button");
         rotatorBtn.type = "button", rotatorBtn.className = "btn-secondary-xs rovalra-avatar-rotator-btn", rotatorBtn.textContent = "Avatar Rotator";
-        let nextPageCursor = "", isLoading = !1, avatarListContainer = null, selectedAvatars = /* @__PURE__ */ new Set(), setRotatorsBtn = null, disableRotatorBtn = null;
+        let nextPageCursor = "", isLoading = !1, avatarListContainer = null, selectedAvatars = /* @__PURE__ */ new Set(), outfitDetailsCache = /* @__PURE__ */ new Map(), setRotatorsBtn = null, disableRotatorBtn = null;
         function updateButtonState() {
           let count = selectedAvatars.size;
           setRotatorsBtn && (setRotatorsBtn.disabled = count < 2, setRotatorsBtn.textContent = count < 2 ? "Select at least 2 avatars" : `Set as rotators (${count})`);
@@ -113912,11 +113922,26 @@ Bundled Items:
             let wrapper = document.createElement("div");
             wrapper.style.cssText = "display: flex; flex-direction: column; width: 100%; height: 550px;", wrapper.appendChild(settingsContainer), wrapper.appendChild(placeholderText), wrapper.appendChild(avatarListContainer), wrapper.appendChild(loadMoreBtn), setRotatorsBtn = document.createElement("button"), setRotatorsBtn.className = "btn-primary-md", setRotatorsBtn.textContent = "Select at least 2 avatars", setRotatorsBtn.disabled = !0, setRotatorsBtn.onclick = () => {
               let avatars = Array.from(selectedAvatars), interval = parseInt(intervalInput.value, 10) || 5;
-              chrome.storage.local.set({
-                rovalra_avatar_rotator_ids: avatars,
-                rovalra_avatar_rotator_enabled: !0,
-                rovalra_avatar_rotator_interval: interval
-              }), setRotatorsBtn.textContent = "Rotators Active!", disableRotatorBtn && (disableRotatorBtn.style.display = "inline-block"), setTimeout(() => updateButtonState(), 2e3);
+              setRotatorsBtn.disabled = !0, setRotatorsBtn.textContent = "Loading outfit details...", Promise.all(avatars.map(async (outfitId) => {
+                if (!outfitDetailsCache.has(outfitId)) {
+                  let details = await callRobloxApiJson({
+                    subdomain: "avatar",
+                    endpoint: `/v4/outfits/${outfitId}/details`,
+                    method: "GET"
+                  });
+                  outfitDetailsCache.set(outfitId, details);
+                }
+                return [outfitId, outfitDetailsCache.get(outfitId)];
+              })).then((details) => {
+                chrome.storage.local.set({
+                  rovalra_avatar_rotator_ids: avatars,
+                  rovalra_avatar_rotator_details: Object.fromEntries(details),
+                  rovalra_avatar_rotator_enabled: !0,
+                  rovalra_avatar_rotator_interval: interval
+                }), setRotatorsBtn.textContent = "Rotators Active!", disableRotatorBtn && (disableRotatorBtn.style.display = "inline-block"), setTimeout(() => updateButtonState(), 2e3);
+              }).catch((error2) => {
+                console.error("RoValra: Failed to fetch outfit details", error2), setRotatorsBtn.disabled = !1, updateButtonState();
+              });
             }, disableRotatorBtn = document.createElement("button"), disableRotatorBtn.className = "btn-control-md", disableRotatorBtn.textContent = "Disable", disableRotatorBtn.style.display = data2.rovalra_avatar_rotator_enabled ? "inline-block" : "none", disableRotatorBtn.onclick = () => {
               chrome.storage.local.set({
                 rovalra_avatar_rotator_enabled: !1
@@ -113925,7 +113950,8 @@ Bundled Items:
             let clearBtn = document.createElement("button");
             clearBtn.className = "btn-control-md", clearBtn.textContent = "Clear Selection", clearBtn.onclick = () => {
               selectedAvatars.clear(), chrome.storage.local.set({
-                rovalra_avatar_rotator_ids: []
+                rovalra_avatar_rotator_ids: [],
+                rovalra_avatar_rotator_details: {}
               }), avatarListContainer.querySelectorAll('button[role="checkbox"]').forEach((radio) => {
                 radio.setChecked && radio.setChecked(!1);
               }), updateButtonState();
@@ -114015,8 +114041,8 @@ Bundled Items:
 
   // src/content/features/avatar/multiEquip.js
   function init53() {
-    let updateState = /* @__PURE__ */ __name(async (enabled2) => {
-      if (document.dispatchEvent(new CustomEvent("rovalra-multi-equip", { detail: { enabled: enabled2 } })), enabled2)
+    let updateState = /* @__PURE__ */ __name(async (enabled3) => {
+      if (document.dispatchEvent(new CustomEvent("rovalra-multi-equip", { detail: { enabled: enabled3 } })), enabled3)
         try {
           let [accData, clothingData, hairData] = await Promise.all([
             getIdsByCategory("Accessories"),
@@ -114025,7 +114051,7 @@ Bundled Items:
           ]), accIds = new Set(accData?.assetTypeIds || []);
           hairData?.assetTypeIds && hairData.assetTypeIds.forEach((id) => accIds.add(id)), document.dispatchEvent(new CustomEvent("rovalra-multi-equip", {
             detail: {
-              enabled: enabled2,
+              enabled: enabled3,
               accessories: Array.from(accIds),
               layered: clothingData?.assetTypeIds || []
             }
@@ -133792,10 +133818,10 @@ void main() {
   API.Events.OnLoadingAssets.Connect((newValue) => {
     currentlyLoadingAssets2 = newValue;
   });
-  var mainSceneContainer, mainButtonContainer, mousePos = [0, 0], buttonFor3d, animationDropdown, toggleAccessories, buttonForRig, selectedRigType, lastUrl = window.location.href, lastCurrentHoveredItemElement, currentHoveredItemFrames = 0, currentHoveredItemElement, currentHoveredItemLink, currentHoveredItemThumbElement, currentHoveredItemLoading = !1, currentHoveredItemType, itemHoverCameraRotation = 0, itemHoverCameraRotating = !1, itemHoverRotateButton, toggleDefaultButtons = /* @__PURE__ */ __name((enabled2) => {
+  var mainSceneContainer, mainButtonContainer, mousePos = [0, 0], buttonFor3d, animationDropdown, toggleAccessories, buttonForRig, selectedRigType, lastUrl = window.location.href, lastCurrentHoveredItemElement, currentHoveredItemFrames = 0, currentHoveredItemElement, currentHoveredItemLink, currentHoveredItemThumbElement, currentHoveredItemLoading = !1, currentHoveredItemType, itemHoverCameraRotation = 0, itemHoverCameraRotating = !1, itemHoverRotateButton, toggleDefaultButtons = /* @__PURE__ */ __name((enabled3) => {
     if (mainButtonContainer)
       for (let child of mainButtonContainer.children)
-        child.dataset.rovalraItemRendererControl || (child.style.display = enabled2 ? "none" : "");
+        child.dataset.rovalraItemRendererControl || (child.style.display = enabled3 ? "none" : "");
   }, "toggleDefaultButtons"), updateRigButtonText = /* @__PURE__ */ __name(() => {
     buttonForRig && (buttonForRig.textContent = selectedRigType || ogAvatarData.playerAvatarType || "R15");
   }, "updateRigButtonText"), updateAnimationDropdown = /* @__PURE__ */ __name(() => {
@@ -133832,9 +133858,9 @@ void main() {
     mainScene.scene.children.filter((object) => object.userData?.rovalraItemRenderEnvironmentLight).forEach((light) => mainScene.scene.remove(light));
   }
   __name(removeItemRenderEnvironmentLights, "removeItemRenderEnvironmentLights");
-  function setMainSceneDefaultLightsEnabled(enabled2) {
+  function setMainSceneDefaultLightsEnabled(enabled3) {
     captureMainSceneDefaults(), defaultMainSceneLightState.forEach(({ light, intensity, visible }) => {
-      light.visible = enabled2 ? visible : !1, light.intensity = enabled2 ? intensity : 0;
+      light.visible = enabled3 ? visible : !1, light.intensity = enabled3 ? intensity : 0;
     });
   }
   __name(setMainSceneDefaultLightsEnabled, "setMainSceneDefaultLightsEnabled");
@@ -150777,10 +150803,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(addProfileBadgeButtons, "addProfileBadgeButtons");
   function init108() {
-    settings.robloxGroupFeaturesEnabled.then((enabled2) => {
+    settings.robloxGroupFeaturesEnabled.then((enabled3) => {
       document.dispatchEvent(
         new CustomEvent("rovalra:settingsState", {
-          detail: { robloxGroupFeaturesEnabled: enabled2 !== !1 }
+          detail: { robloxGroupFeaturesEnabled: enabled3 !== !1 }
         })
       );
     }), groupRolesListenerInitialized || (groupRolesListenerInitialized = !0, document.addEventListener("rovalra-group-roles-response", (event) => {
@@ -159655,6 +159681,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_api();
   init_settingConfig();
   init_dropdown();
+  init_i18n();
   var ACCOUNT_STANDING_TAB_IDS = /* @__PURE__ */ new Set([
     "info",
     "credits",
@@ -159710,14 +159737,27 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return !(sectionName === "Developer" && !options.devTabAdded || sectionName === "FunStuff" && !options.funStuffTabEnabled);
   }
   __name(shouldShowSettingsSection, "shouldShowSettingsSection");
-  function hasRoGoldEnabled() {
-    return /(^|\s)rogold(\s|$)/i.test(document.body?.className || "");
+  var INCOMPATIBILITY_DETECTIONS = [
+    {
+      name: "RoGold",
+      bodyClass: "rogold"
+    }
+  ];
+  function getDetectedIncompatibilities() {
+    return INCOMPATIBILITY_DETECTIONS.filter((detection) => detection.bodyClass ? document.body?.classList.contains(detection.bodyClass) : !!(detection.selector && document.querySelector(detection.selector)));
   }
-  __name(hasRoGoldEnabled, "hasRoGoldEnabled");
-  function createRoGoldWarning() {
-    if (!hasRoGoldEnabled()) return null;
-    let warning = document.createElement("div");
-    warning.id = "rovalra-rogold-notice-banner", warning.setAttribute("role", "alert");
+  __name(getDetectedIncompatibilities, "getDetectedIncompatibilities");
+  function formatCompatibilityList(names) {
+    return names.length <= 1 ? names[0] || "" : names.length === 2 ? `${names[0]} and ${names[1]}` : `${names.slice(0, -1).join(", ")}, and ${names.at(-1)}`;
+  }
+  __name(formatCompatibilityList, "formatCompatibilityList");
+  async function createCompatibilityWarning() {
+    let detectedNames = getDetectedIncompatibilities().map(
+      (detection) => detection.name
+    );
+    if (detectedNames.length === 0) return null;
+    let detectedExtensions = formatCompatibilityList(detectedNames), warning = document.createElement("div");
+    warning.id = "rovalra-compatibility-notice-banner", warning.setAttribute("role", "alert");
     let entry = document.createElement("div");
     entry.className = "rovalra-game-notice-entry";
     let iconContainer = document.createElement("div");
@@ -159725,11 +159765,16 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     let textContainer = document.createElement("div");
     textContainer.className = "rovalra-game-notice-text-container";
     let title = document.createElement("div");
-    title.className = "rovalra-game-notice-title", title.textContent = "RoValra may not work properly with RoGold enabled.";
+    title.className = "rovalra-game-notice-title", title.textContent = await t2("settings.compatibilityWarning.title", {
+      extensions: detectedExtensions
+    });
     let description = document.createElement("div");
-    return description.className = "rovalra-game-notice-description", description.textContent = "We do not promise support for RoGold.", textContainer.append(title, description), entry.append(iconContainer, textContainer), warning.appendChild(entry), warning;
+    return description.className = "rovalra-game-notice-description", description.textContent = await t2(
+      "settings.compatibilityWarning.description",
+      { extensions: detectedExtensions }
+    ), textContainer.append(title, description), entry.append(iconContainer, textContainer), warning.appendChild(entry), warning;
   }
-  __name(createRoGoldWarning, "createRoGoldWarning");
+  __name(createCompatibilityWarning, "createCompatibilityWarning");
   async function buildSettingsPage({
     handleSearch: handleSearch2,
     debounce: debounce5,
@@ -159772,9 +159817,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     rovalraIcon.dataset.rovalraAsset = "rovalraIcon", rovalraIcon.src = assets7.rovalraIcon, rovalraIcon.style.cssText = "width: 35px; height: 35px; margin-left: 5px;  user-select: none;";
     let rovalraHeader = document.createElement("h1");
     rovalraHeader.textContent = "RoValra Settings", rovalraHeader.style.margin = "0", rovalraHeader.style.color = "var(--rovalra-main-text-color)", headerContainer.appendChild(rovalraHeader), rovalraHeader.appendChild(rovalraIcon);
-    let roGoldWarning = createRoGoldWarning();
-    roGoldWarning && (headerContainer.style.marginBottom = "0");
-    let settingsContainer = document.createElement("div");
+    let compatibilityWarning = await createCompatibilityWarning(), settingsContainer = document.createElement("div");
     settingsContainer.id = "settings-container", userAccountDiv.appendChild(reactUserAccountBaseDiv), reactUserAccountBaseDiv.appendChild(headerContainer), reactUserAccountBaseDiv.appendChild(settingsContainer), contentDiv.appendChild(userAccountDiv), containerMain.appendChild(contentDiv), contentDiv.style.cssText = "width: 100% !important; height: auto !important; border-radius: 10px !important; overflow: hidden !important; padding-bottom: 25px !important; padding-top: 25px !important; min-height: 800px !important; position: relative !important;", userAccountDiv && (userAccountDiv.style.cssText = "display: flex !important; flex-direction: column !important; align-items: center !important; justify-content: center !important; padding-left: 0px !important; padding-right: 0px !important; margin-left: auto !important; margin-right: auto !important; width: 100% !important;");
     let mobileMenuContainer = document.createElement("div");
     mobileMenuContainer.id = "rovalra-mobile-menu-container", mobileMenuContainer.style.width = "100%", settingsContainer.appendChild(mobileMenuContainer);
@@ -159833,7 +159876,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "renderMobileDropdown");
     renderMobileDropdown();
     let uiContainer = document.createElement("div");
-    uiContainer.id = "rovalra-ui-container", uiContainer.style.cssText = "display: flex; flex-direction: row; gap: 10px; align-items: flex-start; position: relative; overflow: visible; width: 100%; justify-content: flex-start;", settingsContainer.appendChild(uiContainer), settingsContainer.style.cssText = "display: block; position: relative; overflow: visible; width: 100%;", settingsContainer.insertAdjacentElement("afterbegin", rovalraHeader), roGoldWarning && rovalraHeader.insertAdjacentElement("afterend", roGoldWarning), uiContainer.innerHTML = "";
+    uiContainer.id = "rovalra-ui-container", uiContainer.style.cssText = "display: flex; flex-direction: row; gap: 10px; align-items: flex-start; position: relative; overflow: visible; width: 100%; justify-content: flex-start;", settingsContainer.appendChild(uiContainer), settingsContainer.style.cssText = "display: block; position: relative; overflow: visible; width: 100%;", settingsContainer.insertAdjacentElement("afterbegin", rovalraHeader), compatibilityWarning && rovalraHeader.insertAdjacentElement("afterend", compatibilityWarning), uiContainer.innerHTML = "";
     let contentContainer = document.createElement("div");
     contentContainer.id = "content-container", contentContainer.style.cssText = `
         width: 800px; 
@@ -159883,9 +159926,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         loadTabContent,
         renderMobileDropdown
       }));
-    }), uiContainer.appendChild(unifiedMenu), uiContainer.appendChild(contentContainer), shouldShowAccountStandingTab(settings2).then((enabled2) => {
-      accountStandingTabVisible = enabled2, updateAccountStandingTabUI({
-        enabled: enabled2,
+    }), uiContainer.appendChild(unifiedMenu), uiContainer.appendChild(contentContainer), shouldShowAccountStandingTab(settings2).then((enabled3) => {
+      accountStandingTabVisible = enabled3, updateAccountStandingTabUI({
+        enabled: enabled3,
         buttonData: buttonData2,
         menuList: unifiedMenu,
         loadTabContent,
@@ -160039,20 +160082,20 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(addDeveloperTabUI, "addDeveloperTabUI");
   function updateFunStuffTabUI({
-    enabled: enabled2,
+    enabled: enabled3,
     menuList,
     loadTabContent,
     renderMobileDropdown
   }) {
     let existingItem = document.getElementById("funstuff-tab");
-    if (enabled2 && !existingItem && menuList && loadTabContent) {
+    if (enabled3 && !existingItem && menuList && loadTabContent) {
       let funItem = createSidebarItem(
         "FunStuff",
         SETTINGS_CONFIG.FunStuff.title,
         loadTabContent
       ), developerItem = document.getElementById("developer-tab");
       developerItem ? menuList.insertBefore(funItem, developerItem) : menuList.appendChild(funItem);
-    } else if (!enabled2 && existingItem && (existingItem.remove(), new URLSearchParams(window.location.search).get(
+    } else if (!enabled3 && existingItem && (existingItem.remove(), new URLSearchParams(window.location.search).get(
       "rovalra"
     )?.toLowerCase() === "funstuff")) {
       let newUrl = new URL(window.location.href);
@@ -160062,7 +160105,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(updateFunStuffTabUI, "updateFunStuffTabUI");
   function updateAccountStandingTabUI({
-    enabled: enabled2,
+    enabled: enabled3,
     buttonData: buttonData2,
     menuList,
     loadTabContent,
@@ -160071,12 +160114,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     let existingItem = document.querySelector(
       '#unified-menu li[data-static-id="accountStanding"]'
     );
-    if (enabled2 && !existingItem && menuList && loadTabContent) {
+    if (enabled3 && !existingItem && menuList && loadTabContent) {
       let accountStandingItem = buttonData2.find(
         (item) => item.id === "accountStanding"
       );
       accountStandingItem && addStaticTabItem(accountStandingItem, menuList, loadTabContent);
-    } else if (!enabled2 && existingItem && (existingItem.remove(), new URLSearchParams(window.location.search).get(
+    } else if (!enabled3 && existingItem && (existingItem.remove(), new URLSearchParams(window.location.search).get(
       "rovalra"
     )?.toLowerCase() === "account standing")) {
       let newUrl = new URL(window.location.href);
@@ -163227,19 +163270,19 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, delay);
   }
   __name(scheduleDomSync, "scheduleDomSync");
-  function publishAccurateContinue(games, enabled2 = accurateContinueEnabled) {
+  function publishAccurateContinue(games, enabled3 = accurateContinueEnabled) {
     try {
       sessionStorage.setItem(
         ACCURATE_CONTINUE_SESSION_KEY,
-        enabled2 ? "true" : "false"
+        enabled3 ? "true" : "false"
       );
     } catch {
     }
     document.dispatchEvent(
       new CustomEvent("rovalra-accurate-continue", {
         detail: {
-          enabled: enabled2,
-          games: enabled2 && Array.isArray(games) ? games : []
+          enabled: enabled3,
+          games: enabled3 && Array.isArray(games) ? games : []
         }
       })
     );
@@ -163977,10 +164020,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     if (!SUPPORTED_HOSTS.has(window.location.hostname) || editorHandle) return;
     let settings2 = await loadSettings(), config = sanitizeBackgroundImage(
       settings2[BACKGROUND_IMAGE_SETTING] || DEFAULT_BACKGROUND_IMAGE
-    ), enabled2 = settings2[BACKGROUND_IMAGE_ENABLED_SETTING] === !0, body = document.createElement("div");
+    ), enabled3 = settings2[BACKGROUND_IMAGE_ENABLED_SETTING] === !0, body = document.createElement("div");
     body.className = "rovalra-custom-theme-selector-body rovalra-custom-theme-background-body";
     let enabledInput = document.createElement("input");
-    enabledInput.type = "checkbox", enabledInput.checked = enabled2, body.appendChild(inputRow("Enabled", enabledInput));
+    enabledInput.type = "checkbox", enabledInput.checked = enabled3, body.appendChild(inputRow("Enabled", enabledInput));
     let urlInput = document.createElement("input");
     urlInput.type = "url", urlInput.className = "input-field", urlInput.value = config.source, body.appendChild(inputRow("Image URL", urlInput));
     let sizeInput = selectInput(BACKGROUND_IMAGE_SIZE_OPTIONS, config.size);
@@ -163999,13 +164042,13 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         position: positionInput.value,
         opacity: Number(opacityInput.value),
         blur: Number(blurInput.value)
-      }), enabled2 = enabledInput.checked, applyBackgroundImage(config, enabled2);
+      }), enabled3 = enabledInput.checked, applyBackgroundImage(config, enabled3);
     }, "updatePreview");
     body.addEventListener("input", updatePreview), body.addEventListener("change", updatePreview);
     let save = /* @__PURE__ */ __name(async () => {
       updatePreview(), await Promise.all([
         handleSaveSettings(BACKGROUND_IMAGE_SETTING, config),
-        handleSaveSettings(BACKGROUND_IMAGE_ENABLED_SETTING, enabled2)
+        handleSaveSettings(BACKGROUND_IMAGE_ENABLED_SETTING, enabled3)
       ]), sessionStorage.removeItem(EDITOR_SESSION_KEY), editorHandle?.close();
     }, "save");
     editorHandle = createOverlay({
@@ -164034,6 +164077,488 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(init141, "init");
+
+  // src/content/features/home/friendLabels.js
+  init_userCardElements();
+  init_i18n();
+  init_observer();
+  init_getSettings();
+  init_buttons();
+  init_input();
+  init_overlay();
+  var SETTING_NAME2 = "friendLabelsEnabled", STORAGE_KEY10 = "rovalra_friend_labels", CARD_SELECTOR2 = ".friends-carousel-tile", EXCLUDED_CONTAINER_SELECTOR = ".roseal-friends-carousel-container", DROPDOWN_LIST_SELECTOR = ".friend-tile-dropdown ul", MODERN_TOOLTIP_ROOT_SELECTOR = ".friend-tile-dropdown--iarc", MODERN_ACTIONS_SELECTOR = ".in-game-friend-card-actions", MODERN_PROFILE_LINK_SELECTOR = 'a[href*="/users/"][href*="/profile"]', HOST_CLASS = "rovalra-friend-label-host", LABEL_CLASS = "rovalra-friend-label", MENU_ITEM_CLASS = "rovalra-friend-label-menu-item", MENU_BUTTON_CLASS = "rovalra-friend-label-menu-button", MODERN_TOOLTIP_ITEM_CLASS = "rovalra-friend-label-modern-item", MODERN_TOOLTIP_BUTTON_CLASS = "rovalra-friend-label-modern-button", MAX_LABEL_LENGTH = 24, enabled = !1, observersRegistered = !1, storageListenerRegistered = !1, friendLabels = {}, lastInteractedFriendCard = null;
+  function isExcludedCarouselPresent() {
+    return !!document.querySelector(EXCLUDED_CONTAINER_SELECTOR);
+  }
+  __name(isExcludedCarouselPresent, "isExcludedCarouselPresent");
+  function sanitizeLabels(value2) {
+    if (!value2 || typeof value2 != "object" || Array.isArray(value2))
+      return {};
+    let sanitized = {};
+    for (let [userId, label] of Object.entries(value2)) {
+      if (!/^\d+$/.test(userId) || typeof label != "string")
+        continue;
+      let cleanedLabel = label.trim().slice(0, MAX_LABEL_LENGTH);
+      cleanedLabel && (sanitized[userId] = cleanedLabel);
+    }
+    return sanitized;
+  }
+  __name(sanitizeLabels, "sanitizeLabels");
+  async function loadFriendLabels() {
+    try {
+      let result = await chrome.storage.local.get(STORAGE_KEY10);
+      return sanitizeLabels(result[STORAGE_KEY10]);
+    } catch (error2) {
+      return console.warn("RoValra: Failed to load friend labels", error2), {};
+    }
+  }
+  __name(loadFriendLabels, "loadFriendLabels");
+  async function saveFriendLabels(nextLabels) {
+    friendLabels = sanitizeLabels(nextLabels);
+    try {
+      await chrome.storage.local.set({
+        [STORAGE_KEY10]: friendLabels
+      });
+    } catch (error2) {
+      console.warn("RoValra: Failed to save friend labels", error2);
+    }
+    refreshExistingCards();
+  }
+  __name(saveFriendLabels, "saveFriendLabels");
+  function getFriendLabel(userId) {
+    return friendLabels[String(userId)] || "";
+  }
+  __name(getFriendLabel, "getFriendLabel");
+  function getDisplayNameText(context) {
+    return context.displayName?.textContent?.trim() || "";
+  }
+  __name(getDisplayNameText, "getDisplayNameText");
+  function unwrapLabelHost(host) {
+    if (!(host instanceof HTMLElement) || !host.classList.contains(HOST_CLASS))
+      return;
+    let parent = host.parentElement;
+    if (parent instanceof HTMLElement) {
+      for (; host.firstChild; )
+        parent.insertBefore(host.firstChild, host);
+      host.remove();
+    }
+  }
+  __name(unwrapLabelHost, "unwrapLabelHost");
+  function getNameRow2(displayNameEl, context) {
+    let parent = displayNameEl.parentElement;
+    return !parent || parent.classList.contains(HOST_CLASS) || context.link && parent.contains(context.link) || context.avatar && parent.contains(context.avatar) || parent.textContent.trim() !== displayNameEl.textContent.trim() ? displayNameEl : parent;
+  }
+  __name(getNameRow2, "getNameRow");
+  function findLabelHost(context) {
+    if (!(context.displayName instanceof HTMLElement))
+      return null;
+    let nameRow = getNameRow2(context.displayName, context), usernameWrapper = nameRow.closest(".rovalra-friend-username-wrapper");
+    usernameWrapper && (nameRow = usernameWrapper);
+    let currentParent = nameRow.parentElement;
+    if (!(currentParent instanceof HTMLElement))
+      return null;
+    if (currentParent.classList.contains(HOST_CLASS))
+      return currentParent;
+    let host = document.createElement("span");
+    return host.className = HOST_CLASS, nameRow.replaceWith(host), host.appendChild(nameRow), host;
+  }
+  __name(findLabelHost, "findLabelHost");
+  function removeRenderedLabel(card) {
+    if (!(card instanceof HTMLElement)) return;
+    let label = card.querySelector(`.${LABEL_CLASS}`), host = label?.closest(`.${HOST_CLASS}`);
+    label?.remove(), host && !host.querySelector(`.${LABEL_CLASS}`) && unwrapLabelHost(host);
+  }
+  __name(removeRenderedLabel, "removeRenderedLabel");
+  function renderFriendLabel(card, suppliedContext = null) {
+    if (!(card instanceof HTMLElement)) return;
+    if (isExcludedCarouselPresent()) {
+      removeRenderedLabel(card);
+      return;
+    }
+    let context = suppliedContext || getUserCardContext(card), existingLabel = card.querySelector(`.${LABEL_CLASS}`);
+    if (!enabled || !context.userId) {
+      removeRenderedLabel(card);
+      return;
+    }
+    let labelText = getFriendLabel(context.userId);
+    if (!labelText) {
+      removeRenderedLabel(card);
+      return;
+    }
+    let host = findLabelHost(context);
+    if (!host) {
+      removeRenderedLabel(card);
+      return;
+    }
+    if (host.classList.add(HOST_CLASS), existingLabel) {
+      if (existingLabel.textContent = labelText, existingLabel.title = labelText, existingLabel.dataset.userId = String(context.userId), existingLabel.parentElement !== host) {
+        let previousHost = existingLabel.closest(`.${HOST_CLASS}`);
+        host.appendChild(existingLabel), previousHost && previousHost !== host && !previousHost.querySelector(`.${LABEL_CLASS}`) && unwrapLabelHost(previousHost);
+      }
+      return;
+    }
+    let label = document.createElement("div");
+    label.className = LABEL_CLASS, label.textContent = labelText, label.title = labelText, label.dataset.userId = String(context.userId), label.setAttribute("aria-label", labelText), host.appendChild(label);
+  }
+  __name(renderFriendLabel, "renderFriendLabel");
+  function refreshExistingCards() {
+    if (isExcludedCarouselPresent()) {
+      removeFeatureUi();
+      return;
+    }
+    document.querySelectorAll(CARD_SELECTOR2).forEach((card) => {
+      renderFriendLabel(card);
+    });
+  }
+  __name(refreshExistingCards, "refreshExistingCards");
+  function removeFeatureUi() {
+    document.querySelectorAll(`.${LABEL_CLASS}`).forEach((label) => {
+      label.remove();
+    }), document.querySelectorAll(`.${HOST_CLASS}`).forEach((host) => {
+      unwrapLabelHost(host);
+    }), document.querySelectorAll(`.${MENU_ITEM_CLASS}`).forEach((item) => {
+      item.remove();
+    }), document.querySelectorAll(`.${MODERN_TOOLTIP_BUTTON_CLASS}`).forEach((button) => {
+      button.remove();
+    }), document.querySelectorAll("[data-rovalra-friend-label-pending]").forEach((element) => {
+      delete element.dataset.rovalraFriendLabelPending;
+    });
+  }
+  __name(removeFeatureUi, "removeFeatureUi");
+  function getExistingLabels() {
+    return [...new Set(Object.values(friendLabels))].filter(Boolean).sort(
+      (firstLabel, secondLabel) => firstLabel.localeCompare(secondLabel)
+    );
+  }
+  __name(getExistingLabels, "getExistingLabels");
+  async function openLabelEditor(card, context) {
+    let userId = String(context.userId), currentLabel = getFriendLabel(userId), displayName = getDisplayNameText(context) || await t2("friendLabels.friendFallback"), body = document.createElement("div");
+    body.className = "rovalra-friend-label-editor";
+    let { container: inputContainer, input } = createStyledInput({
+      id: `rovalra-friend-label-input-${userId}`,
+      label: await t2("friendLabels.inputLabel"),
+      placeholder: await t2("friendLabels.inputPlaceholder"),
+      value: currentLabel
+    });
+    input.maxLength = MAX_LABEL_LENGTH, body.appendChild(inputContainer);
+    let existingLabels = getExistingLabels();
+    if (existingLabels.length > 0) {
+      let suggestionSection = document.createElement("div");
+      suggestionSection.className = "rovalra-friend-label-suggestion-section";
+      let suggestionTitle = document.createElement("div");
+      suggestionTitle.className = "rovalra-friend-label-suggestion-title", suggestionTitle.textContent = await t2("friendLabels.existingLabels");
+      let suggestionList = document.createElement("div");
+      suggestionList.className = "rovalra-friend-label-suggestions";
+      for (let existingLabel of existingLabels) {
+        let suggestion = document.createElement("button");
+        suggestion.type = "button", suggestion.className = "rovalra-friend-label-suggestion", suggestion.textContent = existingLabel, suggestion.title = existingLabel, suggestion.addEventListener("click", () => {
+          input.value = existingLabel, input.dispatchEvent(
+            new Event("input", {
+              bubbles: !0
+            })
+          ), input.focus();
+        }), suggestionList.appendChild(suggestion);
+      }
+      suggestionSection.append(suggestionTitle, suggestionList), body.appendChild(suggestionSection);
+    }
+    let closeOverlay = /* @__PURE__ */ __name(() => {
+    }, "closeOverlay"), saveLabel = /* @__PURE__ */ __name(async () => {
+      let nextLabel = input.value.trim().slice(0, MAX_LABEL_LENGTH), nextLabels = {
+        ...friendLabels
+      };
+      nextLabel ? nextLabels[userId] = nextLabel : delete nextLabels[userId], await saveFriendLabels(nextLabels), closeOverlay();
+    }, "saveLabel"), cancelButton = createButton(
+      await t2("friendLabels.cancel"),
+      "secondary",
+      {
+        onClick: /* @__PURE__ */ __name(() => closeOverlay(), "onClick")
+      }
+    ), saveButton = createButton(await t2("friendLabels.save"), "primary", {
+      onClick: saveLabel
+    }), actions = [];
+    if (currentLabel) {
+      let removeButton = createButton(
+        await t2("friendLabels.remove"),
+        "secondary",
+        {
+          onClick: /* @__PURE__ */ __name(async () => {
+            let nextLabels = {
+              ...friendLabels
+            };
+            delete nextLabels[userId], await saveFriendLabels(nextLabels), closeOverlay();
+          }, "onClick")
+        }
+      );
+      removeButton.classList.add("rovalra-friend-label-remove-button"), actions.push(removeButton);
+    }
+    actions.push(cancelButton, saveButton), closeOverlay = createOverlay({
+      title: await t2("friendLabels.dialogTitle", {
+        displayName
+      }),
+      bodyContent: body,
+      actions,
+      maxWidth: "430px",
+      showLogo: !0
+    }).close, input.addEventListener("keydown", (event) => {
+      event.key === "Enter" && (event.preventDefault(), saveButton.click());
+    }), requestAnimationFrame(() => {
+      input.focus(), input.select();
+    });
+  }
+  __name(openLabelEditor, "openLabelEditor");
+  function getModernActionContainer(root) {
+    if (!(root instanceof HTMLElement))
+      return null;
+    let actions = root.querySelector(MODERN_ACTIONS_SELECTOR);
+    return actions instanceof HTMLElement ? actions : null;
+  }
+  __name(getModernActionContainer, "getModernActionContainer");
+  function isModernFriendTooltip(root) {
+    return root instanceof HTMLElement ? !!(root.matches(MODERN_TOOLTIP_ROOT_SELECTOR) && getModernActionContainer(root)?.querySelector(
+      MODERN_PROFILE_LINK_SELECTOR
+    )) : !1;
+  }
+  __name(isModernFriendTooltip, "isModernFriendTooltip");
+  function getCanonicalModernTooltipRoot(candidate) {
+    if (!(candidate instanceof HTMLElement))
+      return null;
+    let root = candidate.matches(MODERN_TOOLTIP_ROOT_SELECTOR) ? candidate : candidate.closest(MODERN_TOOLTIP_ROOT_SELECTOR);
+    return root instanceof HTMLElement && isModernFriendTooltip(root) ? root : null;
+  }
+  __name(getCanonicalModernTooltipRoot, "getCanonicalModernTooltipRoot");
+  function removeModernTooltipAction(button) {
+    if (!(button instanceof HTMLElement))
+      return;
+    let wrapper = button.closest(`.${MODERN_TOOLTIP_ITEM_CLASS}`);
+    if (wrapper instanceof HTMLElement && wrapper !== button && wrapper.querySelectorAll(`.${MODERN_TOOLTIP_BUTTON_CLASS}`).length === 1) {
+      wrapper.remove();
+      return;
+    }
+    button.remove();
+  }
+  __name(removeModernTooltipAction, "removeModernTooltipAction");
+  function dedupeModernTooltipActions(tooltip) {
+    if (!(tooltip instanceof HTMLElement))
+      return null;
+    let buttons = [
+      ...tooltip.querySelectorAll(`.${MODERN_TOOLTIP_BUTTON_CLASS}`)
+    ].filter((button) => button instanceof HTMLElement);
+    if (buttons.length === 0)
+      return null;
+    let keep = buttons[0];
+    for (let duplicate of buttons.slice(1))
+      removeModernTooltipAction(duplicate);
+    return keep;
+  }
+  __name(dedupeModernTooltipActions, "dedupeModernTooltipActions");
+  function getUserIdFromProfileLink(root) {
+    if (!(root instanceof HTMLElement))
+      return null;
+    let match = (root.querySelector('a[href*="/users/"]')?.getAttribute("href") || "").match(/\/users\/(\d+)(?:\/|$)/);
+    return match ? match[1] : null;
+  }
+  __name(getUserIdFromProfileLink, "getUserIdFromProfileLink");
+  function findFriendCardByUserId(userId) {
+    if (!userId) return null;
+    for (let card of document.querySelectorAll(CARD_SELECTOR2)) {
+      let context = getUserCardContext(card);
+      if (String(context.userId) === String(userId))
+        return card;
+    }
+    return null;
+  }
+  __name(findFriendCardByUserId, "findFriendCardByUserId");
+  function findHoveredFriendCard() {
+    for (let card of document.querySelectorAll(CARD_SELECTOR2))
+      if (card.matches(":hover"))
+        return card;
+    return null;
+  }
+  __name(findHoveredFriendCard, "findHoveredFriendCard");
+  function resolveModernTooltipCard(tooltip) {
+    let linkedUserId = getUserIdFromProfileLink(tooltip), linkedCard = findFriendCardByUserId(linkedUserId);
+    if (linkedCard)
+      return lastInteractedFriendCard = linkedCard, linkedCard;
+    let hoveredCard = findHoveredFriendCard();
+    if (hoveredCard)
+      return lastInteractedFriendCard = hoveredCard, hoveredCard;
+    let activeCard2 = document.activeElement?.closest?.(CARD_SELECTOR2);
+    return activeCard2 instanceof HTMLElement ? (lastInteractedFriendCard = activeCard2, activeCard2) : lastInteractedFriendCard instanceof HTMLElement && lastInteractedFriendCard.isConnected ? lastInteractedFriendCard : null;
+  }
+  __name(resolveModernTooltipCard, "resolveModernTooltipCard");
+  function rememberFriendCard(card) {
+    if (!(card instanceof HTMLElement) || card.dataset.rovalraFriendLabelTracking === "true")
+      return;
+    card.dataset.rovalraFriendLabelTracking = "true";
+    let remember = /* @__PURE__ */ __name(() => {
+      lastInteractedFriendCard = card;
+    }, "remember");
+    card.addEventListener("pointerenter", remember), card.addEventListener("pointerdown", remember), card.addEventListener("focusin", remember);
+  }
+  __name(rememberFriendCard, "rememberFriendCard");
+  function findModernActionMount(viewProfileControl) {
+    let previousControl = viewProfileControl.previousElementSibling, styleSource = (previousControl instanceof HTMLButtonElement ? previousControl : null) || viewProfileControl;
+    if (styleSource?.parentElement === viewProfileControl.parentElement)
+      return {
+        reference: viewProfileControl,
+        wrapperSource: null,
+        controlSource: styleSource
+      };
+    let viewWrapper = viewProfileControl.parentElement, styleWrapper = styleSource?.parentElement;
+    return viewWrapper instanceof HTMLElement && styleWrapper instanceof HTMLElement && viewWrapper.parentElement === styleWrapper.parentElement ? {
+      reference: viewWrapper,
+      wrapperSource: styleWrapper,
+      controlSource: styleSource
+    } : {
+      reference: viewProfileControl,
+      wrapperSource: null,
+      controlSource: styleSource
+    };
+  }
+  __name(findModernActionMount, "findModernActionMount");
+  function createModernTooltipButton(sourceControl, labelText) {
+    let button;
+    return sourceControl instanceof HTMLElement ? button = sourceControl.cloneNode(!1) : button = document.createElement("button"), button instanceof HTMLElement ? (button.removeAttribute("id"), button.removeAttribute("href"), button.removeAttribute("target"), button.removeAttribute("rel"), button.removeAttribute("aria-controls"), button.removeAttribute("aria-expanded"), button instanceof HTMLButtonElement ? button.type = "button" : (button.setAttribute("role", "button"), button.tabIndex = 0), button.classList.add(MENU_BUTTON_CLASS, MODERN_TOOLTIP_BUTTON_CLASS), button.textContent = labelText, button) : null;
+  }
+  __name(createModernTooltipButton, "createModernTooltipButton");
+  async function attachModernTooltipAction(candidate) {
+    if (!enabled || isExcludedCarouselPresent() || !(candidate instanceof HTMLElement))
+      return;
+    let tooltip = getCanonicalModernTooltipRoot(candidate);
+    if (tooltip && !dedupeModernTooltipActions(tooltip) && tooltip.dataset.rovalraFriendLabelPending !== "true") {
+      tooltip.dataset.rovalraFriendLabelPending = "true";
+      try {
+        let viewProfileControl = getModernActionContainer(tooltip)?.querySelector(
+          MODERN_PROFILE_LINK_SELECTOR
+        );
+        if (!viewProfileControl)
+          return;
+        let card = resolveModernTooltipCard(tooltip);
+        if (!(card ? getUserCardContext(card) : null)?.userId)
+          return;
+        let mount = findModernActionMount(viewProfileControl), labelText = await t2("friendLabels.menuAction");
+        if (dedupeModernTooltipActions(tooltip))
+          return;
+        let button = createModernTooltipButton(
+          mount.controlSource,
+          labelText
+        );
+        if (!button)
+          return;
+        if (button.addEventListener("pointerdown", (event) => {
+          event.stopPropagation();
+        }), button.addEventListener("click", async (event) => {
+          event.preventDefault(), event.stopPropagation();
+          let currentCard = resolveModernTooltipCard(tooltip);
+          if (!currentCard)
+            return;
+          let currentContext = getUserCardContext(currentCard);
+          currentContext.userId && await openLabelEditor(currentCard, currentContext);
+        }), button instanceof HTMLButtonElement || button.addEventListener("keydown", (event) => {
+          event.key !== "Enter" && event.key !== " " || (event.preventDefault(), button.click());
+        }), mount.wrapperSource) {
+          let wrapper = document.createElement(
+            mount.wrapperSource.tagName.toLowerCase()
+          );
+          wrapper.className = mount.wrapperSource.className, wrapper.classList.add(MENU_ITEM_CLASS, MODERN_TOOLTIP_ITEM_CLASS), wrapper.appendChild(button), mount.reference.insertAdjacentElement("afterend", wrapper);
+        } else {
+          let wrapper = document.createElement("div");
+          wrapper.className = [
+            MENU_ITEM_CLASS,
+            MODERN_TOOLTIP_ITEM_CLASS
+          ].join(" "), wrapper.appendChild(button), mount.reference.insertAdjacentElement("afterend", wrapper);
+        }
+        dedupeModernTooltipActions(tooltip);
+      } finally {
+        delete tooltip.dataset.rovalraFriendLabelPending;
+      }
+    }
+  }
+  __name(attachModernTooltipAction, "attachModernTooltipAction");
+  function attachActionsToExistingModernTooltips() {
+    let canonicalTooltips = /* @__PURE__ */ new Set();
+    document.querySelectorAll(MODERN_TOOLTIP_ROOT_SELECTOR).forEach((candidate) => {
+      let tooltip = getCanonicalModernTooltipRoot(candidate);
+      tooltip && canonicalTooltips.add(tooltip);
+    }), canonicalTooltips.forEach((tooltip) => {
+      attachModernTooltipAction(tooltip);
+    });
+  }
+  __name(attachActionsToExistingModernTooltips, "attachActionsToExistingModernTooltips");
+  async function attachDropdownAction(menuList) {
+    if (!(!enabled || isExcludedCarouselPresent() || !(menuList instanceof HTMLElement)) && !(menuList.querySelector(`.${MENU_ITEM_CLASS}`) || menuList.dataset.rovalraFriendLabelPending === "true")) {
+      menuList.dataset.rovalraFriendLabelPending = "true";
+      try {
+        let card = menuList.closest(".friend-tile-dropdown")?.closest(CARD_SELECTOR2);
+        if (!card || !getUserCardContext(card).userId) return;
+        let item = document.createElement("li");
+        item.className = MENU_ITEM_CLASS;
+        let button = createButton(
+          await t2("friendLabels.menuAction"),
+          "secondary",
+          {
+            onClick: /* @__PURE__ */ __name(async (event) => {
+              event.preventDefault(), event.stopPropagation();
+              let currentCard = button.closest(CARD_SELECTOR2) || card, currentContext = getUserCardContext(currentCard);
+              currentContext.userId && await openLabelEditor(currentCard, currentContext);
+            }, "onClick")
+          }
+        );
+        if (button.classList.add(MENU_BUTTON_CLASS, "friend-tile-dropdown-button"), menuList.querySelector(`.${MENU_ITEM_CLASS}`))
+          return;
+        item.appendChild(button), menuList.appendChild(item);
+      } finally {
+        delete menuList.dataset.rovalraFriendLabelPending;
+      }
+    }
+  }
+  __name(attachDropdownAction, "attachDropdownAction");
+  function registerObservers() {
+    observersRegistered || (observersRegistered = !0, observeElement(
+      CARD_SELECTOR2,
+      (card) => {
+        rememberFriendCard(card), renderFriendLabel(card);
+      },
+      {
+        multiple: !0
+      }
+    ), observeElement(DROPDOWN_LIST_SELECTOR, attachDropdownAction, {
+      multiple: !0
+    }), observeElement(MODERN_TOOLTIP_ROOT_SELECTOR, attachModernTooltipAction, {
+      multiple: !0
+    }), observeElement(EXCLUDED_CONTAINER_SELECTOR, removeFeatureUi, {
+      multiple: !0
+    }));
+  }
+  __name(registerObservers, "registerObservers");
+  function attachActionsToExistingDropdowns() {
+    document.querySelectorAll(DROPDOWN_LIST_SELECTOR).forEach((menuList) => {
+      attachDropdownAction(menuList);
+    }), document.querySelectorAll(CARD_SELECTOR2).forEach((card) => {
+      rememberFriendCard(card);
+    }), attachActionsToExistingModernTooltips();
+  }
+  __name(attachActionsToExistingDropdowns, "attachActionsToExistingDropdowns");
+  function registerStorageListener() {
+    storageListenerRegistered || (storageListenerRegistered = !0, chrome.storage.onChanged.addListener(async (changes, namespace) => {
+      if (namespace === "local" && (changes[STORAGE_KEY10] && (friendLabels = sanitizeLabels(changes[STORAGE_KEY10].newValue), enabled && refreshExistingCards()), !!changes[SETTING_NAME2])) {
+        if (enabled = changes[SETTING_NAME2].newValue === !0, !enabled) {
+          removeFeatureUi();
+          return;
+        }
+        friendLabels = await loadFriendLabels(), registerObservers(), refreshExistingCards(), attachActionsToExistingDropdowns();
+      }
+    }));
+  }
+  __name(registerStorageListener, "registerStorageListener");
+  async function init142() {
+    if (registerStorageListener(), enabled = await settings.friendLabelsEnabled === !0, !enabled) {
+      removeFeatureUi();
+      return;
+    }
+    friendLabels = await loadFriendLabels(), registerObservers(), refreshExistingCards(), attachActionsToExistingDropdowns();
+  }
+  __name(init142, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -164312,7 +164837,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init142() {
+  async function init143() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -164327,16 +164852,16 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error2);
     }));
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
   init_getSettings();
-  var SETTING_NAME2 = "HideAddFriendsButton", HIDDEN_CLASS = "rovalra-hide-add-friends-button", ADD_FRIENDS_ICON_SELECTOR = ".add-friends-icon-container", FRIEND_ITEM_SELECTOR = ".friends-carousel-tile", HOME_FRIENDS_CONTAINER_SELECTOR = [
+  var SETTING_NAME3 = "HideAddFriendsButton", HIDDEN_CLASS = "rovalra-hide-add-friends-button", ADD_FRIENDS_ICON_SELECTOR = ".add-friends-icon-container", FRIEND_ITEM_SELECTOR = ".friends-carousel-tile", HOME_FRIENDS_CONTAINER_SELECTOR = [
     "#HomeContainer .friend-carousel-container",
     "#HomeContainer .react-friends-carousel-container",
     "#HomeContainer .friends-carousel-container"
-  ].join(", "), USER_PROFILE_LINK_SELECTOR = 'a.avatar-card-link[href*="/users/"], a[href*="/users/"][href*="/profile"]', observerRegistered3 = !1, storageListenerRegistered = !1, enabled = !1;
+  ].join(", "), USER_PROFILE_LINK_SELECTOR = 'a.avatar-card-link[href*="/users/"], a[href*="/users/"][href*="/profile"]', observerRegistered3 = !1, storageListenerRegistered2 = !1, enabled2 = !1;
   function isHomePage2() {
     return window.location.pathname.toLowerCase().replace(/^\/[a-z]{2}(?:-[a-z]{2})?\//, "/").startsWith("/home");
   }
@@ -164353,13 +164878,13 @@ ${locale4.suggestOnDiscord}`), subtitle;
   }
   __name(isAddFriendsButtonItem, "isAddFriendsButtonItem");
   function hideAddFriendsButtonFromIcon(iconContainer) {
-    if (!enabled) return;
+    if (!enabled2) return;
     let item = iconContainer.closest(FRIEND_ITEM_SELECTOR);
     isAddFriendsButtonItem(item) && item.classList.add(HIDDEN_CLASS);
   }
   __name(hideAddFriendsButtonFromIcon, "hideAddFriendsButtonFromIcon");
   function applyExistingAddFriendsButtons() {
-    !enabled || !isHomePage2() || document.querySelectorAll(
+    !enabled2 || !isHomePage2() || document.querySelectorAll(
       `#HomeContainer ${FRIEND_ITEM_SELECTOR} ${ADD_FRIENDS_ICON_SELECTOR}`
     ).forEach(hideAddFriendsButtonFromIcon);
   }
@@ -164376,20 +164901,20 @@ ${locale4.suggestOnDiscord}`), subtitle;
     ));
   }
   __name(registerObserver, "registerObserver");
-  function registerStorageListener() {
-    storageListenerRegistered || (storageListenerRegistered = !0, chrome.storage.onChanged.addListener((changes, namespace) => {
-      namespace !== "local" || !changes[SETTING_NAME2] || (enabled = changes[SETTING_NAME2].newValue === !0, enabled ? (registerObserver(), applyExistingAddFriendsButtons()) : removeHiddenButtonClasses());
+  function registerStorageListener2() {
+    storageListenerRegistered2 || (storageListenerRegistered2 = !0, chrome.storage.onChanged.addListener((changes, namespace) => {
+      namespace !== "local" || !changes[SETTING_NAME3] || (enabled2 = changes[SETTING_NAME3].newValue === !0, enabled2 ? (registerObserver(), applyExistingAddFriendsButtons()) : removeHiddenButtonClasses());
     }));
   }
-  __name(registerStorageListener, "registerStorageListener");
-  async function init143() {
-    if (registerStorageListener(), enabled = await settings.HideAddFriendsButton === !0, !enabled) {
+  __name(registerStorageListener2, "registerStorageListener");
+  async function init144() {
+    if (registerStorageListener2(), enabled2 = await settings.HideAddFriendsButton === !0, !enabled2) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init143, "init");
+  __name(init144, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -164669,7 +165194,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init144() {
+  function init145() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -164684,7 +165209,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init144, "init");
+  __name(init145, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -167214,7 +167739,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init145() {
+  async function init146() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -167224,7 +167749,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init145, "init");
+  __name(init146, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -167318,7 +167843,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init145
+        init146
       ]
     },
     // Avatar pages
@@ -167362,7 +167887,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init70,
         init81,
         init112,
-        init145,
+        init146,
         init83
       ]
     },
@@ -167478,15 +168003,16 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init144]
+      features: [init145]
     },
     {
       paths: ["/home"],
       features: [
         init140,
-        init142,
+        init143,
         init139,
-        init143
+        init144,
+        init142
       ]
     },
     {
@@ -167546,11 +168072,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init146) => {
-        if (!featuresRunThisPass.has(init146) && !(route.once && initializedPersistentFeatures.has(init146))) {
-          featuresRunThisPass.add(init146), route.once && initializedPersistentFeatures.add(init146);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init147) => {
+        if (!featuresRunThisPass.has(init147) && !(route.once && initializedPersistentFeatures.has(init147))) {
+          featuresRunThisPass.add(init147), route.once && initializedPersistentFeatures.add(init147);
           try {
-            init146();
+            init147();
           } catch (error2) {
             console.error("RoValra: Feature init failed", error2);
           }
