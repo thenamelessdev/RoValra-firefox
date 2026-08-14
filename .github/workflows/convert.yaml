@@ -11,21 +11,13 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
-      - name: set up rust
-        uses: dtolnay/rust-toolchain@stable
-      
+            
       - name: set up node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
       
       - run: git clone https://github.com/OtsoBear/chrome2moz.git
-      
-      - name: build chrome2moz
-        run: |
-          cd chrome2moz
-          cargo build --release
       
       - run: |
           git clone https://github.com/NotValra/RoValra.git extension
@@ -45,7 +37,7 @@ jobs:
           cd ../..
           rm -rf extension
       
-      - run: ./chrome2moz/target/release/chrome2moz convert -i ./extension.zip -o ./out
+      - run: ./chrome2moz convert -i ./extension.zip -o ./out
 
       - name: manifest things
         run: |
