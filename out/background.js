@@ -1,5 +1,5 @@
 /*!
- * rovalra v2.6.4
+ * rovalra v2.6.5
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
@@ -857,7 +857,7 @@
             "Trusted Friends might not be available in some regions.",
             "**Note:** Roblox uses an algorithm that may prevent adding someone even if they meet these requirements. [Learn more here.](https://en.help.roblox.com/hc/en-us/articles/46158344285204)"
           ],
-          type: "checkbox",
+          type: "true",
           default: !1
           //isPermanent: true,
           //locked: 'Seemingly broke after a Roblox update. And Roblox is rolling out their own version of it.',
@@ -2048,6 +2048,14 @@
     Miscellaneous: {
       title: "Miscellaneous",
       settings: {
+        disableThumbnailBackground: {
+          label: "Disable Thumbnail Backgrounds",
+          description: [
+            "This prevents profile backgrounds from showing in avatar headshots and other places."
+          ],
+          type: "checkbox",
+          default: !1
+        },
         CustomThemeBackgroundEnabled: {
           label: "Customizable Background Image",
           description: "Allows you to add a custom background image to the Roblox website.",

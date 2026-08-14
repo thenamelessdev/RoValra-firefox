@@ -1,5 +1,5 @@
 /*!
- * rovalra v2.6.4
+ * rovalra v2.6.5
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
@@ -11,16 +11,62 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
   if (window.__ROVALRA_INTERCEPTOR_SETUP__)
     return;
   window.__ROVALRA_INTERCEPTOR_SETUP__ = !0;
-  const CATALOG_API_URL = "https://catalog.roblox.com/v1/catalog/items/details", CLIENT_STATUS_API_URL = "https://apis.roblox.com/matchmaking-api/v1/client-status", GAME_LAUNCH_SUCCESS_URL = "https://metrics.roblox.com/v1/games/report-event", GAME_SERVERS_API_URL = "https://games.roblox.com/", GAMES_ROBLOX_API = "https://games.roblox.com/", TRADES_API_URL = "https://trades.roblox.com/v2/users/", TRADE_DETAILS_API_URL = "https://trades.roblox.com/v2/trades/", TRADES_LIST_API_URL = "https://trades.roblox.com/v1/trades/", GROUP_ROLES_API_HOST = "groups.roblox.com", GROUP_ROLES_API_PATH = /^\/v1\/users\/(\d+)\/groups\/roles$/, PROFILE_API_URL = "https://apis.roblox.com/profile-platform-api/v1/profiles/get", ACCOUNT_SETTINGS_UI_API_URL = "https://apis.roblox.com/guac-v2/v1/bundles/account-settings-ui", USER_SETTINGS_API_URL = "https://apis.roblox.com/user-settings-api/v1/user-settings", FREE_ROBLOX_PLUS_THEMES_SETTING = "FreeRobloxPlusThemesEnabled", ROBLOX_ADMIN_GROUP_ID = 1200769, OMNI_RECOMMENDATION_API_URL = "https://apis.roblox.com/discovery-api/omni-recommendation", FRIEND_CAROUSEL_TOPIC_ID = 6e8, FRIEND_CAROUSEL_TREATMENT_TYPE = "FriendCarousel";
-  let ASSET_TYPE_ACCESSORIES = [8, 41, 42, 43, 44, 45, 46, 47, 57, 58], ASSET_TYPE_LAYERED = [64, 65, 66, 67, 68, 69, 70, 71, 72], streamerModeEnabled = !1, settingsPageInfoEnabled = !0, accurateContinueEnabled = !0, accurateContinueGames = [], homeLayoutOrder = [], homeLayoutHidden = [], homeExtraSorts = [], homeLayoutReady = !1, homeLayoutReadyPromise = null, resolveHomeLayoutReady = null, robloxGroupFeaturesEnabled = !0, freeRobloxPlusThemesEnabled = !1;
+  const CATALOG_API_URL = "https://catalog.roblox.com/v1/catalog/items/details", CLIENT_STATUS_API_URL = "https://apis.roblox.com/matchmaking-api/v1/client-status", GAME_LAUNCH_SUCCESS_URL = "https://metrics.roblox.com/v1/games/report-event", GAME_SERVERS_API_URL = "https://games.roblox.com/", GAMES_ROBLOX_API = "https://games.roblox.com/", TRADES_API_URL = "https://trades.roblox.com/v2/users/", TRADE_DETAILS_API_URL = "https://trades.roblox.com/v2/trades/", TRADES_LIST_API_URL = "https://trades.roblox.com/v1/trades/", GROUP_ROLES_API_HOST = "groups.roblox.com", GROUP_ROLES_API_PATH = /^\/v1\/users\/(\d+)\/groups\/roles$/, PROFILE_API_URL = "https://apis.roblox.com/profile-platform-api/v1/profiles/get", ACCOUNT_SETTINGS_UI_API_URL = "https://apis.roblox.com/guac-v2/v1/bundles/account-settings-ui", USER_SETTINGS_API_URL = "https://apis.roblox.com/user-settings-api/v1/user-settings", FREE_ROBLOX_PLUS_THEMES_SETTING = "FreeRobloxPlusThemesEnabled", ROBLOX_ADMIN_GROUP_ID = 1200769, OMNI_RECOMMENDATION_API_URL = "https://apis.roblox.com/discovery-api/omni-recommendation", FRIEND_CAROUSEL_TOPIC_ID = 6e8, FRIEND_CAROUSEL_TREATMENT_TYPE = "FriendCarousel", THUMBNAILS_API_HOST = "thumbnails.roblox.com", THUMBNAIL_BACKGROUND_SETTING = "disableThumbnailBackground";
+  let ASSET_TYPE_ACCESSORIES = [8, 41, 42, 43, 44, 45, 46, 47, 57, 58], ASSET_TYPE_LAYERED = [64, 65, 66, 67, 68, 69, 70, 71, 72], streamerModeEnabled = !1, settingsPageInfoEnabled = !0, accurateContinueEnabled = !0, accurateContinueGames = [], homeLayoutOrder = [], homeLayoutHidden = [], homeExtraSorts = [], homeLayoutReady = !1, homeLayoutReadyPromise = null, resolveHomeLayoutReady = null, robloxGroupFeaturesEnabled = !0, freeRobloxPlusThemesEnabled = !1, disableThumbnailBackground = !1;
+  function updateThumbnailBackgroundSetting(value) {
+    disableThumbnailBackground = value === !0;
+  }
+  __name(updateThumbnailBackgroundSetting, "updateThumbnailBackgroundSetting");
+  function isThumbnailsApiRequest(url) {
+    try {
+      return new URL(url, window.location.origin).hostname === THUMBNAILS_API_HOST;
+    } catch {
+      return !1;
+    }
+  }
+  __name(isThumbnailsApiRequest, "isThumbnailsApiRequest");
+  function rewriteThumbnailRequestBody(body) {
+    if (typeof body != "string" || !body) return body;
+    try {
+      const data = JSON.parse(body);
+      return !data || typeof data != "object" ? body : (Array.isArray(data) ? data.forEach((request) => {
+        request && typeof request == "object" && (request.includeBackground = !1);
+      }) : data.includeBackground = !1, JSON.stringify(data));
+    } catch {
+      return body;
+    }
+  }
+  __name(rewriteThumbnailRequestBody, "rewriteThumbnailRequestBody");
+  async function rewriteThumbnailFetchArgs(args, requestUrl) {
+    if (!disableThumbnailBackground || !isThumbnailsApiRequest(requestUrl))
+      return args;
+    const [input, init] = args;
+    if (init?.body !== void 0)
+      return [
+        input,
+        { ...init, body: rewriteThumbnailRequestBody(init.body) }
+      ];
+    if (!(input instanceof Request)) return args;
+    try {
+      const body = await input.clone().text(), rewrittenBody = rewriteThumbnailRequestBody(body);
+      return rewrittenBody === body ? args : [new Request(input, { body: rewrittenBody }), init];
+    } catch {
+      return args;
+    }
+  }
+  __name(rewriteThumbnailFetchArgs, "rewriteThumbnailFetchArgs");
   try {
     freeRobloxPlusThemesEnabled = sessionStorage.getItem("rovalra_freeRobloxPlusThemes") === "true";
   } catch {
   }
   document.addEventListener("rovalra:settingSaved", (event) => {
     event.detail?.name === "robloxGroupFeaturesEnabled" && (robloxGroupFeaturesEnabled = event.detail.value !== !1);
+  }), document.addEventListener("rovalra:settingSaved", (event) => {
+    event.detail?.name === THUMBNAIL_BACKGROUND_SETTING && updateThumbnailBackgroundSetting(event.detail.value);
   }), document.addEventListener("rovalra:settingsState", (event) => {
-    typeof event.detail?.robloxGroupFeaturesEnabled == "boolean" && (robloxGroupFeaturesEnabled = event.detail.robloxGroupFeaturesEnabled);
+    typeof event.detail?.robloxGroupFeaturesEnabled == "boolean" && (robloxGroupFeaturesEnabled = event.detail.robloxGroupFeaturesEnabled), typeof event.detail?.[THUMBNAIL_BACKGROUND_SETTING] == "boolean" && updateThumbnailBackgroundSetting(
+      event.detail[THUMBNAIL_BACKGROUND_SETTING]
+    );
   }), document.addEventListener("rovalra:settingSaved", (event) => {
     if (event.detail?.name === FREE_ROBLOX_PLUS_THEMES_SETTING) {
       freeRobloxPlusThemesEnabled = event.detail.value === !0;
@@ -313,6 +359,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
   const originalFetch = window.fetch;
   window.fetch = async function(...args) {
     const [url] = args, requestUrl = getRequestUrl(url);
+    args = await rewriteThumbnailFetchArgs(args, requestUrl);
     let response = await originalFetch(...args);
     if (freeRobloxPlusThemesEnabled && isAccountSettingsUiRequest(requestUrl))
       try {
@@ -418,7 +465,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
     return this._rovalra_url = url, this._rovalra_method = method, streamerModeEnabled && typeof url == "string" && settingsPageInfoEnabled && location.hostname != "create.roblox.com" && (url.includes("/my/settings/json") && (this._rovalra_spoof_settings = !0), url.includes("/v1/emails") && (this._rovalra_email_settings = !0), url.includes("v1/phone") && (this._rovalra_spoof_phone = !0), url.includes("v1/birthdate") && (this._rovalra_spoof_birthdate = !0), url.includes("verified-age") && (this._rovalra_spoof_age = !0), url.includes("account-country") && (this._rovalra_spoof_country = !0), url.includes("age-group") && (this._rovalra_spoof_age_group = !0), url.includes("sessions") && (this._rovalra_spoof_sessions = !0)), typeof url == "string" && url.includes(OMNI_RECOMMENDATION_API_URL) && (this._rovalra_home_layout = !0), typeof url == "string" && url.includes(PROFILE_API_URL) && (this._rovalra_profile_api = !0), typeof url == "string" && isAccountSettingsUiRequest(url) && (this._rovalra_account_settings_ui = !0), originalXhrOpen.apply(this, [method, url, ...rest]);
   }, XMLHttpRequest.prototype.send = function(...args) {
     const xhr = this;
-    if ((xhr._rovalra_spoof_settings || xhr._rovalra_spoof_phone || xhr._rovalra_spoof_birthdate || xhr._rovalra_spoof_age || xhr._rovalra_spoof_country || xhr._rovalra_spoof_age_group || xhr._rovalra_spoof_sessions || xhr._rovalra_home_layout || xhr._rovalra_profile_api || xhr._rovalra_account_settings_ui) && (Object.defineProperty(xhr, "responseText", {
+    if (disableThumbnailBackground && isThumbnailsApiRequest(xhr._rovalra_url) && (args[0] = rewriteThumbnailRequestBody(args[0])), (xhr._rovalra_spoof_settings || xhr._rovalra_spoof_phone || xhr._rovalra_spoof_birthdate || xhr._rovalra_spoof_age || xhr._rovalra_spoof_country || xhr._rovalra_spoof_age_group || xhr._rovalra_spoof_sessions || xhr._rovalra_home_layout || xhr._rovalra_profile_api || xhr._rovalra_account_settings_ui) && (Object.defineProperty(xhr, "responseText", {
       configurable: !0,
       get: /* @__PURE__ */ __name(function() {
         if (xhr._rovalra_cached_response)
