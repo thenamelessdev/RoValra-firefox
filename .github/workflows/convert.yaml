@@ -16,9 +16,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      
-      - run: git clone https://github.com/OtsoBear/chrome2moz.git
-      
+            
       - run: |
           git clone https://github.com/NotValra/RoValra.git extension
           cd extension
