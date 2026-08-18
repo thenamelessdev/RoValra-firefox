@@ -21,8 +21,8 @@
   "action": {
     "default_popup": "public/Assets/popup/popup.html",
     "default_icon": {
-      "128": "public/Assets/icon-128.png",
       "16": "public/Assets/icon-16.png",
+      "128": "public/Assets/icon-128.png",
       "48": "public/Assets/icon-48.png"
     }
   },
@@ -109,10 +109,15 @@
     }
   },
   "icons": {
-    "48": "public/Assets/icon-48.png",
+    "128": "public/Assets/icon-128.png",
     "16": "public/Assets/icon-16.png",
-    "128": "public/Assets/icon-128.png"
+    "48": "public/Assets/icon-48.png"
   },
+  "optional_permissions": [
+    "webNavigation",
+    "menus",
+    "webRequestBlocking"
+  ],
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -126,10 +131,5 @@
         "path": "public/Assets/Rules/beta-rules.json"
       }
     ]
-  },
-  "optional_permissions": [
-    "webNavigation",
-    "menus",
-    "webRequestBlocking"
-  ]
+  }
 }

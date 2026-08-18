@@ -1104,6 +1104,29 @@
             }
           }
         },
+        profileFrameEnabled: {
+          label: "Shows a users Profile Frame",
+          description: [
+            "Draws a frame around the avatar display on profile pages.",
+            "Frames are separate from avatar borders, they wrap the whole avatar thumbnail holder instead of the avatar tile.",
+            "**Your selected frame is saved to RoValras database so other RoValra users can see it.**"
+          ],
+          type: "checkbox",
+          default: !0,
+          contributors: [48255812],
+          childSettings: {
+            profileFrameChoice: {
+              label: "Profile Frames",
+              description: [
+                "Pick a profile frame from the Frames tab of the RoValra store"
+              ],
+              type: "button",
+              buttonText: "Open Frame Store",
+              event: "rovalra:openFrameStore",
+              default: "none"
+            }
+          }
+        },
         improvedAvatarCard: {
           label: "Improved Avatar Card",
           description: [

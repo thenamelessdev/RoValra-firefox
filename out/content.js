@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init148 = {
+          let init149 = {
             ...params,
             headers
           };
-          return this.onSite && (init148.credentials = "include"), (this._fetchFn ?? fetch)(url, init148);
+          return this.onSite && (init149.credentials = "include"), (this._fetchFn ?? fetch)(url, init149);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init148 } = response2;
-              resolve(new Response(body2, init148));
+              let { body: body2, ...init149 } = response2;
+              resolve(new Response(body2, init149));
             }
           );
         });
@@ -3279,6 +3279,29 @@ Never used outside your local device.`;
                   avatarPreview: !0,
                   donatorTier: 3,
                   donatorReason: "Donator Tier 3 gets all avatar borders for free.",
+                  default: "none"
+                }
+              }
+            },
+            profileFrameEnabled: {
+              label: "Shows a users Profile Frame",
+              description: [
+                "Draws a frame around the avatar display on profile pages.",
+                "Frames are separate from avatar borders, they wrap the whole avatar thumbnail holder instead of the avatar tile.",
+                "**Your selected frame is saved to RoValras database so other RoValra users can see it.**"
+              ],
+              type: "checkbox",
+              default: !0,
+              contributors: [48255812],
+              childSettings: {
+                profileFrameChoice: {
+                  label: "Profile Frames",
+                  description: [
+                    "Pick a profile frame from the Frames tab of the RoValra store"
+                  ],
+                  type: "button",
+                  buttonText: "Open Frame Store",
+                  event: "rovalra:openFrameStore",
                   default: "none"
                 }
               }
@@ -13222,10 +13245,83 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     }
   });
 
+  // src/content/core/configs/frames.js
+  function normalizeFrame(frame) {
+    return !frame || typeof frame != "object" || !frame.value || !frame.link ? null : {
+      value: String(frame.value),
+      label: String(frame.label || frame.value),
+      category: frame.category ? String(frame.category) : "Frames",
+      link: String(frame.link),
+      animated: frame.animated === !0 || frame.animated === "true",
+      artistId: frame.artistId ?? null,
+      assetId: frame.assetId ?? null,
+      price: frame.price ?? null,
+      isFree: frame.isFree === !0 || frame.isFree === "true",
+      new: frame.isNew === !0 || frame.isNew === "true" || frame.new === !0 || frame.new === "true"
+    };
+  }
+  function normalizeFrames(data) {
+    return (Array.isArray(data) ? data : Array.isArray(data?.berts) ? data.berts : Array.isArray(data?.frames) ? data.frames : []).map(normalizeFrame).filter(Boolean);
+  }
+  async function getFrames() {
+    return inMemoryCache2 || (fetchPromise2 || (fetchPromise2 = (async () => {
+      try {
+        let data = await callRobloxApiJson({
+          subdomain: "www",
+          endpoint: "/berts/config.json",
+          isRovalraApi: !0
+        });
+        return inMemoryCache2 = normalizeFrames(data), inMemoryCache2;
+      } catch {
+        return inMemoryCache2 = [], inMemoryCache2;
+      } finally {
+        fetchPromise2 = null;
+      }
+    })()), fetchPromise2);
+  }
+  function findFrameByLink(frames, link) {
+    if (!link) return null;
+    let normalizedLink = String(link).trim();
+    return frames.find(
+      (frame) => frame.link === normalizedLink || frame.value === normalizedLink
+    ) || null;
+  }
+  function groupFramesByCategory(frames) {
+    let categories2 = /* @__PURE__ */ new Map();
+    for (let frame of frames)
+      categories2.has(frame.category) || categories2.set(frame.category, {
+        label: frame.category,
+        value: frame.category.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, ""),
+        frames: []
+      }), categories2.get(frame.category).frames.push(frame);
+    return [...categories2.values()].map((category) => ({
+      ...category,
+      new: category.frames.some((frame) => frame.new)
+    }));
+  }
+  var inMemoryCache2, fetchPromise2, init_frames = __esm({
+    "src/content/core/configs/frames.js"() {
+      init_api();
+      inMemoryCache2 = null, fetchPromise2 = null;
+      __name(normalizeFrame, "normalizeFrame");
+      __name(normalizeFrames, "normalizeFrames");
+      __name(getFrames, "getFrames");
+      __name(findFrameByLink, "findFrameByLink");
+      __name(groupFramesByCategory, "groupFramesByCategory");
+      getFrames();
+    }
+  });
+
   // src/content/core/donators/settingHandler.js
   function extractProfilePronouns(apiSettings) {
     let value2 = apiSettings?.pronouns ?? apiSettings?.Pronouns ?? apiSettings?.user_tag ?? apiSettings?.userTag;
     return normalizeProfilePronouns(value2);
+  }
+  async function normalizeBertLink(value2) {
+    let candidate = value2 && typeof value2 == "object" ? value2.link ?? value2.value : value2;
+    if (!candidate || candidate === "none") return null;
+    let frames = await getFrames().catch(() => []);
+    return findFrameByLink(frames, candidate)?.link || String(candidate);
   }
   function assertValidUserId(userId) {
     if (userId == null || String(userId).trim() === "" || String(userId).toLowerCase() === "null")
@@ -13266,14 +13362,18 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         method: "GET",
         noCache: options.noCache || isOwnProfile,
         retryOnTransientStatus: !1
-      })), data.status === "success" && data.settings && (apiSettings = data.settings, (apiSettings.environment === 0 || apiSettings.environment === 1) && !apiSettings.status && !apiSettings.border && !apiSettings.gradient && !apiSettings[GRADIENT_NAME_API_KEY] && !apiSettings.GradientName && !apiSettings.gradientName && !extractProfilePronouns(apiSettings) && !Number(apiSettings.fav_game) && !Number(apiSettings.fav_group) && !Number(apiSettings.fav_decal) && Object.keys(apiSettings).length <= 4 ? apiProvidedMeaningfulSettings = !1 : apiProvidedMeaningfulSettings = !0);
+      })), data.status === "success" && data.settings && (apiSettings = data.settings, (apiSettings.environment === 0 || apiSettings.environment === 1) && !apiSettings.status && !apiSettings.border && !apiSettings.berts && !apiSettings.gradient && !apiSettings[GRADIENT_NAME_API_KEY] && !apiSettings.GradientName && !apiSettings.gradientName && !extractProfilePronouns(apiSettings) && !Number(apiSettings.fav_game) && !Number(apiSettings.fav_group) && !Number(apiSettings.fav_decal) && Object.keys(apiSettings).length <= 4 ? apiProvidedMeaningfulSettings = !1 : apiProvidedMeaningfulSettings = !0);
     } catch (error3) {
       console.warn("RoValra: Failed to fetch settings from API.", error3), apiProvidedMeaningfulSettings = !1;
     }
-    let finalStatus = null, finalEnvironment = 1, finalGradient = null, finalBorder = null, finalGradientName = null;
-    return apiProvidedMeaningfulSettings && (finalStatus = apiSettings.status, finalEnvironment = apiSettings.environment, finalGradient = apiSettings.gradient, finalBorder = apiSettings.border ?? null, finalGradientName = apiSettings[GRADIENT_NAME_API_KEY] ?? apiSettings.GradientName ?? apiSettings.gradientName ?? null), isOwnProfile && apiSettings && apiSettings.border && apiProvidedMeaningfulSettings && document.dispatchEvent(
+    let finalStatus = null, finalEnvironment = 1, finalGradient = null, finalBorder = null, finalFrame = null, finalGradientName = null;
+    return apiProvidedMeaningfulSettings && (finalStatus = apiSettings.status, finalEnvironment = apiSettings.environment, finalGradient = apiSettings.gradient, finalBorder = apiSettings.border ?? null, finalFrame = await normalizeBertLink(apiSettings.berts), finalGradientName = apiSettings[GRADIENT_NAME_API_KEY] ?? apiSettings.GradientName ?? apiSettings.gradientName ?? null), isOwnProfile && apiSettings && apiSettings.border && apiProvidedMeaningfulSettings && document.dispatchEvent(
       new CustomEvent("rovalra:syncAvatarBorder", {
         detail: { borderUrl: apiSettings.border }
+      })
+    ), isOwnProfile && apiSettings && apiSettings.berts && apiProvidedMeaningfulSettings && document.dispatchEvent(
+      new CustomEvent("rovalra:syncProfileFrame", {
+        detail: { frameUrl: finalFrame }
       })
     ), {
       status: finalStatus,
@@ -13281,6 +13381,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       gradient: finalGradient,
       GradientName: finalGradientName,
       border: finalBorder,
+      berts: finalFrame,
       pronouns: extractProfilePronouns(apiSettings),
       Views: Number(apiSettings.Views) || 0,
       hide_views: apiSettings.hide_views === "true" || apiSettings.hide_views === !0,
@@ -13371,11 +13472,15 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
   async function processApiSettings(userId, apiSettings, options) {
     assertValidUserId(userId);
     let authenticatedUserId = await getAuthenticatedUserId(), isOwnProfile = authenticatedUserId && String(authenticatedUserId) === String(userId), apiProvidedMeaningfulSettings = !1;
-    apiSettings && typeof apiSettings == "object" && ((apiSettings.environment === 0 || apiSettings.environment === 1) && !apiSettings.status && !apiSettings.border && !apiSettings.gradient && !apiSettings[GRADIENT_NAME_API_KEY] && !apiSettings.GradientName && !apiSettings.gradientName && !extractProfilePronouns(apiSettings) && !Number(apiSettings.fav_game) && !Number(apiSettings.fav_group) && !Number(apiSettings.fav_decal) && Object.keys(apiSettings).length <= 4 ? apiProvidedMeaningfulSettings = !1 : apiProvidedMeaningfulSettings = !0);
-    let finalStatus = null, finalEnvironment = 1, finalGradient = null, finalBorder = null, finalGradientName = null;
-    return apiProvidedMeaningfulSettings && (finalStatus = apiSettings.status, finalEnvironment = apiSettings.environment, finalGradient = apiSettings.gradient, finalBorder = apiSettings.border ?? null, finalGradientName = apiSettings[GRADIENT_NAME_API_KEY] ?? apiSettings.GradientName ?? apiSettings.gradientName ?? null), isOwnProfile && apiSettings && apiSettings.border && apiProvidedMeaningfulSettings && document.dispatchEvent(
+    apiSettings && typeof apiSettings == "object" && ((apiSettings.environment === 0 || apiSettings.environment === 1) && !apiSettings.status && !apiSettings.border && !apiSettings.berts && !apiSettings.gradient && !apiSettings[GRADIENT_NAME_API_KEY] && !apiSettings.GradientName && !apiSettings.gradientName && !extractProfilePronouns(apiSettings) && !Number(apiSettings.fav_game) && !Number(apiSettings.fav_group) && !Number(apiSettings.fav_decal) && Object.keys(apiSettings).length <= 4 ? apiProvidedMeaningfulSettings = !1 : apiProvidedMeaningfulSettings = !0);
+    let finalStatus = null, finalEnvironment = 1, finalGradient = null, finalBorder = null, finalFrame = null, finalGradientName = null;
+    return apiProvidedMeaningfulSettings && (finalStatus = apiSettings.status, finalEnvironment = apiSettings.environment, finalGradient = apiSettings.gradient, finalBorder = apiSettings.border ?? null, finalFrame = await normalizeBertLink(apiSettings.berts), finalGradientName = apiSettings[GRADIENT_NAME_API_KEY] ?? apiSettings.GradientName ?? apiSettings.gradientName ?? null), isOwnProfile && apiSettings && apiSettings.border && apiProvidedMeaningfulSettings && document.dispatchEvent(
       new CustomEvent("rovalra:syncAvatarBorder", {
         detail: { borderUrl: apiSettings.border }
+      })
+    ), isOwnProfile && apiSettings && apiSettings.berts && apiProvidedMeaningfulSettings && document.dispatchEvent(
+      new CustomEvent("rovalra:syncProfileFrame", {
+        detail: { frameUrl: finalFrame }
       })
     ), {
       status: finalStatus,
@@ -13383,6 +13488,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       gradient: finalGradient,
       GradientName: finalGradientName,
       border: finalBorder,
+      berts: finalFrame,
       pronouns: extractProfilePronouns(apiSettings),
       Views: Number(apiSettings.Views) || 0,
       hide_views: apiSettings.hide_views === "true" || apiSettings.hide_views === !0,
@@ -13485,8 +13591,10 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       init_userIds();
       init_cacheHandler();
       init_pronouns();
+      init_frames();
       GRADIENT_NAME_API_KEY = "GradientName";
       __name(extractProfilePronouns, "extractProfilePronouns");
+      __name(normalizeBertLink, "normalizeBertLink");
       BATCH_MAX_SIZE = 50, BATCH_DELAY_MS = 10, batchQueue = [], batchTimeout = null, batchInProgress = !1, memoryCache = /* @__PURE__ */ new Map(), pendingResolvers = /* @__PURE__ */ new Map();
       __name(assertValidUserId, "assertValidUserId");
       __name(saveToCache, "saveToCache");
@@ -17220,6 +17328,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       });
     }), document.addEventListener("rovalra:openBorderStore", () => {
       window.location.href = "https://www.roblox.com/my/account?rovalra=store";
+    }), document.addEventListener("rovalra:openFrameStore", () => {
+      window.location.href = "https://www.roblox.com/my/account?rovalra=store&tab=frames";
     }), document.addEventListener("rovalra:generateEnvironmentJson", async () => {
       let settings2 = await loadSettings(), envConfig = {};
       settings2.modelUrl && (envConfig.model = {
@@ -17603,9 +17713,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
               if (delete settings2[REMOTE_SETTING_LOCKS_KEY], settings2[REMOTE_SETTING_OVERRIDE_KEY] !== !0)
                 for (let key of Object.keys(remoteLocks))
                   forcedSettings[key] = !1;
-              for (let [key, value2] of Object.entries(
-                forcedSettings
-              ))
+              for (let [key, value2] of Object.entries(forcedSettings))
                 settings2[key] = value2;
               resolve(settings2);
             }
@@ -58618,7 +58726,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init148 = /* @__PURE__ */ __name(() => {
+      let init149 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58644,7 +58752,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init148() : window.addEventListener("load", init148, { once: !0 });
+      document.readyState === "complete" ? init149() : window.addEventListener("load", init149, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -60136,16 +60244,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init148) {
-    return init148?.body !== void 0 ? init148.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init149) {
+    return init149?.body !== void 0 ? init149.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init148 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init148.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init148.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init149 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init149.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init149.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -60153,8 +60261,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init148),
-      credentials: init148.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init149),
+      credentials: init149.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -60163,9 +60271,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init148 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init148.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init148) : await originalFetch(input, init148);
+    window.fetch = async (input, init149 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init149.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init149) : await originalFetch(input, init149);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62321,7 +62429,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init148 = /* @__PURE__ */ __name(() => {
+    let init149 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62338,7 +62446,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init148() : window.addEventListener("load", init148, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init149() : window.addEventListener("load", init149, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -86150,10 +86258,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init148() {
+    function init149() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init148, "init");
+    __name(init149, "init");
     function materialVariant(object) {
       let variant = 0;
       return object.isInstancedMesh && (variant += 2), object.isSkinnedMesh && (variant += 1), variant;
@@ -86199,7 +86307,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init148,
+      init: init149,
       push,
       unshift,
       finish,
@@ -86444,10 +86552,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [], lightProbeGridArray = [];
-    function init148(camera) {
+    function init149(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0, lightProbeGridArray.length = 0;
     }
-    __name(init148, "init");
+    __name(init149, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -86478,7 +86586,7 @@ Program Info Log: ` + programLog + `
       textureUnits: 0
     };
     return {
-      init: init148,
+      init: init149,
       state: state4,
       setupLights,
       setupLightsView,
@@ -151048,7 +151156,7 @@ D:${formattedDate}`;
       let cacheKey = `${groupId}:${accessFilter}`;
       if (groupListCache.has(cacheKey))
         return groupListCache.get(cacheKey);
-      let fetchPromise2 = (async () => {
+      let fetchPromise3 = (async () => {
         let games = [], cursor = "";
         do {
           let endpoint = `/v2/groups/${groupId}/gamesV2?accessFilter=${accessFilter}&limit=50&sortOrder=Desc&cursor=${cursor}`, json = await this.safeGet(endpoint);
@@ -151063,7 +151171,7 @@ D:${formattedDate}`;
         } while (cursor);
         return games;
       })();
-      return groupListCache.set(cacheKey, fetchPromise2), fetchPromise2.catch(() => groupListCache.delete(cacheKey)), fetchPromise2;
+      return groupListCache.set(cacheKey, fetchPromise3), fetchPromise3.catch(() => groupListCache.delete(cacheKey)), fetchPromise3;
     },
     async getGameDetails(games, cache) {
       let batch = games.filter((g2) => g2 && !cache.likes.has(g2.id));
@@ -156249,8 +156357,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     async getUserGames(userId) {
       if (userListCache.has(userId))
         return userListCache.get(userId).catch((err4) => (console.error(err4), []));
-      let fetchPromise2 = (async () => await this.checkInventoryPublic(userId) ? await this.getGamesFromInventory(userId) : await this.getGamesFromV2(userId))();
-      return userListCache.set(userId, fetchPromise2), fetchPromise2.catch(() => userListCache.delete(userId)), fetchPromise2.catch((err4) => (console.error(err4), []));
+      let fetchPromise3 = (async () => await this.checkInventoryPublic(userId) ? await this.getGamesFromInventory(userId) : await this.getGamesFromV2(userId))();
+      return userListCache.set(userId, fetchPromise3), fetchPromise3.catch(() => userListCache.delete(userId)), fetchPromise3.catch((err4) => (console.error(err4), []));
     },
     async enrichGameData(games, state4) {
       let batch = games.filter((g2) => g2 && !state4.likes.has(g2.id));
@@ -163515,11 +163623,155 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   // src/content/index.js
   init_avatarBorder();
 
+  // src/content/features/profile/profileFrame.js
+  init_observer();
+  init_idExtractor();
+  init_settingHandler();
+  init_handlesettings();
+  init_user();
+  var HOLDER_SELECTOR = ".thumbnail-holder.thumbnail-holder-position", FRAME_CLASS = "rovalra-profile-frame", FRAME_SELECTOR = `.${FRAME_CLASS}`, SYNC_EVENT = "rovalra:syncProfileFrame", SETTING_NAME2 = "profileFrameEnabled", FRAME_BLEED_REFERENCE_HEIGHT = 300, FRAME_BLEED_AT_REFERENCE = 24;
+  function getFrameBleed(holderRect) {
+    return holderRect.height * FRAME_BLEED_AT_REFERENCE / FRAME_BLEED_REFERENCE_HEIGHT;
+  }
+  __name(getFrameBleed, "getFrameBleed");
+  var MOUNT_MAX_DEPTH = 6, activeFrameLink = null, holderObserver = null, frameStates = /* @__PURE__ */ new WeakMap();
+  function isFramedHolder(holder) {
+    return holder instanceof HTMLElement && !holder.closest(FRAME_SELECTOR);
+  }
+  __name(isFramedHolder, "isFramedHolder");
+  function clipsContent(computedStyle) {
+    return computedStyle.overflow !== "visible" || computedStyle.overflowX !== "visible" || computedStyle.overflowY !== "visible";
+  }
+  __name(clipsContent, "clipsContent");
+  function isScrollContainer(computedStyle) {
+    let scrollable = /* @__PURE__ */ new Set(["auto", "scroll"]);
+    return scrollable.has(computedStyle.overflowX) || scrollable.has(computedStyle.overflowY);
+  }
+  __name(isScrollContainer, "isScrollContainer");
+  function findFrameMount(holder) {
+    let element = holder, mount = holder;
+    for (let depth = 0; depth < MOUNT_MAX_DEPTH && !(!element || element === document.body || element === document.documentElement); depth += 1) {
+      let computedStyle = window.getComputedStyle(element);
+      if (element !== holder && isScrollContainer(computedStyle)) break;
+      clipsContent(computedStyle) && (mount = element.parentElement || mount), element = element.parentElement;
+    }
+    return mount;
+  }
+  __name(findFrameMount, "findFrameMount");
+  function ensurePositioned(element) {
+    window.getComputedStyle(element).position === "static" && (element.style.position = "relative");
+  }
+  __name(ensurePositioned, "ensurePositioned");
+  function syncFrameGeometry(holder) {
+    let state4 = frameStates.get(holder);
+    if (!state4 || !state4.frame.isConnected) return;
+    let { frame, mount } = state4, holderRect = holder.getBoundingClientRect();
+    if (!holderRect.width || !holderRect.height) return;
+    let bleed = getFrameBleed(holderRect);
+    if (mount === holder)
+      frame.style.left = `${-bleed}px`, frame.style.top = `${-bleed}px`;
+    else {
+      let mountRect = mount.getBoundingClientRect();
+      frame.style.left = `${holderRect.left - mountRect.left - bleed}px`, frame.style.top = `${holderRect.top - mountRect.top - bleed}px`;
+    }
+    frame.style.width = `${holderRect.width + bleed * 2}px`, frame.style.height = `${holderRect.height + bleed * 2}px`;
+  }
+  __name(syncFrameGeometry, "syncFrameGeometry");
+  function removeFrame(holder) {
+    if (!holder) return;
+    delete holder.dataset.rovalraFrameLoading, delete holder.dataset.rovalraIntendedFrame;
+    let state4 = frameStates.get(holder);
+    if (state4) {
+      for (let handle of state4.resizeHandles) handle.unobserve();
+      state4.frame.remove(), frameStates.delete(holder);
+    }
+    for (let frame of holder.querySelectorAll(`:scope > ${FRAME_SELECTOR}`))
+      frame.remove();
+  }
+  __name(removeFrame, "removeFrame");
+  function applyFrameToHolder(holder, frameLink) {
+    if (!holder || !frameLink) return;
+    if (frameStates.has(holder)) {
+      if (holder.dataset.rovalraIntendedFrame === frameLink) return;
+      removeFrame(holder);
+    }
+    holder.dataset.rovalraIntendedFrame = frameLink;
+    let frame = document.createElement("img");
+    frame.className = FRAME_CLASS, frame.alt = "", frame.decoding = "async", frame.style.display = "none", frame.onload = () => {
+      frameStates.get(holder)?.frame === frame && (frame.style.display = "block");
+    }, frame.onerror = () => {
+      frameStates.get(holder)?.frame === frame ? removeFrame(holder) : frame.remove();
+    }, frame.src = frameLink;
+    let mount = findFrameMount(holder);
+    ensurePositioned(mount), mount.appendChild(frame);
+    let state4 = { frame, mount, resizeHandles: [] };
+    frameStates.set(holder, state4), syncFrameGeometry(holder), state4.resizeHandles.push(
+      observeResize(holder, () => syncFrameGeometry(holder))
+    ), mount !== holder && state4.resizeHandles.push(
+      observeResize(mount, () => syncFrameGeometry(holder))
+    );
+  }
+  __name(applyFrameToHolder, "applyFrameToHolder");
+  async function resolveFrameLink(userId) {
+    if (!userId) return null;
+    let userSettings = await getUserSettings(userId).catch(() => null);
+    if (userSettings?.berts && userSettings.berts !== "none")
+      return userSettings.berts;
+    let authedId = await getAuthenticatedUserId().catch(() => null);
+    if (!(authedId && String(authedId) === String(userId))) return null;
+    let localChoice = (await loadSettings().catch(() => null))?.profileFrameChoice;
+    return localChoice && localChoice !== "none" ? localChoice : null;
+  }
+  __name(resolveFrameLink, "resolveFrameLink");
+  function watchHolders(frameLink) {
+    if (activeFrameLink = frameLink, !(!frameLink && !holderObserver)) {
+      if (holderObserver) {
+        for (let holder of document.querySelectorAll(HOLDER_SELECTOR))
+          isFramedHolder(holder) && (activeFrameLink ? applyFrameToHolder(holder, activeFrameLink) : removeFrame(holder));
+        return;
+      }
+      holderObserver = observeElement(
+        HOLDER_SELECTOR,
+        (holder) => {
+          !activeFrameLink || !isFramedHolder(holder) || applyFrameToHolder(holder, activeFrameLink);
+        },
+        { multiple: !0 }
+      );
+    }
+  }
+  __name(watchHolders, "watchHolders");
+  async function init130() {
+    try {
+      let profileUserId = getUserIdFromUrl();
+      if (!profileUserId) return;
+      startObserving();
+      let applyCurrentFrame = /* @__PURE__ */ __name(async () => {
+        if (!(await loadSettings().catch(() => null))?.profileFrameEnabled) {
+          watchHolders(null);
+          return;
+        }
+        watchHolders(await resolveFrameLink(profileUserId));
+      }, "applyCurrentFrame");
+      document.addEventListener("rovalra:settingSaved", (event) => {
+        event.detail?.name === SETTING_NAME2 && applyCurrentFrame();
+      });
+      let authedId = await getAuthenticatedUserId().catch(() => null);
+      authedId && String(authedId) === String(profileUserId) && document.addEventListener(SYNC_EVENT, async (event) => {
+        if (!(await loadSettings().catch(() => null))?.profileFrameEnabled) return;
+        let nextLink = event.detail?.frameUrl || null;
+        watchHolders(nextLink && nextLink !== "none" ? nextLink : null);
+      }), await applyCurrentFrame();
+    } catch (error3) {
+      console.error("RoValra: Profile frame init failed", error3);
+    }
+  }
+  __name(init130, "init");
+
   // src/content/features/profile/improvedAvatarCard.js
   init_observer();
   init_handlesettings();
   var PROFILE_AVATAR_SELECTOR = ".user-profile-header-details-avatar-container .avatar.avatar-card-fullbody", AVATAR_CLASS = "rovalra-improved-avatar-card";
-  async function init130() {
+  async function init131() {
     try {
       if (!(await loadSettings()).improvedAvatarCard) return;
       observeElement(
@@ -163531,7 +163783,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       console.error("RoValra: Improved avatar card init failed", error3);
     }
   }
-  __name(init130, "init");
+  __name(init131, "init");
 
   // src/content/core/catalog/purchasePromptItemId.js
   init_observer();
@@ -163806,7 +164058,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "tryProcess");
     tryProcess();
   }, "attachItemDataToPurchasePrompt");
-  function init131() {
+  function init132() {
     observeElement(
       ".modal-dialog .modal-content, .modal-content, .unified-purchase-dialog-content",
       (element) => {
@@ -163873,7 +164125,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       "color: #FF4500;"
     );
   }
-  __name(init131, "init");
+  __name(init132, "init");
 
   // src/content/features/profile/currencytransfer.js
   init_api();
@@ -163955,14 +164207,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     menuItems.length > 0 ? menuItems[0].insertAdjacentElement("afterend", button) : container.appendChild(button);
   }
   __name(addCurrencyTransferButton, "addCurrencyTransferButton");
-  function init132() {
+  function init133() {
     chrome.storage.local.get({ currencyTransferEnabled: !0 }, (settings2) => {
       settings2.currencyTransferEnabled && registerProfileContextMenuAction(addCurrencyTransferButton, () => {
         getCurrencyTransferStatus();
       });
     });
   }
-  __name(init132, "init");
+  __name(init133, "init");
 
   // src/content/features/profile/header/usernameColor.js
   init_observer();
@@ -163999,7 +164251,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     el2 && (el2.style.color = colors[value2]);
   }
   __name(addUsernameColor, "addUsernameColor");
-  async function init133() {
+  async function init134() {
     await settings.usernameColor && observeElement(
       ".stylistic-alts-username, .deleted-user-container .user-name",
       (el2) => {
@@ -164013,7 +164265,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init133, "init");
+  __name(init134, "init");
 
   // src/content/features/profile/header/chatEligibilityTooltip.js
   init_idExtractor();
@@ -164105,12 +164357,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(processPotentialChatOverlay, "processPotentialChatOverlay");
-  async function init134() {
+  async function init135() {
     observerRegistered2 || !getUserIdFromUrl() || !await settings.chatEligibilityTooltipEnabled || (observerRegistered2 = !0, observeElement(PRESENTATION_SELECTOR, processPotentialChatOverlay, {
       multiple: !0
     }));
   }
-  __name(init134, "init");
+  __name(init135, "init");
 
   // src/content/features/profile/profileCustomization.js
   init_api();
@@ -164616,10 +164868,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )));
   }
   __name(initProfileCustomization, "initProfileCustomization");
-  function init135() {
+  function init136() {
     initProfileCustomization();
   }
-  __name(init135, "init");
+  __name(init136, "init");
 
   // src/content/features/settings/index.js
   init_assets();
@@ -165708,6 +165960,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_tooltip();
   init_settingHandler();
   init_borders();
+  init_frames();
   init_userCard();
   init_pill();
   init_avatarBorder();
@@ -165806,6 +166059,43 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   };
 
+  // src/content/core/apis/catalog.js
+  init_api();
+  var catalogItemDetailsCache = /* @__PURE__ */ new Map(), CATALOG_ITEM_TYPES = {
+    ASSET: "asset",
+    BUNDLE: "bundle"
+  }, CATALOG_ITEM_STATUSES = {
+    NEW: "New",
+    SALE: "Sale",
+    XBOX_EXCLUSIVE: "XboxExclusive",
+    AMAZON_EXCLUSIVE: "AmazonExclusive",
+    GOOGLE_PLAY_EXCLUSIVE: "GooglePlayExclusive",
+    IOS_EXCLUSIVE: "IosExclusive",
+    SALE_TIMER: "SaleTimer",
+    IS_FAE: "IsFae"
+  }, CATALOG_ITEM_STATUS_VALUES = Object.values(CATALOG_ITEM_STATUSES), CATALOG_ITEM_STATUS_ALIASES = {
+    IsFAE: CATALOG_ITEM_STATUSES.IS_FAE
+  };
+  function getCacheKey2(itemId, itemType) {
+    return `${itemId}|${itemType}`;
+  }
+  __name(getCacheKey2, "getCacheKey");
+  async function getCatalogItemDetails(itemId, itemType = CATALOG_ITEM_TYPES.ASSET, options = {}) {
+    if (!itemId) throw new Error("itemId is required");
+    if (!itemType) throw new Error("itemType is required");
+    let { noCache = !1 } = options, normalizedItemType = itemType.toString(), cacheKey = getCacheKey2(itemId, normalizedItemType);
+    if (!noCache && catalogItemDetailsCache.has(cacheKey))
+      return catalogItemDetailsCache.get(cacheKey);
+    let requestPromise = callRobloxApiJson({
+      subdomain: "catalog",
+      endpoint: `/v1/catalog/items/${itemId}/details?itemType=${encodeURIComponent(normalizedItemType)}`,
+      method: "GET",
+      noCache
+    }).catch((error3) => (catalogItemDetailsCache.delete(cacheKey), console.warn("RoValra: Failed to fetch catalog item details", error3), null));
+    return noCache || catalogItemDetailsCache.set(cacheKey, requestPromise), requestPromise;
+  }
+  __name(getCatalogItemDetails, "getCatalogItemDetails");
+
   // src/content/features/settings/index.js
   var assets6 = getAssets(), CREDITS_USER_IDS = [
     .../* @__PURE__ */ new Set([CREATOR_USER_ID, ...CONTRIBUTOR_USER_IDS])
@@ -165821,7 +166111,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     { label: "Very Limited", color: "#f26522" },
     { label: "At Risk", color: "#f23f43" },
     { label: "Suspended", color: "#8b0000" }
-  ], standingCache = null, topDonatorsCache = null, ownedBordersCache2 = null, changelogsCache = null, priceCache = /* @__PURE__ */ new Map(), artistCache = /* @__PURE__ */ new Map();
+  ], standingCache = null, topDonatorsCache = null, ownedBordersCache2 = null, changelogsCache = null, priceCache = /* @__PURE__ */ new Map(), artistCache = /* @__PURE__ */ new Map(), frameAssetDetailsCache = /* @__PURE__ */ new Map();
   document.addEventListener("rovalra:moderationStatusUpdated", (event) => {
     standingCache = event.detail?.data || null;
     let standingCard = document.querySelector(
@@ -166155,25 +166445,40 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   async function getOwnedBorders2() {
     if (ownedBordersCache2) return ownedBordersCache2;
     try {
-      let response = await callRobloxApi({
-        subdomain: "apis",
-        endpoint: "/v1/auth/borders",
-        method: "GET",
-        isRovalraApi: !0
-      });
-      if (response.ok) {
-        let data = await response.json();
+      let [bordersResponse, bertsResponse] = await Promise.all([
+        callRobloxApi({
+          subdomain: "apis",
+          endpoint: "/v1/auth/borders",
+          method: "GET",
+          isRovalraApi: !0
+        }),
+        callRobloxApi({
+          subdomain: "apis",
+          endpoint: "/v1/auth/berts",
+          method: "GET",
+          isRovalraApi: !0
+        })
+      ]), borderData = bordersResponse.ok ? await bordersResponse.json() : {}, bertsData = bertsResponse.ok ? await bertsResponse.json() : {};
+      if (bordersResponse.ok || bertsResponse.ok) {
+        let configuredFrames = await getFrames(), ownedFrames = /* @__PURE__ */ new Set();
+        for (let bert of bertsData.owned_berts || []) {
+          let value2 = bert && typeof bert == "object" ? bert.value : bert, link = bert && typeof bert == "object" ? bert.link : bert, frame = configuredFrames.find(
+            (candidate) => candidate.value === String(value2 ?? "").trim() || candidate.link === String(link ?? "").trim()
+          );
+          value2 != null && ownedFrames.add(String(value2).trim()), link != null && ownedFrames.add(String(link).trim()), frame && (ownedFrames.add(frame.value), ownedFrames.add(frame.link));
+        }
         return ownedBordersCache2 = {
-          borders: new Set(data.owned_borders || []),
+          borders: new Set(borderData.owned_borders || []),
+          frames: ownedFrames,
           gamepasses: new Set(
-            (data.owned_gamepasses || []).map((id) => String(id))
+            (borderData.owned_gamepasses || []).map((id) => String(id))
           )
         }, ownedBordersCache2;
       }
     } catch (e) {
       console.warn("RoValra: Failed to fetch owned borders", e);
     }
-    return { borders: /* @__PURE__ */ new Set(), gamepasses: /* @__PURE__ */ new Set() };
+    return { borders: /* @__PURE__ */ new Set(), frames: /* @__PURE__ */ new Set(), gamepasses: /* @__PURE__ */ new Set() };
   }
   __name(getOwnedBorders2, "getOwnedBorders");
   async function getGamePassPrice(id) {
@@ -166203,6 +166508,28 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return tier >= 3 || !hasBorderGamepassId2(gamepassId) || ownedData.borders.has(value2) ? !0 : ownedData.gamepasses.has(String(gamepassId));
   }
   __name(isBorderOwned2, "isBorderOwned");
+  function isFrameOwned({ frame, ownedData }) {
+    return frame.isFree ? !0 : ownedData.frames?.has(frame.value) || ownedData.frames?.has(frame.link) || !1;
+  }
+  __name(isFrameOwned, "isFrameOwned");
+  async function getFrameAssetDetails(frame) {
+    if (!frame?.assetId) return null;
+    let assetId = String(frame.assetId);
+    return frameAssetDetailsCache.has(assetId) || frameAssetDetailsCache.set(
+      assetId,
+      getCatalogItemDetails(assetId, "Asset").catch(() => null)
+    ), frameAssetDetailsCache.get(assetId);
+  }
+  __name(getFrameAssetDetails, "getFrameAssetDetails");
+  function getFrameAssetUrl(frame) {
+    return frame?.assetId ? `https://www.roblox.com/catalog/${encodeURIComponent(frame.assetId)}/${encodeURIComponent(frame.label || "item")}` : null;
+  }
+  __name(getFrameAssetUrl, "getFrameAssetUrl");
+  function getFrameAssetPrice(frame, details) {
+    let price = details?.price ?? details?.lowestPrice ?? frame?.price;
+    return typeof price == "number" ? price : Number(price) || null;
+  }
+  __name(getFrameAssetPrice, "getFrameAssetPrice");
   function createArtistCreditSection(artistId) {
     let artistWrapper = document.createElement("div");
     artistWrapper.style.cssText = "margin: 6px 0 10px 0; display: flex; flex-direction: column; align-items: center; gap: 4px;";
@@ -167200,9 +167527,17 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       get content() {
         return `
             <div style="padding: 8px;">
-                <h2 style="margin-bottom: 15px; color: var(--rovalra-main-text-color) !important;">Avatar Border Store</h2>
-                <p style="color: var(--rovalra-secondary-text-color); margin-bottom: 20px;">Avatar border store, buy avatar borders to directly support RoValra and the artists, <strong>Donator tier 3 gets all avatar borders for free.</strong> Buying Avatar Borders counts towards your Donator Tier!</p>
-                <div id="rovalra-store-border-container" style="color: var(--rovalra-secondary-text-color);">Loading borders...</div>
+                <div id="rovalra-store-section-tabs" style="display: flex; justify-content: flex-start; margin: 0 0 20px 0; overflow-x: auto; max-width: 100%;"></div>
+                <div id="rovalra-store-borders-section" data-store-section="borders">
+                    <h2 style="margin-bottom: 15px; color: var(--rovalra-main-text-color) !important;">Avatar Border Store</h2>
+                    <p style="color: var(--rovalra-secondary-text-color); margin-bottom: 20px;">Avatar border store, buy avatar borders to directly support RoValra and the artists, <strong>Donator tier 3 gets all avatar borders for free.</strong> Buying Avatar Borders counts towards your Donator Tier!</p>
+                    <div id="rovalra-store-border-container" style="color: var(--rovalra-secondary-text-color);">Loading borders...</div>
+                </div>
+                <div id="rovalra-store-frames-section" data-store-section="frames" hidden>
+                    <h2 style="margin-bottom: 15px; color: var(--rovalra-main-text-color) !important;">${ts2("profileFrame.storeTitle")}</h2>
+                    <p style="color: var(--rovalra-secondary-text-color); margin-bottom: 20px;">${ts2("profileFrame.storeDesc")}</p>
+                    <div id="rovalra-store-frame-container" style="color: var(--rovalra-secondary-text-color);">${ts2("profileFrame.loading")}</div>
+                </div>
             </div>`;
       }
     },
@@ -167789,6 +168124,354 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(renderStoreBorders, "renderStoreBorders");
+  function setupStoreSectionTabs(contentContainer) {
+    let tabHolder = contentContainer.querySelector(
+      "#rovalra-store-section-tabs"
+    );
+    if (!tabHolder || tabHolder.childElementCount > 0) return;
+    let sections = new Map(
+      [...contentContainer.querySelectorAll("[data-store-section]")].map(
+        (section) => [section.dataset.storeSection, section]
+      )
+    );
+    if (sections.size < 2) return;
+    let showSection = /* @__PURE__ */ __name((value2) => {
+      for (let [name2, section] of sections)
+        section.hidden = name2 !== value2;
+    }, "showSection"), requestedTab = new URLSearchParams(window.location.search).get("tab"), initialValue = sections.has(requestedTab) ? requestedTab : "borders", tabs = createPillToggle({
+      options: [
+        { text: ts2("profileFrame.tabBorders"), value: "borders" },
+        { text: ts2("profileFrame.tabFrames"), value: "frames" }
+      ],
+      initialValue,
+      onChange: showSection
+    });
+    tabs.style.flexWrap = "wrap", tabs.style.maxWidth = "100%", tabHolder.appendChild(tabs), showSection(initialValue);
+  }
+  __name(setupStoreSectionTabs, "setupStoreSectionTabs");
+  function createFrameHolderPreview(thumbData, { width = null } = {}) {
+    let holder = document.createElement("div");
+    holder.className = "rovalra-profile-frame-preview", width && (holder.style.maxWidth = `${width}px`);
+    let scene = document.createElement("div");
+    if (scene.className = "rovalra-profile-frame-preview-scene", thumbData?.imageUrl) {
+      let img = document.createElement("img");
+      img.src = thumbData.imageUrl, img.alt = "", img.decoding = "async", scene.appendChild(img);
+    }
+    return holder.appendChild(scene), holder;
+  }
+  __name(createFrameHolderPreview, "createFrameHolderPreview");
+  function clearFramePreview(holder) {
+    if (holder) {
+      for (let frame of holder.querySelectorAll(".rovalra-profile-frame"))
+        frame.remove();
+      delete holder.dataset.rovalraFrameLoading, delete holder.dataset.rovalraIntendedFrame;
+    }
+  }
+  __name(clearFramePreview, "clearFramePreview");
+  async function saveEquippedFrame(link) {
+    let value2 = link || "none";
+    await handleSaveSettings("profileFrameChoice", value2).catch(() => {
+    }), document.dispatchEvent(
+      new CustomEvent("rovalra:syncProfileFrame", {
+        detail: { frameUrl: value2 }
+      })
+    );
+    try {
+      return await updateUserSettingViaApi("berts", link || "", {
+        throwOnError: !0,
+        suppressErrorLog: !0
+      }), !0;
+    } catch {
+      return !1;
+    }
+  }
+  __name(saveEquippedFrame, "saveEquippedFrame");
+  function updateFrameStoreUI(container, selectedValue) {
+    for (let card of container.querySelectorAll("[data-frame-card]"))
+      card.style.borderColor = card.dataset.frameCard === selectedValue ? "var(--rovalra-main-text-color)" : "transparent";
+    for (let button of container.querySelectorAll("[data-frame-equip-btn]")) {
+      let isSelected = button.dataset.frameEquipBtn === selectedValue && selectedValue !== "none", isOwned = button.dataset.frameOwned === "true", text2, tooltip;
+      isSelected ? (text2 = ts2("profileFrame.equipped"), tooltip = ts2("profileFrame.unequipTooltip")) : isOwned ? (text2 = ts2("profileFrame.equip"), tooltip = ts2("profileFrame.equipTooltip")) : (text2 = ts2("profileFrame.buy"), tooltip = ts2("profileFrame.buyTooltip"));
+      let contentSpan = button.querySelector("span");
+      contentSpan ? contentSpan.textContent = text2 : button.textContent = text2, button.getAttribute("title") && button.setAttribute("title", tooltip);
+    }
+    let unequipButton = container.querySelector("[data-frame-unequip-btn]");
+    if (unequipButton) {
+      let hasFrame = selectedValue !== "none";
+      unequipButton.style.opacity = hasFrame ? "1" : "0.5", unequipButton.style.cursor = hasFrame ? "pointer" : "not-allowed";
+    }
+  }
+  __name(updateFrameStoreUI, "updateFrameStoreUI");
+  async function selectStoreFrame(frame, container, previewHolder) {
+    let link = frame ? frame.link : null;
+    clearFramePreview(previewHolder), link && applyFrameToHolder(previewHolder, link), updateFrameStoreUI(container, frame ? frame.value : "none");
+    let synced = await saveEquippedFrame(link), localNotice = container.querySelector("[data-frame-local-notice]");
+    localNotice && (localNotice.hidden = synced);
+  }
+  __name(selectStoreFrame, "selectStoreFrame");
+  function createFrameEquipButton({
+    frame,
+    isOwned,
+    isSelected,
+    container,
+    previewHolder,
+    authedUserData
+  }) {
+    let btnContainer = document.createElement("div");
+    btnContainer.style.cssText = "margin-top: 8px; width: 100%; display: flex; justify-content: center;";
+    let text2 = isSelected ? ts2("profileFrame.equipped") : isOwned ? ts2("profileFrame.equip") : ts2("profileFrame.buy"), tooltip = isSelected ? ts2("profileFrame.unequipTooltip") : isOwned ? ts2("profileFrame.equipTooltip") : ts2("profileFrame.buyTooltip"), pill = createPill(text2, tooltip, { isButton: !0 });
+    return pill.dataset.frameEquipBtn = frame.value, pill.dataset.frameOwned = isOwned ? "true" : "false", pill.style.cssText = "width: 100%; justify-content: center; font-size: 12px; font-weight: 700;", pill.onclick = (event) => {
+      event.stopPropagation();
+      let currentText = pill.textContent.trim();
+      currentText === ts2("profileFrame.equipped") ? selectStoreFrame(null, container, previewHolder) : currentText === ts2("profileFrame.equip") ? selectStoreFrame(frame, container, previewHolder) : openFrameOverlay(frame, authedUserData, container, previewHolder);
+    }, btnContainer.appendChild(pill), btnContainer;
+  }
+  __name(createFrameEquipButton, "createFrameEquipButton");
+  async function openFrameOverlay(frame, authedUserData, container, previewHolder) {
+    let ownedData = await getOwnedBorders2(), isOwned = isFrameOwned({ frame, ownedData }), body = document.createElement("div");
+    body.style.cssText = "display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 10px;";
+    let preview = createFrameHolderPreview(authedUserData?.thumbData, {
+      width: 360
+    });
+    applyFrameToHolder(preview, frame.link);
+    let infoWrapper = document.createElement("div");
+    infoWrapper.style.cssText = "display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%;";
+    let nameLabel = document.createElement("div");
+    if (nameLabel.style.cssText = "font-size: 18px; font-weight: 800; color: var(--rovalra-main-text-color); text-align: center;", nameLabel.textContent = frame.label, infoWrapper.appendChild(nameLabel), frame.isFree) {
+      let freeLabel = document.createElement("div");
+      freeLabel.className = "rovalra-free-label", freeLabel.textContent = ts2("profileFrame.free"), addTooltip(freeLabel, ts2("profileFrame.freeTooltip"), {
+        position: "top"
+      }), infoWrapper.appendChild(freeLabel);
+    } else {
+      let priceLabel = document.createElement("div");
+      priceLabel.style.cssText = "font-size: 14px; font-weight: 600; color: var(--rovalra-secondary-text-color); display: flex; align-items: center; gap: 4px;", getFrameAssetDetails(frame).then((details) => {
+        let price = getFrameAssetPrice(frame, details);
+        if (price === null) {
+          priceLabel.textContent = "View item";
+          return;
+        }
+        let priceValue = price.toLocaleString();
+        if (!isOwned) {
+          priceLabel.innerHTML = `<span class="icon-robux-16x16"></span>${priceValue}`;
+          return;
+        }
+        priceLabel.innerHTML = `
+                <span style="text-decoration: line-through; opacity: 0.6; display: flex; align-items: center; gap: 2px;">
+                    <span class="icon-robux-16x16"></span>${priceValue}
+                </span>
+                <span class="rovalra-free-label" style="color: var(--rovalra-main-text-color); margin-left: 4px; cursor: help; font-size: 16px;">${ts2("profileFrame.owned")}</span>
+            `;
+        let freeLabel = priceLabel.querySelector(".rovalra-free-label");
+        freeLabel && addTooltip(freeLabel, ts2("profileFrame.ownedTooltip"), {
+          position: "top"
+        });
+      }), infoWrapper.appendChild(priceLabel);
+    }
+    frame.artistId && infoWrapper.appendChild(createArtistCreditSection(frame.artistId)), body.append(preview, infoWrapper);
+    let actionBtn = document.createElement("button");
+    if (actionBtn.className = "btn-cta-md btn-min-width", actionBtn.style.width = "100%", isOwned)
+      actionBtn.textContent = `${ts2("profileFrame.equip")} ${frame.label}`, actionBtn.onclick = () => {
+        selectStoreFrame(frame, container, previewHolder), close();
+      };
+    else {
+      let assetUrl = getFrameAssetUrl(frame);
+      assetUrl ? (actionBtn.textContent = "Loading...", getFrameAssetDetails(frame).then((details) => {
+        let price = getFrameAssetPrice(frame, details);
+        actionBtn.innerHTML = price === null ? "View item" : `<span class="icon-robux-16x16" style="margin-right: 6px; vertical-align: middle; position: relative; top: -1px; filter: brightness(0) invert(1);"></span>Buy for ${price.toLocaleString()}`;
+      }), actionBtn.onclick = () => window.open(assetUrl, "_blank")) : (actionBtn.textContent = "View item", actionBtn.disabled = !0);
+    }
+    let { close } = createOverlay({
+      title: frame.label,
+      bodyContent: body,
+      actions: [actionBtn],
+      maxWidth: "400px"
+    });
+  }
+  __name(openFrameOverlay, "openFrameOverlay");
+  function renderFrameStoreSkeleton(container) {
+    container.innerHTML = "";
+    let previewShimmer = document.createElement("div");
+    previewShimmer.style.cssText = "display: flex; flex-direction: column; align-items: center; padding: 20px; background: var(--rovalra-container-background-color); border-radius: 12px; margin-bottom: 20px;", previewShimmer.innerHTML = `
+        <div class="shimmer" style="width: 180px; height: 12px; margin-bottom: 10px; border-radius: 4px;"></div>
+        <div class="setting-label-divider" style="width: 100%; margin-bottom: 10px;"></div>
+        <div class="shimmer" style="width: 100%; max-width: 520px; aspect-ratio: 3.1; border-radius: 10px; margin: 15px 0;"></div>
+    `, container.appendChild(previewShimmer);
+    for (let i2 = 0; i2 < 2; i2++) {
+      let header = document.createElement("div");
+      header.className = "shimmer", header.style.cssText = "width: 130px; height: 18px; margin: 20px 0 10px 0; border-radius: 4px;", container.appendChild(header);
+      let grid = document.createElement("div");
+      grid.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 10px;";
+      for (let j2 = 0; j2 < 3; j2++) {
+        let card = document.createElement("div");
+        card.style.cssText = "display: flex; flex-direction: column; align-items: center; padding: 12px; background: var(--rovalra-container-background-color); border-radius: 12px; gap: 12px; opacity: 0.8;", card.innerHTML = `
+                <div class="shimmer" style="width: 100%; aspect-ratio: 3.1; border-radius: 10px;"></div>
+                <div class="shimmer" style="width: 60%; height: 12px; border-radius: 4px;"></div>
+                <div class="shimmer" style="width: 100px; height: 16px; border-radius: 20px;"></div>
+            `, grid.appendChild(card);
+      }
+      container.appendChild(grid);
+    }
+  }
+  __name(renderFrameStoreSkeleton, "renderFrameStoreSkeleton");
+  async function renderStoreFrames(container) {
+    renderFrameStoreSkeleton(container);
+    try {
+      let [frames, ownedData, userId] = await Promise.all([
+        getFrames(),
+        getOwnedBorders2(),
+        getAuthenticatedUserId().catch(() => null)
+      ]);
+      if (!frames.length) {
+        container.innerHTML = "";
+        let empty = document.createElement("p");
+        empty.style.cssText = "color: var(--rovalra-secondary-text-color); margin: 0;", empty.textContent = ts2("profileFrame.noFrames"), container.appendChild(empty);
+        return;
+      }
+      let authedUserData = null;
+      if (userId) {
+        let [displayName, thumbnails] = await Promise.all([
+          getUserDisplayName(userId).catch(() => "User"),
+          getBatchThumbnails([userId], "Avatar", "420x420")
+        ]);
+        authedUserData = {
+          userId,
+          displayName: typeof displayName == "string" ? displayName : "User",
+          thumbData: thumbnails[0] || { state: "Error" }
+        };
+      }
+      let currentFrameLink = null;
+      if (userId) {
+        let userSettings = await getUserSettings(userId, {
+          noCache: !0
+        }).catch(() => null);
+        userSettings?.berts && userSettings.berts !== "none" && (currentFrameLink = userSettings.berts);
+      }
+      let currentFrame = findFrameByLink(frames, currentFrameLink), currentFrameValue = currentFrame ? currentFrame.value : "none";
+      container.innerHTML = "";
+      let previewWrapper = document.createElement("div");
+      previewWrapper.style.cssText = "display: flex; flex-direction: column; align-items: center; padding: 20px; background: var(--rovalra-container-background-color); border-radius: 12px; margin-bottom: 20px;", previewWrapper.innerHTML = `
+            <div style="font-weight: 700; font-size: 12px; text-transform: uppercase; margin-bottom: 10px; color: var(--rovalra-secondary-text-color);">${ts2("profileFrame.currentPreview")}</div>
+            <div class="setting-label-divider" style="width: 100%; margin-bottom: 15px;"></div>
+        `, container.appendChild(previewWrapper);
+      let previewHolder = createFrameHolderPreview(
+        authedUserData?.thumbData,
+        { width: 520 }
+      );
+      previewWrapper.appendChild(previewHolder), currentFrameLink && applyFrameToHolder(previewHolder, currentFrameLink);
+      let unequipButton = createSquareButton({
+        content: ts2("profileFrame.unequip"),
+        onClick: /* @__PURE__ */ __name(() => selectStoreFrame(null, container, previewHolder), "onClick"),
+        width: "120px",
+        height: "height-1000",
+        paddingX: "padding-x-medium",
+        radius: "radius-medium",
+        disableTextTruncation: !0
+      });
+      unequipButton.dataset.frameUnequipBtn = "true", unequipButton.style.marginTop = "15px", unequipButton.style.opacity = currentFrameLink ? "1" : "0.5", unequipButton.style.cursor = currentFrameLink ? "pointer" : "not-allowed", previewWrapper.appendChild(unequipButton);
+      let localNotice = document.createElement("div");
+      localNotice.dataset.frameLocalNotice = "true", localNotice.style.cssText = "font-size: 11px; color: var(--rovalra-secondary-text-color); text-align: center; margin-top: 10px; opacity: 0.8;", localNotice.textContent = `${ts2("profileFrame.localOnly")}: ${ts2("profileFrame.localOnlyTooltip")}`, localNotice.hidden = !0, previewWrapper.appendChild(localNotice);
+      let categories2 = groupFramesByCategory(frames), storeSections = [], emptyTabMessage = document.createElement("p");
+      emptyTabMessage.style.cssText = "color: var(--rovalra-secondary-text-color); margin: 16px 0 0 0;", emptyTabMessage.textContent = ts2("profileFrame.noFramesInTab"), emptyTabMessage.hidden = !0;
+      let setFrameTab = /* @__PURE__ */ __name((tab) => {
+        let visibleCount = 0;
+        for (let section of storeSections) {
+          let isVisible2 = tab === "all" || tab === "new" && section.isNew || tab === section.categoryValue;
+          section.header.style.display = isVisible2 ? "" : "none", section.grid.style.display = isVisible2 ? "grid" : "none", isVisible2 && (visibleCount += 1);
+        }
+        emptyTabMessage.hidden = visibleCount > 0;
+      }, "setFrameTab"), tabOptions = [{ text: ts2("profileFrame.all"), value: "all" }];
+      categories2.some((category) => category.new) && tabOptions.push({ text: ts2("profileFrame.new"), value: "new" }), tabOptions.push(
+        ...categories2.map((category) => ({
+          text: category.label,
+          value: category.value
+        }))
+      );
+      let tabControls = document.createElement("div");
+      tabControls.style.cssText = "display: flex; justify-content: flex-start; margin: 0 0 16px 0; overflow-x: auto; max-width: 100%;";
+      let frameTabs = createPillToggle({
+        options: tabOptions,
+        initialValue: "all",
+        onChange: setFrameTab
+      });
+      frameTabs.style.flexWrap = "wrap", frameTabs.style.maxWidth = "100%", tabControls.appendChild(frameTabs), container.append(tabControls, emptyTabMessage);
+      for (let category of categories2) {
+        let categoryHeader = document.createElement("h3");
+        categoryHeader.style.cssText = "color: var(--rovalra-main-text-color); font-size: 16px; margin: 20px 0 10px 0; padding-bottom: 8px; border-bottom: 1px solid var(--rovalra-border-color);", categoryHeader.textContent = category.label, container.appendChild(categoryHeader);
+        let framesGrid = document.createElement("div");
+        framesGrid.style.cssText = "display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 10px; align-items: flex-start;", container.appendChild(framesGrid), storeSections.push({
+          categoryValue: category.value,
+          isNew: category.new,
+          header: categoryHeader,
+          grid: framesGrid
+        });
+        for (let frame of category.frames) {
+          let frameIsOwned = isFrameOwned({ frame, ownedData }), isSelected = currentFrameValue === frame.value, frameCard = document.createElement("div");
+          frameCard.dataset.frameCard = frame.value, frameCard.style.cssText = "display: flex; flex-direction: column; align-items: center; padding: 12px; background: var(--rovalra-container-background-color); border-radius: 12px; border: 2px solid transparent;";
+          let cardPreview = createFrameHolderPreview(
+            authedUserData?.thumbData
+          );
+          frameCard.appendChild(cardPreview);
+          let kindLabel = document.createElement("div");
+          kindLabel.style.cssText = "font-size: 11px; color: var(--rovalra-secondary-text-color); text-align: center; margin-top: 8px; font-weight: 700;", kindLabel.textContent = frame.animated ? ts2("profileFrame.animated") : ts2("profileFrame.static"), frameCard.appendChild(kindLabel);
+          let frameLabel = document.createElement("div");
+          frameLabel.style.cssText = "color: var(--rovalra-main-text-color); font-weight: 600; font-size: 13px; text-align: center; margin: 4px 0;", frameLabel.textContent = frame.label, frameCard.appendChild(frameLabel);
+          let priceLabel = document.createElement("div");
+          frame.isFree ? (priceLabel.className = "rovalra-free-label", priceLabel.textContent = ts2("profileFrame.free"), priceLabel.style.cssText = "width: 100%; text-align: center;", addTooltip(priceLabel, ts2("profileFrame.freeTooltip"), {
+            position: "top"
+          })) : priceLabel.style.cssText = "font-size: 12px; font-weight: 600; color: var(--rovalra-secondary-text-color); display: flex; align-items: center; justify-content: center; gap: 4px;", frameCard.appendChild(priceLabel), frame.artistId && frameCard.appendChild(
+            createArtistCreditSection(frame.artistId)
+          ), frameCard.appendChild(
+            createFrameEquipButton({
+              frame,
+              isOwned: frameIsOwned,
+              isSelected,
+              container,
+              previewHolder,
+              authedUserData
+            })
+          ), framesGrid.appendChild(frameCard);
+          let intersection = observeIntersection(
+            frameCard,
+            (entry) => {
+              entry.isIntersecting && (intersection.unobserve(), applyFrameToHolder(cardPreview, frame.link), !frame.isFree && getFrameAssetDetails(frame).then((details) => {
+                let price = getFrameAssetPrice(frame, details);
+                if (price === null) {
+                  priceLabel.textContent = "View item";
+                  return;
+                }
+                let priceValue = price.toLocaleString();
+                if (!frameIsOwned) {
+                  priceLabel.innerHTML = `<span class="icon-robux-16x16"></span>${priceValue}`;
+                  return;
+                }
+                priceLabel.innerHTML = `
+                                <span style="text-decoration: line-through; opacity: 0.6; display: flex; align-items: center; gap: 2px;">
+                                    <span class="icon-robux-16x16"></span>${priceValue}
+                                </span>
+                                <span class="rovalra-free-label" style="color: var(--rovalra-main-text-color); margin-left: 4px; cursor: help; font-size: 14px;">${ts2("profileFrame.owned")}</span>
+                            `;
+                let freeLabel = priceLabel.querySelector(
+                  ".rovalra-free-label"
+                );
+                freeLabel && addTooltip(
+                  freeLabel,
+                  ts2("profileFrame.ownedTooltip"),
+                  { position: "top" }
+                );
+              }));
+            },
+            { threshold: 0.01 }
+          );
+        }
+      }
+      setFrameTab("all"), updateFrameStoreUI(container, currentFrameValue);
+    } catch (error3) {
+      console.error("RoValra: Failed to render store frames", error3), container.innerHTML = "";
+      let failed = document.createElement("p");
+      failed.style.cssText = "color: var(--rovalra-secondary-text-color);", failed.textContent = ts2("profileFrame.failedToLoad"), container.appendChild(failed);
+    }
+  }
+  __name(renderStoreFrames, "renderStoreFrames");
   function createEquipButton(variant, animVariant, isOwned, isSelected, hasAnimated, container, previewHolder, authedUserData) {
     let btnContainer = document.createElement("div");
     btnContainer.style.cssText = "margin-top: 8px; width: 100%; display: flex; justify-content: center;";
@@ -167942,6 +168625,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         "#rovalra-store-border-container"
       );
       borderContainer && renderStoreBorders(borderContainer);
+      let frameContainer = contentContainer.querySelector(
+        "#rovalra-store-frame-container"
+      );
+      frameContainer && renderStoreFrames(frameContainer), setupStoreSectionTabs(contentContainer);
     }
     if (buttonId === "changelogs") {
       let changelogsContainer = contentContainer.querySelector(
@@ -168105,10 +168792,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init136() {
+  function init137() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init136, "init");
+  __name(init137, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -168305,7 +168992,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init137() {
+  function init138() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -168317,7 +169004,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init137, "init");
+  __name(init138, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -168375,7 +169062,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init138() {
+  async function init139() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -168386,7 +169073,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init138, "init");
+  __name(init139, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -168678,7 +169365,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init139() {
+  async function init140() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
@@ -168689,7 +169376,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init139, "init");
+  __name(init140, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -169273,7 +169960,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init140() {
+  async function init141() {
     if (!initialized17) {
       if (await settings.homeLayoutEnabled === !1) {
         initialized17 = !0, publishHomeLayoutState([], []);
@@ -169312,7 +169999,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init140, "init");
+  __name(init141, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
@@ -169393,14 +170080,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init141() {
+  function init142() {
     initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error3) => console.error("RoValra: Failed to open custom background settings.", error3)
       );
     }));
   }
-  __name(init141, "init");
+  __name(init142, "init");
 
   // src/content/features/home/friendLabels.js
   init_userCardElements();
@@ -169410,7 +170097,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_buttons();
   init_input();
   init_overlay();
-  var SETTING_NAME2 = "friendLabelsEnabled", STORAGE_KEY10 = "rovalra_friend_labels", CARD_SELECTOR2 = ".friends-carousel-tile", EXCLUDED_CONTAINER_SELECTOR = ".roseal-friends-carousel-container", DROPDOWN_LIST_SELECTOR = ".friend-tile-dropdown ul", MODERN_TOOLTIP_ROOT_SELECTOR = ".friend-tile-dropdown--iarc", MODERN_ACTIONS_SELECTOR = ".in-game-friend-card-actions", MODERN_PROFILE_LINK_SELECTOR = 'a[href*="/users/"][href*="/profile"]', HOST_CLASS = "rovalra-friend-label-host", LABEL_CLASS = "rovalra-friend-label", MENU_ITEM_CLASS = "rovalra-friend-label-menu-item", MENU_BUTTON_CLASS = "rovalra-friend-label-menu-button", MODERN_TOOLTIP_ITEM_CLASS = "rovalra-friend-label-modern-item", MODERN_TOOLTIP_BUTTON_CLASS = "rovalra-friend-label-modern-button", MAX_LABEL_LENGTH = 24, enabled = !1, observersRegistered = !1, storageListenerRegistered = !1, friendLabels = {}, lastInteractedFriendCard = null;
+  var SETTING_NAME3 = "friendLabelsEnabled", STORAGE_KEY10 = "rovalra_friend_labels", CARD_SELECTOR2 = ".friends-carousel-tile", EXCLUDED_CONTAINER_SELECTOR = ".roseal-friends-carousel-container", DROPDOWN_LIST_SELECTOR = ".friend-tile-dropdown ul", MODERN_TOOLTIP_ROOT_SELECTOR = ".friend-tile-dropdown--iarc", MODERN_ACTIONS_SELECTOR = ".in-game-friend-card-actions", MODERN_PROFILE_LINK_SELECTOR = 'a[href*="/users/"][href*="/profile"]', HOST_CLASS = "rovalra-friend-label-host", LABEL_CLASS = "rovalra-friend-label", MENU_ITEM_CLASS = "rovalra-friend-label-menu-item", MENU_BUTTON_CLASS = "rovalra-friend-label-menu-button", MODERN_TOOLTIP_ITEM_CLASS = "rovalra-friend-label-modern-item", MODERN_TOOLTIP_BUTTON_CLASS = "rovalra-friend-label-modern-button", MAX_LABEL_LENGTH = 24, enabled = !1, observersRegistered = !1, storageListenerRegistered = !1, friendLabels = {}, lastInteractedFriendCard = null;
   function isExcludedCarouselPresent() {
     return !!document.querySelector(EXCLUDED_CONTAINER_SELECTOR);
   }
@@ -169864,8 +170551,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   __name(attachActionsToExistingDropdowns, "attachActionsToExistingDropdowns");
   function registerStorageListener() {
     storageListenerRegistered || (storageListenerRegistered = !0, chrome.storage.onChanged.addListener(async (changes, namespace) => {
-      if (namespace === "local" && (changes[STORAGE_KEY10] && (friendLabels = sanitizeLabels(changes[STORAGE_KEY10].newValue), enabled && refreshExistingCards()), !!changes[SETTING_NAME2])) {
-        if (enabled = changes[SETTING_NAME2].newValue === !0, !enabled) {
+      if (namespace === "local" && (changes[STORAGE_KEY10] && (friendLabels = sanitizeLabels(changes[STORAGE_KEY10].newValue), enabled && refreshExistingCards()), !!changes[SETTING_NAME3])) {
+        if (enabled = changes[SETTING_NAME3].newValue === !0, !enabled) {
           removeFeatureUi();
           return;
         }
@@ -169874,14 +170561,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init142() {
+  async function init143() {
     if (registerStorageListener(), enabled = await settings.friendLabelsEnabled === !0, !enabled) {
       removeFeatureUi();
       return;
     }
     friendLabels = await loadFriendLabels(), registerObservers(), refreshExistingCards(), attachActionsToExistingDropdowns();
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -170160,7 +170847,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init143() {
+  async function init144() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -170175,12 +170862,12 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error3);
     }));
   }
-  __name(init143, "init");
+  __name(init144, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
   init_getSettings();
-  var SETTING_NAME3 = "HideAddFriendsButton", HIDDEN_CLASS = "rovalra-hide-add-friends-button", ADD_FRIENDS_ICON_SELECTOR = ".add-friends-icon-container", FRIEND_ITEM_SELECTOR = ".friends-carousel-tile", HOME_FRIENDS_CONTAINER_SELECTOR = [
+  var SETTING_NAME4 = "HideAddFriendsButton", HIDDEN_CLASS = "rovalra-hide-add-friends-button", ADD_FRIENDS_ICON_SELECTOR = ".add-friends-icon-container", FRIEND_ITEM_SELECTOR = ".friends-carousel-tile", HOME_FRIENDS_CONTAINER_SELECTOR = [
     "#HomeContainer .friend-carousel-container",
     "#HomeContainer .react-friends-carousel-container",
     "#HomeContainer .friends-carousel-container"
@@ -170226,22 +170913,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
   __name(registerObserver, "registerObserver");
   function registerStorageListener2() {
     storageListenerRegistered2 || (storageListenerRegistered2 = !0, chrome.storage.onChanged.addListener((changes, namespace) => {
-      namespace !== "local" || !changes[SETTING_NAME3] || (enabled2 = changes[SETTING_NAME3].newValue === !0, enabled2 ? (registerObserver(), applyExistingAddFriendsButtons()) : removeHiddenButtonClasses());
+      namespace !== "local" || !changes[SETTING_NAME4] || (enabled2 = changes[SETTING_NAME4].newValue === !0, enabled2 ? (registerObserver(), applyExistingAddFriendsButtons()) : removeHiddenButtonClasses());
     }));
   }
   __name(registerStorageListener2, "registerStorageListener");
-  async function init144() {
+  async function init145() {
     if (registerStorageListener2(), enabled2 = await settings.HideAddFriendsButton === !0, !enabled2) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init144, "init");
+  __name(init145, "init");
 
   // src/content/features/home/friendsSecondRow.js
   init_getSettings();
-  var SETTING_NAME4 = "friendsSecondRowEnabled", storageListenerRegistered3 = !1;
+  var SETTING_NAME5 = "friendsSecondRowEnabled", storageListenerRegistered3 = !1;
   function publishState(enabled3) {
     document.dispatchEvent(
       new CustomEvent("rovalra-friends-second-row", {
@@ -170252,16 +170939,16 @@ ${locale4.suggestOnDiscord}`), subtitle;
   __name(publishState, "publishState");
   function registerStorageListener3() {
     storageListenerRegistered3 || (storageListenerRegistered3 = !0, chrome.storage.onChanged.addListener((changes, namespace) => {
-      namespace !== "local" || !changes[SETTING_NAME4] || publishState(changes[SETTING_NAME4].newValue === !0);
+      namespace !== "local" || !changes[SETTING_NAME5] || publishState(changes[SETTING_NAME5].newValue === !0);
     }));
   }
   __name(registerStorageListener3, "registerStorageListener");
-  async function init145() {
+  async function init146() {
     registerStorageListener3();
     let enabled3 = await settings.friendsSecondRowEnabled === !0;
     publishState(enabled3);
   }
-  __name(init145, "init");
+  __name(init146, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -170541,7 +171228,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init146() {
+  function init147() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -170556,7 +171243,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init146, "init");
+  __name(init147, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -173086,7 +173773,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init147() {
+  async function init148() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -173096,7 +173783,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init147, "init");
+  __name(init148, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -173107,7 +173794,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init136,
+        init137,
         init66,
         init7,
         init8,
@@ -173144,7 +173831,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init49,
         init2,
         init29,
-        init131,
+        init132,
         init125,
         init23,
         initializeModernIcons,
@@ -173159,7 +173846,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init45,
         init47,
         init48,
-        init141,
+        init142,
         initNotificationCenter
       ]
     },
@@ -173190,7 +173877,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init147
+        init148
       ]
     },
     // Avatar pages
@@ -173234,7 +173921,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init70,
         init81,
         init112,
-        init147,
+        init148,
         init83
       ]
     },
@@ -173281,6 +173968,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["/users/"],
       features: [
         init104,
+        init131,
         init130,
         init103,
         init105,
@@ -173300,21 +173988,21 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init122,
         init125,
         init111,
-        init132,
+        init133,
         init110,
         init129,
-        init134,
         init135,
+        init136,
         initProfileButton
       ]
     },
     {
       paths: ["/users/", "/banned-users/"],
-      features: [init114, init108, init133]
+      features: [init114, init108, init134]
     },
     {
       paths: ["/deleted-users/"],
-      features: [init133]
+      features: [init134]
     },
     // Transactions page
     {
@@ -173350,22 +174038,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init146]
+      features: [init147]
     },
     {
       paths: ["/home"],
       features: [
-        init140,
-        init143,
-        init139,
+        init141,
         init144,
-        init142,
-        init145
+        init140,
+        init145,
+        init143,
+        init146
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init137, init138]
+      features: [init138, init139]
     },
     // Scam prevention
     {
@@ -173420,11 +174108,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init148) => {
-        if (!featuresRunThisPass.has(init148) && !(route.once && initializedPersistentFeatures.has(init148))) {
-          featuresRunThisPass.add(init148), route.once && initializedPersistentFeatures.add(init148);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init149) => {
+        if (!featuresRunThisPass.has(init149) && !(route.once && initializedPersistentFeatures.has(init149))) {
+          featuresRunThisPass.add(init149), route.once && initializedPersistentFeatures.add(init149);
           try {
-            init148();
+            init149();
           } catch (error3) {
             console.error("RoValra: Feature init failed", error3);
           }
