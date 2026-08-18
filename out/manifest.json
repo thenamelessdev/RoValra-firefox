@@ -21,9 +21,9 @@
   "action": {
     "default_popup": "public/Assets/popup/popup.html",
     "default_icon": {
+      "128": "public/Assets/icon-128.png",
       "16": "public/Assets/icon-16.png",
-      "48": "public/Assets/icon-48.png",
-      "128": "public/Assets/icon-128.png"
+      "48": "public/Assets/icon-48.png"
     }
   },
   "permissions": [
@@ -44,6 +44,16 @@
       ],
       "js": [
         "intercept.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": true
+    },
+    {
+      "matches": [
+        "*://*.roblox.com/*"
+      ],
+      "js": [
+        "friendsSecondRowHijack.js"
       ],
       "run_at": "document_start",
       "all_frames": true
@@ -81,6 +91,7 @@
         "Assets/data/serverid_extractor.js",
         "data/*",
         "intercept.js",
+        "friendsSecondRowHijack.js",
         "assets/*",
         "css/*"
       ],
@@ -98,8 +109,8 @@
     }
   },
   "icons": {
-    "16": "public/Assets/icon-16.png",
     "48": "public/Assets/icon-48.png",
+    "16": "public/Assets/icon-16.png",
     "128": "public/Assets/icon-128.png"
   },
   "declarative_net_request": {

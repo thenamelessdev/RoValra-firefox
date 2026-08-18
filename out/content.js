@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init147 = {
+          let init148 = {
             ...params,
             headers
           };
-          return this.onSite && (init147.credentials = "include"), (this._fetchFn ?? fetch)(url, init147);
+          return this.onSite && (init148.credentials = "include"), (this._fetchFn ?? fetch)(url, init148);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init147 } = response2;
-              resolve(new Response(body2, init147));
+              let { body: body2, ...init148 } = response2;
+              resolve(new Response(body2, init148));
             }
           );
         });
@@ -3389,6 +3389,16 @@ Never used outside your local device.`;
               ],
               type: "checkbox",
               default: !0
+            },
+            friendsSecondRowEnabled: {
+              label: "Second Friends Row",
+              description: [
+                "Shows a second row of friends in the Home page friends carousel instead of only one row.",
+                "Some extensions may overwrite this feature."
+              ],
+              type: "checkbox",
+              default: !1,
+              contributors: ["2830488781"]
             },
             HideAddFriendsButton: {
               label: "Hide Add Friends Button",
@@ -13145,8 +13155,10 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         // AandA510
         "170038374",
         // syra (concept artist)
-        "760897332"
+        "760897332",
         // ceyexm
+        "2830488781"
+        //idhglua
       ], TESTER_USER_IDS = [
         "1163412141"
         //Tino
@@ -58606,7 +58618,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init147 = /* @__PURE__ */ __name(() => {
+      let init148 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58632,7 +58644,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init147() : window.addEventListener("load", init147, { once: !0 });
+      document.readyState === "complete" ? init148() : window.addEventListener("load", init148, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -60124,16 +60136,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init147) {
-    return init147?.body !== void 0 ? init147.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init148) {
+    return init148?.body !== void 0 ? init148.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init147 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init147.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init147.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init148 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init148.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init148.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -60141,8 +60153,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init147),
-      credentials: init147.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init148),
+      credentials: init148.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -60151,9 +60163,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init147 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init147.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init147) : await originalFetch(input, init147);
+    window.fetch = async (input, init148 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init148.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init148) : await originalFetch(input, init148);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62309,7 +62321,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init147 = /* @__PURE__ */ __name(() => {
+    let init148 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62326,7 +62338,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init147() : window.addEventListener("load", init147, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init148() : window.addEventListener("load", init148, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -86138,10 +86150,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init147() {
+    function init148() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init147, "init");
+    __name(init148, "init");
     function materialVariant(object) {
       let variant = 0;
       return object.isInstancedMesh && (variant += 2), object.isSkinnedMesh && (variant += 1), variant;
@@ -86187,7 +86199,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init147,
+      init: init148,
       push,
       unshift,
       finish,
@@ -86432,10 +86444,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [], lightProbeGridArray = [];
-    function init147(camera) {
+    function init148(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0, lightProbeGridArray.length = 0;
     }
-    __name(init147, "init");
+    __name(init148, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -86466,7 +86478,7 @@ Program Info Log: ` + programLog + `
       textureUnits: 0
     };
     return {
-      init: init147,
+      init: init148,
       state: state4,
       setupLights,
       setupLightsView,
@@ -158915,7 +158927,21 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   FLAGS.ONLINE_ASSETS = !0;
   FLAGS.AUDIO_ENABLED = !1;
   backgroundRendererRequests();
-  var currentRig2 = null, currentRigType = null, emoteStopTimer = null, preloadedCanvas = null, isPreloading = !1, globalAvatarData = null, customModelInstance = null, avatarDataPromise = null, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, animationSpeed = 1, EFFECT_BLACK_KEY_THRESHOLD = 0.08, EFFECT_BLACK_KEY_SOFTNESS = 0.02, isAnimatePatched = !1, raycaster = new Raycaster(), intendedDistance = 15, lastAppliedDistance = 15, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, currentDirectTrack = null, directEmoteTimer = null, hasMovedCamera = !1, activeProfileRenderUserId = null, profileRenderObserversSetup = !1, removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, animationLoopStarted = !1, autoSwitchedProfileUserId = null, resizeObserversByContainer = /* @__PURE__ */ new WeakMap(), blackKeyedEffectMaterials = /* @__PURE__ */ new WeakSet();
+  var currentRig2 = null, currentRigType = null, profileBackgroundRenderer = null, profileRenderAuthentication = new Authentication(), emoteStopTimer = null, preloadedCanvas = null, isPreloading = !1, globalAvatarData = null, globalAvatarBackgroundId = null, interceptedProfileData = null, profileEnvironmentEnabled = !1, customModelInstance = null, avatarDataPromise = null, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, animationSpeed = 1, EFFECT_BLACK_KEY_THRESHOLD = 0.08, EFFECT_BLACK_KEY_SOFTNESS = 0.02, isAnimatePatched = !1, raycaster = new Raycaster(), intendedDistance = 10, lastAppliedDistance = 10, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, currentDirectTrack = null, directEmoteTimer = null, hasMovedCamera = !1, hasSetInitialCamera = !1, activeProfileRenderUserId = null, profileRenderObserversSetup = !1, removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, animationLoopStarted = !1, autoSwitchedProfileUserId = null, resizeObserversByContainer = /* @__PURE__ */ new WeakMap(), blackKeyedEffectMaterials = /* @__PURE__ */ new WeakSet();
+  function updateProfileBackground(profileData) {
+    let backgroundId = Number(profileData?.components?.ProfileBackground?.assetId) || null;
+    globalAvatarBackgroundId !== backgroundId && (globalAvatarBackgroundId = backgroundId, profileBackgroundRenderer && profileBackgroundRenderer.backgroundRenderer.setBackground(
+      profileEnvironmentEnabled ? null : backgroundId
+    ));
+  }
+  __name(updateProfileBackground, "updateProfileBackground");
+  function disableProfileRenderPlanes() {
+    RBXRenderer.plane && (RBXRenderer.plane.visible = !1), RBXRenderer.shadowPlane && (RBXRenderer.shadowPlane.visible = !1);
+  }
+  __name(disableProfileRenderPlanes, "disableProfileRenderPlanes");
+  window.addEventListener("rovalra-profile-platform-response", (event) => {
+    interceptedProfileData = event.detail, updateProfileBackground(interceptedProfileData);
+  });
   function isRoavatarEffectMaterial(material) {
     return material?.isShaderMaterial && typeof material.fragmentShader == "string" && material.fragmentShader.includes("uniform sampler2D uAlphaMap") && material.fragmentShader.includes("varying vec3 vInstanceColor");
   }
@@ -158972,7 +158998,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   var isMoving = /* @__PURE__ */ __name(() => movementKeys.some((key) => keysDown[key]), "isMoving"), isFreecamActive = /* @__PURE__ */ __name(() => isLeftMouseDown && isMoving(), "isFreecamActive");
   function resetCamera() {
     let controls = RBXRenderer.getRendererControls(), camera = RBXRenderer.getRendererCamera();
-    !controls || !camera || (controls.target.set(0, 4, 0), camera.position.set(0, 4, -45), intendedDistance = 0, controls.update(), hasMovedCamera = !1, recenterBtnRef && (recenterBtnRef.style.display = "none"));
+    !controls || !camera || (controls.target.set(0, 4, 0), camera.position.set(0, 4, -6), intendedDistance = 10, lastAppliedDistance = 10, controls.update(), hasMovedCamera = !1, recenterBtnRef && (recenterBtnRef.style.display = "none"));
   }
   __name(resetCamera, "resetCamera");
   function updateCameraSystem() {
@@ -159035,6 +159061,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     isRenderingPaused = !0;
     let outfit = new Outfit();
     outfit.fromJson(globalAvatarData), outfit.playerAvatarType = rigType;
+    let outfitModel = new OutfitModel();
+    outfitModel.outfit = outfit, globalAvatarBackgroundId && (outfitModel.background = { id: globalAvatarBackgroundId }), profileBackgroundRenderer ? profileBackgroundRenderer.setOutfitModel(outfitModel) : (profileBackgroundRenderer = new OutfitRenderer(
+      profileRenderAuthentication,
+      outfitModel,
+      RBXRenderer.firstScene
+    ), profileBackgroundRenderer.doAddInstance = !1, profileBackgroundRenderer.backgroundRenderer.affectSceneAppearance = !1, profileBackgroundRenderer.startAnimating());
     let rigUrl = chrome.runtime.getURL(`assets/Rig${rigType}.rbxm`);
     try {
       let rigResult = await API.Asset.GetRBX(rigUrl, void 0);
@@ -159732,7 +159764,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
           let hasReachedEnd = currentDirectTrack.tick(deltaTime);
           !currentDirectTrack.looped && hasReachedEnd && !currentDirectTrack._isStopping && (currentDirectTrack.Stop(0), currentDirectTrack._isStopping = !0, animatorW && animatorW.playAnimation("idle", 0), currentDirectTrack = null, activeEmoteId = null), currentDirectTrack && (currentDirectTrack._isStopping || currentDirectTrack.weight <= 0.01) && (currentDirectTrack = null, activeEmoteId = null);
         } else currentRig2 && animatorW?.renderAnimation(deltaTime);
-        currentRig2 && (currentRig2.preRender && currentRig2.preRender(), RBXRenderer.addInstance(currentRig2, null)), lastRenderTime = currentTime - delta % interval;
+        currentRig2 && (currentRig2.preRender && currentRig2.preRender(), RBXRenderer.addInstance(
+          currentRig2,
+          profileRenderAuthentication
+        )), lastRenderTime = currentTime - delta % interval;
       }
     }, "animate");
     requestAnimationFrame(animate);
@@ -159773,17 +159808,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(loadCustomEnvironment, "loadCustomEnvironment");
   function setupAtmosphere(scene, config, isCustomEnv = !1) {
-    if (!config) return;
-    config.background ? scene.background = new Color2(config.background) : RBXRenderer.backgroundTransparent ? scene.background = null : scene.background = new Color2(RBXRenderer.backgroundColorHex), !isCustomEnv && RBXRenderer.plane && (raycastTargets = [RBXRenderer.plane]), scene.children.filter((obj) => obj.isLight).forEach((light) => scene.remove(light)), config.lights && Array.isArray(config.lights) && config.lights.forEach((lightDef) => {
+    config && (config.background ? scene.background = new Color2(config.background) : RBXRenderer.backgroundTransparent ? scene.background = null : scene.background = new Color2(RBXRenderer.backgroundColorHex), !isCustomEnv && RBXRenderer.plane && (raycastTargets = [RBXRenderer.plane]), scene.children.filter((obj) => obj.isLight).forEach((light) => scene.remove(light)), config.lights && Array.isArray(config.lights) && config.lights.forEach((lightDef) => {
       let light, color2 = new Color2(lightDef.color || 16777215), intensity = lightDef.intensity !== void 0 ? lightDef.intensity : 1;
       lightDef.type === "DirectionalLight" ? (light = new DirectionalLight2(color2, intensity), lightDef.position && light.position.set(...lightDef.position), lightDef.castShadow && (light.castShadow = !0)) : lightDef.type === "AmbientLight" && (light = new AmbientLight2(color2, intensity)), light && scene.add(light);
-    });
-    let shouldShowPlane = config.showFloor !== void 0 ? config.showFloor : !isCustomEnv;
-    RBXRenderer.shadowPlane && (RBXRenderer.shadowPlane.visible = shouldShowPlane), RBXRenderer.plane && (RBXRenderer.plane.visible = shouldShowPlane), config.fog ? scene.fog = new Fog(
+    }), RBXRenderer.shadowPlane && (RBXRenderer.shadowPlane.visible = !1), RBXRenderer.plane && (RBXRenderer.plane.visible = !1), config.fog ? scene.fog = new Fog(
       new Color2(config.fog.color || 16777215),
       config.fog.near || 30,
       config.fog.far || 120
-    ) : scene.fog = null;
+    ) : scene.fog = null);
   }
   __name(setupAtmosphere, "setupAtmosphere");
   var DEFAULT_VOID_CONFIG = {
@@ -159799,14 +159831,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
           type: "DirectionalLight",
           color: "#ffffff",
           intensity: 1.5,
-          position: [10, 20, 10],
+          position: [-5, 15, -8],
           castShadow: !0
         }
       ]
     }
   };
   function resetProfileRenderState() {
-    emoteStopTimer && (clearTimeout(emoteStopTimer), emoteStopTimer = null), directEmoteTimer && (clearTimeout(directEmoteTimer), directEmoteTimer = null), currentDirectTrack && (currentDirectTrack.Stop(0), currentDirectTrack = null), currentRig2 && (currentRig2.Destroy(), currentRig2 = null), customModelInstance && (RBXRenderer.getScene()?.remove(customModelInstance), customModelInstance = null), preloadedCanvas && (preloadedCanvas.style.visibility = "hidden"), currentRigType = null, globalAvatarData = null, customModelInstance = null, avatarDataPromise = null, isPreloading = !1, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, recenterBtnRef = null, intendedDistance = 15, lastAppliedDistance = 15, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, hasMovedCamera = !1, autoSwitchedProfileUserId = null, lastLoadedUrl = null;
+    emoteStopTimer && (clearTimeout(emoteStopTimer), emoteStopTimer = null), directEmoteTimer && (clearTimeout(directEmoteTimer), directEmoteTimer = null), currentDirectTrack && (currentDirectTrack.Stop(0), currentDirectTrack = null), currentRig2 && (currentRig2.Destroy(), currentRig2 = null), profileBackgroundRenderer && (profileBackgroundRenderer.destroy(), profileBackgroundRenderer = null), customModelInstance && (RBXRenderer.getScene()?.remove(customModelInstance), customModelInstance = null), preloadedCanvas && (preloadedCanvas.style.visibility = "hidden"), currentRigType = null, globalAvatarData = null, globalAvatarBackgroundId = null, interceptedProfileData = null, customModelInstance = null, avatarDataPromise = null, isPreloading = !1, isCustomEnvLoaded = !1, profileEnvironmentEnabled = !1, environmentConfig = null, activeEmoteId = null, recenterBtnRef = null, intendedDistance = 15, lastAppliedDistance = 15, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, hasMovedCamera = !1, hasSetInitialCamera = !1, autoSwitchedProfileUserId = null, lastLoadedUrl = null;
   }
   __name(resetProfileRenderState, "resetProfileRenderState");
   function getActiveAvatarPromise() {
@@ -159867,7 +159899,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             ]),
             getUserAvatar(requestedUserId)
           ]);
-          if (activeProfileRenderUserId !== requestedUserId || (globalAvatarData = avatarData, await new Promise((r) => setTimeout(r, 0)), activeProfileRenderUserId !== requestedUserId)) return null;
+          if (activeProfileRenderUserId !== requestedUserId || (globalAvatarData = avatarData, updateProfileBackground(interceptedProfileData), await new Promise((r) => setTimeout(r, 0)), activeProfileRenderUserId !== requestedUserId)) return null;
           if (!preloadedCanvas) {
             if (RegisterWrappers(), patchAnimateForRotation(), !await RBXRenderer.fullSetup(!0, !0) || RBXRenderer.failedToCreate) {
               let setupError = RBXRenderer.error || "WebGL 2 is disabled or your graphics card doesnt support it.";
@@ -159880,18 +159912,18 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             }
             await chrome.storage.local.remove(
               "profile3DRenderForceDisabled"
-            ), RBXRenderer.setBackgroundTransparent(!0), preloadedCanvas = RBXRenderer.getRendererElement(), preloadedCanvas.classList.add("rovalra-canvas"), Object.assign(preloadedCanvas.style, {
+            ), disableProfileRenderPlanes(), RBXRenderer.setBackgroundTransparent(!0), preloadedCanvas = RBXRenderer.getRendererElement(), preloadedCanvas.classList.add("rovalra-canvas"), Object.assign(preloadedCanvas.style, {
               width: "100%",
               height: "100%",
               outline: "none",
               visibility: "hidden"
             }), startAnimationLoop2();
           }
-          return await new Promise((r) => setTimeout(r, 10)), activeProfileRenderUserId !== requestedUserId ? null : (await loadRig(globalAvatarData.playerAvatarType), preloadedCanvas && (preloadedCanvas.style.visibility = "visible"), await new Promise((r) => setTimeout(r, 0)), await (/* @__PURE__ */ __name(async () => {
+          return await new Promise((r) => setTimeout(r, 10)), activeProfileRenderUserId !== requestedUserId ? null : (await loadRig(globalAvatarData.playerAvatarType), hasSetInitialCamera || (resetCamera(), hasSetInitialCamera = !0), preloadedCanvas && (preloadedCanvas.style.visibility = "visible"), await new Promise((r) => setTimeout(r, 0)), await (/* @__PURE__ */ __name(async () => {
             let scene = RBXRenderer.getScene(), camera = RBXRenderer.getRendererCamera(), controls = RBXRenderer.getRendererControls();
             controls && (controls.autoRotate = !!settings2.profileRenderRotateEnabled, controls.autoRotateSpeed = 1, controls.rotateSpeed = 0.5);
             let authUserId = await getAuthenticatedUserId(), isOwnProfile = String(requestedUserId) === String(authUserId), useDevEnvironment = settings2.environmentTester;
-            if (useDevEnvironment)
+            if (profileEnvironmentEnabled = !!useDevEnvironment, useDevEnvironment)
               environmentConfig = {
                 model: {
                   url: settings2.modelUrl,
@@ -159966,7 +159998,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
               let environmentEndpoint = profileEnvs.find(
                 (opt) => opt.id === envIdToRender
               )?.environmentEndpoint || null;
-              environmentEndpoint ? (environmentConfig = await callRobloxApiJson({
+              profileEnvironmentEnabled = !!environmentEndpoint, environmentEndpoint ? (environmentConfig = await callRobloxApiJson({
                 isRovalraApi: !0,
                 subdomain: "www",
                 endpoint: environmentEndpoint,
@@ -160045,12 +160077,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
             }
             camera && (camera.far = environmentConfig?.camera?.far ? environmentConfig.camera.far : useDevEnvironment && settings2.cameraFar ? parseFloat(settings2.cameraFar) : 100, camera.updateProjectionMatrix());
           }, "setupEnvironment"))().catch((err4) => {
-            console.error("RoValra: Background env load failed", err4), setupAtmosphere(
+            console.error("RoValra: Background env load failed", err4), profileEnvironmentEnabled = !1, setupAtmosphere(
               RBXRenderer.getScene(),
               DEFAULT_VOID_CONFIG.atmosphere,
               !1
             );
-          }), globalAvatarData);
+          }), profileBackgroundRenderer?.backgroundRenderer.setBackground(
+            profileEnvironmentEnabled ? null : globalAvatarBackgroundId
+          ), globalAvatarData);
         } catch (err4) {
           throw console.error("RoValra Preload Error:", err4), avatarDataPromise = null, err4;
         } finally {
@@ -170205,6 +170239,30 @@ ${locale4.suggestOnDiscord}`), subtitle;
   }
   __name(init144, "init");
 
+  // src/content/features/home/friendsSecondRow.js
+  init_getSettings();
+  var SETTING_NAME4 = "friendsSecondRowEnabled", storageListenerRegistered3 = !1;
+  function publishState(enabled3) {
+    document.dispatchEvent(
+      new CustomEvent("rovalra-friends-second-row", {
+        detail: { enabled: enabled3 }
+      })
+    );
+  }
+  __name(publishState, "publishState");
+  function registerStorageListener3() {
+    storageListenerRegistered3 || (storageListenerRegistered3 = !0, chrome.storage.onChanged.addListener((changes, namespace) => {
+      namespace !== "local" || !changes[SETTING_NAME4] || publishState(changes[SETTING_NAME4].newValue === !0);
+    }));
+  }
+  __name(registerStorageListener3, "registerStorageListener");
+  async function init145() {
+    registerStorageListener3();
+    let enabled3 = await settings.friendsSecondRowEnabled === !0;
+    publishState(enabled3);
+  }
+  __name(init145, "init");
+
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
   init_observer();
@@ -170483,7 +170541,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init145() {
+  function init146() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -170498,7 +170556,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init145, "init");
+  __name(init146, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -173028,7 +173086,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init146() {
+  async function init147() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -173038,7 +173096,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init146, "init");
+  __name(init147, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -173132,7 +173190,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init146
+        init147
       ]
     },
     // Avatar pages
@@ -173176,7 +173234,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init70,
         init81,
         init112,
-        init146,
+        init147,
         init83
       ]
     },
@@ -173292,7 +173350,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init145]
+      features: [init146]
     },
     {
       paths: ["/home"],
@@ -173301,7 +173359,8 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init143,
         init139,
         init144,
-        init142
+        init142,
+        init145
       ]
     },
     {
@@ -173361,11 +173420,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init147) => {
-        if (!featuresRunThisPass.has(init147) && !(route.once && initializedPersistentFeatures.has(init147))) {
-          featuresRunThisPass.add(init147), route.once && initializedPersistentFeatures.add(init147);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init148) => {
+        if (!featuresRunThisPass.has(init148) && !(route.once && initializedPersistentFeatures.has(init148))) {
+          featuresRunThisPass.add(init148), route.once && initializedPersistentFeatures.add(init148);
           try {
-            init147();
+            init148();
           } catch (error3) {
             console.error("RoValra: Feature init failed", error3);
           }

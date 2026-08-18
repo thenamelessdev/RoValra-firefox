@@ -1211,6 +1211,16 @@
           type: "checkbox",
           default: !0
         },
+        friendsSecondRowEnabled: {
+          label: "Second Friends Row",
+          description: [
+            "Shows a second row of friends in the Home page friends carousel instead of only one row.",
+            "Some extensions may overwrite this feature."
+          ],
+          type: "checkbox",
+          default: !1,
+          contributors: ["2830488781"]
+        },
         HideAddFriendsButton: {
           label: "Hide Add Friends Button",
           description: [
