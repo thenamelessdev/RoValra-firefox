@@ -45,7 +45,6 @@ jobs:
           
       - name: clean up
         run: |
-            rm -rf chrome2moz
             rm -f extension.zip
             mv out.xpi converted.xpi
             rm -f docs/converted.xpi
