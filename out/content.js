@@ -1,5 +1,5 @@
 /*!
- * rovalra v2.6.5
+ * rovalra v2.6.6
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
@@ -118375,148 +118375,239 @@ Bundled Items:
   init_input();
   function init52() {
     window.location.pathname.includes("/my/avatar") && chrome.storage.local.get("avatarRotatorEnabled", (data) => {
-      data.avatarRotatorEnabled && observeElement(".breadcrumb-container", (container) => {
-        if (!window.location.pathname.includes("/my/avatar") || container.querySelector(".rovalra-avatar-rotator-btn")) return;
-        let li = document.createElement("li");
-        li.style.float = "right", li.style.display = "flex", li.style.alignItems = "center", li.style.gap = "5px";
-        let createBtnSelector = "a.btn-float-right.btn-min-width.btn-secondary-xs", resizeHandler = null, updateMargin = /* @__PURE__ */ __name(() => {
-          let createBtn2 = document.querySelector(createBtnSelector);
-          createBtn2 && createBtn2.textContent.includes("Create") && createBtn2.offsetParent !== null ? li.style.marginRight = `${(createBtn2.offsetWidth || 60) + 10}px` : li.style.marginRight = "0px";
-        }, "updateMargin");
-        observeElement(createBtnSelector, (createBtn2) => {
-          resizeHandler && resizeHandler.unobserve(), resizeHandler = observeResize(createBtn2, updateMargin), updateMargin();
-        }, { onRemove: /* @__PURE__ */ __name(() => {
-          resizeHandler && resizeHandler.unobserve(), resizeHandler = null, updateMargin();
-        }, "onRemove") });
-        let stopBtn = document.createElement("button");
-        stopBtn.type = "button", stopBtn.className = "btn-control-xs rovalra-avatar-rotator-stop-btn", stopBtn.textContent = "Stop Rotator", stopBtn.style.display = "none", stopBtn.onclick = () => {
-          chrome.storage.local.set({ rovalra_avatar_rotator_enabled: !1 });
-        };
-        let rotatorBtn = document.createElement("button");
-        rotatorBtn.type = "button", rotatorBtn.className = "btn-secondary-xs rovalra-avatar-rotator-btn", rotatorBtn.textContent = "Avatar Rotator";
-        let nextPageCursor = "", isLoading = !1, avatarListContainer = null, selectedAvatars = /* @__PURE__ */ new Set(), outfitDetailsCache = /* @__PURE__ */ new Map(), setRotatorsBtn = null, disableRotatorBtn = null;
-        function updateButtonState() {
-          let count = selectedAvatars.size;
-          setRotatorsBtn && (setRotatorsBtn.disabled = count < 2, setRotatorsBtn.textContent = count < 2 ? "Select at least 2 avatars" : `Set as rotators (${count})`);
-          let statusText = document.getElementById("rovalra-avatar-status");
-          statusText && (statusText.textContent = `Select avatars to rotate between. (${count} selected)`, statusText.style.color = "");
-        }
-        __name(updateButtonState, "updateButtonState");
-        async function fetchAndRenderAvatars(reset = !1) {
-          if (isLoading || (reset && (nextPageCursor = "", avatarListContainer && (avatarListContainer.innerHTML = "")), nextPageCursor === null && !reset)) return;
-          isLoading = !0;
-          let loadBtn = document.getElementById("rovalra-avatar-load-more");
-          loadBtn && (loadBtn.textContent = "Loading...");
-          try {
-            let queryParams = new URLSearchParams({
-              sortOption: "1",
-              pageLimit: "50",
-              "itemCategories[0].ItemSubType": "3",
-              "itemCategories[0].ItemType": "Outfit"
-            });
-            nextPageCursor && queryParams.append("pageToken", nextPageCursor);
-            let response = await callRobloxApiJson({
-              subdomain: "avatar",
-              endpoint: `/v1/avatar-inventory?${queryParams.toString()}`,
-              method: "GET"
-            });
-            if (response.avatarInventoryItems && response.avatarInventoryItems.length > 0) {
-              let outfitIds = response.avatarInventoryItems.map((item) => item.itemId), thumbnails = await getBatchThumbnails(outfitIds, "Outfit", "150x150");
-              response.avatarInventoryItems.forEach((outfit, index) => {
-                let card = document.createElement("div");
-                card.className = "rovalra-avatar-card", card.style.cssText = "display: flex; flex-direction: column; align-items: center; width: 100px; margin: 5px; cursor: pointer; border-radius: 10px; padding: 5px; transition: all 0.2s; position: relative;";
-                let radio = createRadioButton({
-                  id: `avatar-radio-${outfit.itemId}`,
-                  checked: selectedAvatars.has(outfit.itemId),
-                  onChange: /* @__PURE__ */ __name((checked) => {
-                    checked ? selectedAvatars.add(outfit.itemId) : selectedAvatars.delete(outfit.itemId), updateButtonState();
-                  }, "onChange")
-                });
-                radio.style.position = "absolute", radio.style.top = "5px", radio.style.right = "5px", radio.style.zIndex = "10", card.onclick = () => {
-                  radio.disabled || radio.click();
-                };
-                let thumbData = thumbnails.find((t3) => t3.targetId === outfit.itemId), img = createThumbnailElement(thumbData, outfit.itemName, "rovalra-avatar-thumb", { width: "100px", height: "100px", borderRadius: "8px", objectFit: "cover" }), name2 = document.createElement("span");
-                name2.textContent = outfit.itemName, name2.style.cssText = "font-size: 12px; text-align: center; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;", card.appendChild(radio), card.appendChild(img), card.appendChild(name2), avatarListContainer.appendChild(card);
-              }), avatarListContainer && avatarListContainer.parentElement && (avatarListContainer.parentElement.style.height = "auto"), updateButtonState();
+      data.avatarRotatorEnabled && observeElement(
+        ".breadcrumb-container",
+        (container) => {
+          if (!window.location.pathname.includes("/my/avatar") || container.querySelector(".rovalra-avatar-rotator-btn"))
+            return;
+          let li = document.createElement("li");
+          li.style.float = "left", li.style.marginLeft = "5px", li.style.display = "flex", li.style.alignItems = "center", li.style.gap = "5px";
+          let createBtnSelector = ".btn-float-right.btn-secondary-xs", resizeHandler = null, updateMargin = /* @__PURE__ */ __name(() => {
+            if (li.style.float === "left") {
+              li.style.marginRight = "0px";
+              return;
             }
-            nextPageCursor = response.nextPageToken || null;
-          } catch (error3) {
-            console.error("RoValra: Failed to fetch avatars", error3);
-          } finally {
-            isLoading = !1, loadBtn && (loadBtn.textContent = "Load More", loadBtn.style.display = nextPageCursor ? "block" : "none");
-          }
-        }
-        __name(fetchAndRenderAvatars, "fetchAndRenderAvatars"), rotatorBtn.addEventListener("click", () => {
-          chrome.storage.local.get(["rovalra_avatar_rotator_ids", "rovalra_avatar_rotator_enabled", "rovalra_avatar_rotator_interval"], (data2) => {
-            selectedAvatars.clear(), data2.rovalra_avatar_rotator_ids && Array.isArray(data2.rovalra_avatar_rotator_ids) && data2.rovalra_avatar_rotator_ids.forEach((id) => selectedAvatars.add(id)), avatarListContainer = document.createElement("div"), avatarListContainer.style.cssText = "display: flex; flex-wrap: wrap; justify-content: center; width: 100%; overflow-y: auto; flex: 1;";
-            let loadMoreBtn = document.createElement("button");
-            loadMoreBtn.id = "rovalra-avatar-load-more", loadMoreBtn.className = "btn-control-sm", loadMoreBtn.textContent = "Load More", loadMoreBtn.style.cssText = "display: none; margin: 10px auto; flex-shrink: 0;", loadMoreBtn.onclick = () => fetchAndRenderAvatars();
-            let placeholderText = document.createElement("div");
-            placeholderText.id = "rovalra-avatar-status", placeholderText.textContent = `Select avatars to rotate between. (${selectedAvatars.size} selected)`, placeholderText.style.cssText = "padding: 0 10px 10px 10px; text-align: center; font-size: 12px; opacity: 0.8; flex-shrink: 0;";
-            let settingsContainer = document.createElement("div");
-            settingsContainer.style.cssText = "display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 0 10px 0; flex-shrink: 0;";
-            let { container: inputContainer, input: intervalInput } = createStyledInput({
-              id: "rovalra-rotator-interval",
-              label: "Interval (seconds)"
+            let createBtn2 = Array.from(
+              document.querySelectorAll(createBtnSelector)
+            ).find(
+              (button) => !button.classList.contains(
+                "create-extra-costume"
+              ) && button.textContent.includes("Create") && button.offsetParent !== null
+            );
+            li.style.marginRight = createBtn2 ? `${(createBtn2.offsetWidth || 60) + 10}px` : "0px";
+          }, "updateMargin");
+          observeElement(
+            createBtnSelector,
+            (createBtn2) => {
+              resizeHandler && resizeHandler.unobserve(), resizeHandler = observeResize(createBtn2, updateMargin), updateMargin();
+            },
+            {
+              onRemove: /* @__PURE__ */ __name(() => {
+                resizeHandler && resizeHandler.unobserve(), resizeHandler = null, updateMargin();
+              }, "onRemove")
+            }
+          );
+          let stopBtn = document.createElement("button");
+          stopBtn.type = "button", stopBtn.className = "btn-control-xs rovalra-avatar-rotator-stop-btn", stopBtn.textContent = "Stop Rotator", stopBtn.style.display = "none", stopBtn.onclick = () => {
+            chrome.storage.local.set({
+              rovalra_avatar_rotator_enabled: !1
             });
-            intervalInput.type = "number", intervalInput.min = "5", intervalInput.value = data2.rovalra_avatar_rotator_interval || "5", inputContainer.style.width = "150px", inputContainer.style.marginTop = "5px", intervalInput.dispatchEvent(new Event("input")), intervalInput.addEventListener("change", () => {
-              parseInt(intervalInput.value) < 5 && (intervalInput.value = 5);
-            }), settingsContainer.appendChild(inputContainer);
-            let wrapper = document.createElement("div");
-            wrapper.style.cssText = "display: flex; flex-direction: column; width: 100%; height: 550px;", wrapper.appendChild(settingsContainer), wrapper.appendChild(placeholderText), wrapper.appendChild(avatarListContainer), wrapper.appendChild(loadMoreBtn), setRotatorsBtn = document.createElement("button"), setRotatorsBtn.className = "btn-primary-md", setRotatorsBtn.textContent = "Select at least 2 avatars", setRotatorsBtn.disabled = !0, setRotatorsBtn.onclick = () => {
-              let avatars = Array.from(selectedAvatars), interval = parseInt(intervalInput.value, 10) || 5;
-              setRotatorsBtn.disabled = !0, setRotatorsBtn.textContent = "Loading outfit details...", Promise.all(avatars.map(async (outfitId) => {
-                if (!outfitDetailsCache.has(outfitId)) {
-                  let details = await callRobloxApiJson({
-                    subdomain: "avatar",
-                    endpoint: `/v4/outfits/${outfitId}/details`,
-                    method: "GET"
-                  });
-                  outfitDetailsCache.set(outfitId, details);
-                }
-                return [outfitId, outfitDetailsCache.get(outfitId)];
-              })).then((details) => {
-                chrome.storage.local.set({
-                  rovalra_avatar_rotator_ids: avatars,
-                  rovalra_avatar_rotator_details: Object.fromEntries(details),
-                  rovalra_avatar_rotator_enabled: !0,
-                  rovalra_avatar_rotator_interval: interval
-                }), setRotatorsBtn.textContent = "Rotators Active!", disableRotatorBtn && (disableRotatorBtn.style.display = "inline-block"), setTimeout(() => updateButtonState(), 2e3);
-              }).catch((error3) => {
-                console.error("RoValra: Failed to fetch outfit details", error3), setRotatorsBtn.disabled = !1, updateButtonState();
+          };
+          let rotatorBtn = document.createElement("button");
+          rotatorBtn.type = "button", rotatorBtn.className = "btn-secondary-xs rovalra-avatar-rotator-btn", rotatorBtn.textContent = "Avatar Rotator";
+          let nextPageCursor = "", isLoading = !1, avatarListContainer = null, selectedAvatars = /* @__PURE__ */ new Set(), outfitDetailsCache = /* @__PURE__ */ new Map(), setRotatorsBtn = null, disableRotatorBtn = null;
+          function updateButtonState() {
+            let count = selectedAvatars.size;
+            setRotatorsBtn && (setRotatorsBtn.disabled = count < 2, setRotatorsBtn.textContent = count < 2 ? "Select at least 2 avatars" : `Set as rotators (${count})`);
+            let statusText = document.getElementById(
+              "rovalra-avatar-status"
+            );
+            statusText && (statusText.textContent = `Select avatars to rotate between. (${count} selected)`, statusText.style.color = "");
+          }
+          __name(updateButtonState, "updateButtonState");
+          async function fetchAndRenderAvatars(reset = !1) {
+            if (isLoading || (reset && (nextPageCursor = "", avatarListContainer && (avatarListContainer.innerHTML = "")), nextPageCursor === null && !reset)) return;
+            isLoading = !0;
+            let loadBtn = document.getElementById(
+              "rovalra-avatar-load-more"
+            );
+            loadBtn && (loadBtn.textContent = "Loading...");
+            try {
+              let queryParams = new URLSearchParams({
+                sortOption: "1",
+                pageLimit: "50",
+                "itemCategories[0].ItemSubType": "3",
+                "itemCategories[0].ItemType": "Outfit"
               });
-            }, disableRotatorBtn = document.createElement("button"), disableRotatorBtn.className = "btn-control-md", disableRotatorBtn.textContent = "Disable", disableRotatorBtn.style.display = data2.rovalra_avatar_rotator_enabled ? "inline-block" : "none", disableRotatorBtn.onclick = () => {
-              chrome.storage.local.set({
-                rovalra_avatar_rotator_enabled: !1
-              }), disableRotatorBtn.style.display = "none";
-            };
-            let clearBtn = document.createElement("button");
-            clearBtn.className = "btn-control-md", clearBtn.textContent = "Clear Selection", clearBtn.onclick = () => {
-              selectedAvatars.clear(), chrome.storage.local.set({
-                rovalra_avatar_rotator_ids: [],
-                rovalra_avatar_rotator_details: {}
-              }), avatarListContainer.querySelectorAll('button[role="checkbox"]').forEach((radio) => {
-                radio.setChecked && radio.setChecked(!1);
-              }), updateButtonState();
-            }, createOverlay({
-              title: "Avatar Rotator",
-              bodyContent: wrapper,
-              showLogo: !0,
-              maxWidth: "600px",
-              maxHeight: "600px",
-              actions: [disableRotatorBtn, clearBtn, setRotatorsBtn]
-            }), fetchAndRenderAvatars(!0);
+              nextPageCursor && queryParams.append("pageToken", nextPageCursor);
+              let response = await callRobloxApiJson({
+                subdomain: "avatar",
+                endpoint: `/v1/avatar-inventory?${queryParams.toString()}`,
+                method: "GET"
+              });
+              if (response.avatarInventoryItems && response.avatarInventoryItems.length > 0) {
+                let outfitIds = response.avatarInventoryItems.map(
+                  (item) => item.itemId
+                ), thumbnails = await getBatchThumbnails(
+                  outfitIds,
+                  "Outfit",
+                  "150x150"
+                );
+                response.avatarInventoryItems.forEach(
+                  (outfit, index) => {
+                    let card = document.createElement("div");
+                    card.className = "rovalra-avatar-card", card.style.cssText = "display: flex; flex-direction: column; align-items: center; width: 100px; margin: 5px; cursor: pointer; border-radius: 10px; padding: 5px; transition: all 0.2s; position: relative;";
+                    let radio = createRadioButton({
+                      id: `avatar-radio-${outfit.itemId}`,
+                      checked: selectedAvatars.has(
+                        outfit.itemId
+                      ),
+                      onChange: /* @__PURE__ */ __name((checked) => {
+                        checked ? selectedAvatars.add(
+                          outfit.itemId
+                        ) : selectedAvatars.delete(
+                          outfit.itemId
+                        ), updateButtonState();
+                      }, "onChange")
+                    });
+                    radio.style.position = "absolute", radio.style.top = "5px", radio.style.right = "5px", radio.style.zIndex = "10", card.onclick = () => {
+                      radio.disabled || radio.click();
+                    };
+                    let thumbData = thumbnails.find(
+                      (t3) => t3.targetId === outfit.itemId
+                    ), img = createThumbnailElement(
+                      thumbData,
+                      outfit.itemName,
+                      "rovalra-avatar-thumb",
+                      {
+                        width: "100px",
+                        height: "100px",
+                        borderRadius: "8px",
+                        objectFit: "cover"
+                      }
+                    ), name2 = document.createElement("span");
+                    name2.textContent = outfit.itemName, name2.style.cssText = "font-size: 12px; text-align: center; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;", card.appendChild(radio), card.appendChild(img), card.appendChild(name2), avatarListContainer.appendChild(card);
+                  }
+                ), avatarListContainer && avatarListContainer.parentElement && (avatarListContainer.parentElement.style.height = "auto"), updateButtonState();
+              }
+              nextPageCursor = response.nextPageToken || null;
+            } catch (error3) {
+              console.error(
+                "RoValra: Failed to fetch avatars",
+                error3
+              );
+            } finally {
+              isLoading = !1, loadBtn && (loadBtn.textContent = "Load More", loadBtn.style.display = nextPageCursor ? "block" : "none");
+            }
+          }
+          __name(fetchAndRenderAvatars, "fetchAndRenderAvatars"), rotatorBtn.addEventListener("click", () => {
+            chrome.storage.local.get(
+              [
+                "rovalra_avatar_rotator_ids",
+                "rovalra_avatar_rotator_enabled",
+                "rovalra_avatar_rotator_interval"
+              ],
+              (data2) => {
+                selectedAvatars.clear(), data2.rovalra_avatar_rotator_ids && Array.isArray(data2.rovalra_avatar_rotator_ids) && data2.rovalra_avatar_rotator_ids.forEach(
+                  (id) => selectedAvatars.add(id)
+                ), avatarListContainer = document.createElement("div"), avatarListContainer.style.cssText = "display: flex; flex-wrap: wrap; justify-content: center; width: 100%; overflow-y: auto; flex: 1;";
+                let loadMoreBtn = document.createElement("button");
+                loadMoreBtn.id = "rovalra-avatar-load-more", loadMoreBtn.className = "btn-control-sm", loadMoreBtn.textContent = "Load More", loadMoreBtn.style.cssText = "display: none; margin: 10px auto; flex-shrink: 0;", loadMoreBtn.onclick = () => fetchAndRenderAvatars();
+                let placeholderText = document.createElement("div");
+                placeholderText.id = "rovalra-avatar-status", placeholderText.textContent = `Select avatars to rotate between. (${selectedAvatars.size} selected)`, placeholderText.style.cssText = "padding: 0 10px 10px 10px; text-align: center; font-size: 12px; opacity: 0.8; flex-shrink: 0;";
+                let settingsContainer = document.createElement("div");
+                settingsContainer.style.cssText = "display: flex; align-items: center; justify-content: center; gap: 10px; padding: 0 0 10px 0; flex-shrink: 0;";
+                let {
+                  container: inputContainer,
+                  input: intervalInput
+                } = createStyledInput({
+                  id: "rovalra-rotator-interval",
+                  label: "Interval (seconds)"
+                });
+                intervalInput.type = "number", intervalInput.min = "5", intervalInput.value = data2.rovalra_avatar_rotator_interval || "5", inputContainer.style.width = "150px", inputContainer.style.marginTop = "5px", intervalInput.dispatchEvent(new Event("input")), intervalInput.addEventListener("change", () => {
+                  parseInt(intervalInput.value) < 5 && (intervalInput.value = 5);
+                }), settingsContainer.appendChild(inputContainer);
+                let wrapper = document.createElement("div");
+                wrapper.style.cssText = "display: flex; flex-direction: column; width: 100%; height: 550px;", wrapper.appendChild(settingsContainer), wrapper.appendChild(placeholderText), wrapper.appendChild(avatarListContainer), wrapper.appendChild(loadMoreBtn), setRotatorsBtn = document.createElement("button"), setRotatorsBtn.className = "btn-primary-md", setRotatorsBtn.textContent = "Select at least 2 avatars", setRotatorsBtn.disabled = !0, setRotatorsBtn.onclick = () => {
+                  let avatars = Array.from(selectedAvatars), interval = parseInt(intervalInput.value, 10) || 5;
+                  setRotatorsBtn.disabled = !0, setRotatorsBtn.textContent = "Loading outfit details...", Promise.all(
+                    avatars.map(async (outfitId) => {
+                      if (!outfitDetailsCache.has(outfitId)) {
+                        let details = await callRobloxApiJson({
+                          subdomain: "avatar",
+                          endpoint: `/v4/outfits/${outfitId}/details`,
+                          method: "GET"
+                        });
+                        outfitDetailsCache.set(
+                          outfitId,
+                          details
+                        );
+                      }
+                      return [
+                        outfitId,
+                        outfitDetailsCache.get(outfitId)
+                      ];
+                    })
+                  ).then((details) => {
+                    chrome.storage.local.set({
+                      rovalra_avatar_rotator_ids: avatars,
+                      rovalra_avatar_rotator_details: Object.fromEntries(details),
+                      rovalra_avatar_rotator_enabled: !0,
+                      rovalra_avatar_rotator_interval: interval
+                    }), setRotatorsBtn.textContent = "Rotators Active!", disableRotatorBtn && (disableRotatorBtn.style.display = "inline-block"), setTimeout(
+                      () => updateButtonState(),
+                      2e3
+                    );
+                  }).catch((error3) => {
+                    console.error(
+                      "RoValra: Failed to fetch outfit details",
+                      error3
+                    ), setRotatorsBtn.disabled = !1, updateButtonState();
+                  });
+                }, disableRotatorBtn = document.createElement("button"), disableRotatorBtn.className = "btn-control-md", disableRotatorBtn.textContent = "Disable", disableRotatorBtn.style.display = data2.rovalra_avatar_rotator_enabled ? "inline-block" : "none", disableRotatorBtn.onclick = () => {
+                  chrome.storage.local.set({
+                    rovalra_avatar_rotator_enabled: !1
+                  }), disableRotatorBtn.style.display = "none";
+                };
+                let clearBtn = document.createElement("button");
+                clearBtn.className = "btn-control-md", clearBtn.textContent = "Clear Selection", clearBtn.onclick = () => {
+                  selectedAvatars.clear(), chrome.storage.local.set({
+                    rovalra_avatar_rotator_ids: [],
+                    rovalra_avatar_rotator_details: {}
+                  }), avatarListContainer.querySelectorAll(
+                    'button[role="checkbox"]'
+                  ).forEach((radio) => {
+                    radio.setChecked && radio.setChecked(!1);
+                  }), updateButtonState();
+                }, createOverlay({
+                  title: "Avatar Rotator",
+                  bodyContent: wrapper,
+                  showLogo: !0,
+                  maxWidth: "600px",
+                  maxHeight: "600px",
+                  actions: [
+                    disableRotatorBtn,
+                    clearBtn,
+                    setRotatorsBtn
+                  ]
+                }), fetchAndRenderAvatars(!0);
+              }
+            );
+          }), li.appendChild(stopBtn), li.appendChild(rotatorBtn), container.appendChild(li);
+          function updateStopButtonVisibility() {
+            chrome.storage.local.get(
+              "rovalra_avatar_rotator_enabled",
+              (data2) => {
+                stopBtn.style.display = data2.rovalra_avatar_rotator_enabled ? "inline-block" : "none";
+              }
+            );
+          }
+          __name(updateStopButtonVisibility, "updateStopButtonVisibility"), updateStopButtonVisibility(), chrome.storage.onChanged.addListener((changes, namespace) => {
+            namespace === "local" && changes.rovalra_avatar_rotator_enabled && updateStopButtonVisibility();
           });
-        }), li.appendChild(stopBtn), li.appendChild(rotatorBtn), container.appendChild(li);
-        function updateStopButtonVisibility() {
-          chrome.storage.local.get("rovalra_avatar_rotator_enabled", (data2) => {
-            stopBtn.style.display = data2.rovalra_avatar_rotator_enabled ? "inline-block" : "none";
-          });
-        }
-        __name(updateStopButtonVisibility, "updateStopButtonVisibility"), updateStopButtonVisibility(), chrome.storage.onChanged.addListener((changes, namespace) => {
-          namespace === "local" && changes.rovalra_avatar_rotator_enabled && updateStopButtonVisibility();
-        });
-      }, { multiple: !0 });
+        },
+        { multiple: !0 }
+      );
     });
   }
   __name(init52, "init");
@@ -159029,13 +159120,177 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/profile/header/ProfileRender.js
   init_dompurify();
+
+  // src/content/features/profile/profileFrame.js
+  init_observer();
+  init_idExtractor();
+  init_settingHandler();
+  init_handlesettings();
+  init_user();
+  var HOLDER_SELECTOR = ".thumbnail-holder.thumbnail-holder-position", FRAME_CLASS = "rovalra-profile-frame", FRAME_SELECTOR = `.${FRAME_CLASS}`, SYNC_EVENT = "rovalra:syncProfileFrame", SETTING_NAME2 = "profileFrameEnabled", FRAME_BLEED_REFERENCE_HEIGHT = 300, FRAME_BLEED_AT_REFERENCE = 24;
+  function getFrameBleed(holderRect) {
+    return holderRect.height * FRAME_BLEED_AT_REFERENCE / FRAME_BLEED_REFERENCE_HEIGHT;
+  }
+  __name(getFrameBleed, "getFrameBleed");
+  var MOUNT_MAX_DEPTH = 6, activeFrameLink = null, holderObserver = null, frameStates = /* @__PURE__ */ new WeakMap();
+  function isFramedHolder(holder) {
+    return holder instanceof HTMLElement && holder.dataset.rovalraFrameRenderMode !== "true" && !holder.closest(FRAME_SELECTOR);
+  }
+  __name(isFramedHolder, "isFramedHolder");
+  function clipsContent(computedStyle) {
+    return computedStyle.overflow !== "visible" || computedStyle.overflowX !== "visible" || computedStyle.overflowY !== "visible";
+  }
+  __name(clipsContent, "clipsContent");
+  function isScrollContainer(computedStyle) {
+    let scrollable = /* @__PURE__ */ new Set(["auto", "scroll"]);
+    return scrollable.has(computedStyle.overflowX) || scrollable.has(computedStyle.overflowY);
+  }
+  __name(isScrollContainer, "isScrollContainer");
+  function findFrameMount(holder) {
+    let element = holder, mount = holder;
+    for (let depth = 0; depth < MOUNT_MAX_DEPTH && !(!element || element === document.body || element === document.documentElement); depth += 1) {
+      let computedStyle = window.getComputedStyle(element);
+      if (element !== holder && isScrollContainer(computedStyle)) break;
+      clipsContent(computedStyle) && (mount = element.parentElement || mount), element = element.parentElement;
+    }
+    return mount;
+  }
+  __name(findFrameMount, "findFrameMount");
+  function ensurePositioned(element) {
+    window.getComputedStyle(element).position === "static" && (element.style.position = "relative");
+  }
+  __name(ensurePositioned, "ensurePositioned");
+  function syncFrameGeometry(holder) {
+    let state4 = frameStates.get(holder);
+    if (!state4 || !state4.frame.isConnected) return;
+    let { frame, mount } = state4, holderRect = holder.getBoundingClientRect();
+    if (!holderRect.width || !holderRect.height) return;
+    let bleed = getFrameBleed(holderRect);
+    if (mount === holder)
+      frame.style.left = `${-bleed}px`, frame.style.top = `${-bleed}px`;
+    else {
+      let mountRect = mount.getBoundingClientRect();
+      frame.style.left = `${holderRect.left - mountRect.left - bleed}px`, frame.style.top = `${holderRect.top - mountRect.top - bleed}px`;
+    }
+    frame.style.width = `${holderRect.width + bleed * 2}px`, frame.style.height = `${holderRect.height + bleed * 2}px`;
+  }
+  __name(syncFrameGeometry, "syncFrameGeometry");
+  function removeFrame(holder) {
+    if (!holder) return;
+    delete holder.dataset.rovalraFrameLoading, delete holder.dataset.rovalraIntendedFrame;
+    let state4 = frameStates.get(holder);
+    if (state4) {
+      for (let handle of state4.resizeHandles) handle.unobserve();
+      state4.frame.remove(), frameStates.delete(holder);
+    }
+    for (let frame of holder.querySelectorAll(`:scope > ${FRAME_SELECTOR}`))
+      frame.remove();
+  }
+  __name(removeFrame, "removeFrame");
+  function applyFrameToHolder(holder, frameLink, options = {}) {
+    if (!holder) return;
+    if (!frameLink) {
+      removeFrame(holder);
+      return;
+    }
+    if (frameStates.has(holder)) {
+      if (holder.dataset.rovalraIntendedFrame === frameLink) return;
+      removeFrame(holder);
+    }
+    holder.dataset.rovalraIntendedFrame = frameLink;
+    let frame = document.createElement("img");
+    frame.className = FRAME_CLASS, frame.alt = "", frame.decoding = "async", frame.style.display = "none", frame.onload = () => {
+      frameStates.get(holder)?.frame === frame && (frame.style.display = "block");
+    }, frame.onerror = () => {
+      frameStates.get(holder)?.frame === frame ? removeFrame(holder) : frame.remove();
+    }, frame.src = frameLink;
+    let mount = options.mountDirectly ? holder : findFrameMount(holder);
+    ensurePositioned(mount), mount.appendChild(frame);
+    let state4 = { frame, mount, resizeHandles: [] };
+    frameStates.set(holder, state4), syncFrameGeometry(holder), state4.resizeHandles.push(
+      observeResize(holder, () => syncFrameGeometry(holder))
+    ), mount !== holder && state4.resizeHandles.push(
+      observeResize(mount, () => syncFrameGeometry(holder))
+    );
+  }
+  __name(applyFrameToHolder, "applyFrameToHolder");
+  function setFrameRenderMode(holder, enabled3) {
+    if (holder) {
+      if (enabled3) {
+        holder.dataset.rovalraFrameRenderMode = "true", removeFrame(holder);
+        return;
+      }
+      delete holder.dataset.rovalraFrameRenderMode, activeFrameLink && applyFrameToHolder(holder, activeFrameLink);
+    }
+  }
+  __name(setFrameRenderMode, "setFrameRenderMode");
+  async function getEnabledFrameLink(userId) {
+    return (await loadSettings().catch(() => null))?.profileFrameEnabled ? resolveFrameLink(userId) : null;
+  }
+  __name(getEnabledFrameLink, "getEnabledFrameLink");
+  async function resolveFrameLink(userId) {
+    if (!userId) return null;
+    let userSettings = await getUserSettings(userId).catch(() => null);
+    if (userSettings?.berts && userSettings.berts !== "none")
+      return userSettings.berts;
+    let authedId = await getAuthenticatedUserId().catch(() => null);
+    if (!(authedId && String(authedId) === String(userId))) return null;
+    let localChoice = (await loadSettings().catch(() => null))?.profileFrameChoice;
+    return localChoice && localChoice !== "none" ? localChoice : null;
+  }
+  __name(resolveFrameLink, "resolveFrameLink");
+  function watchHolders(frameLink) {
+    if (activeFrameLink = frameLink, !(!frameLink && !holderObserver)) {
+      if (holderObserver) {
+        for (let holder of document.querySelectorAll(HOLDER_SELECTOR))
+          isFramedHolder(holder) && (activeFrameLink ? applyFrameToHolder(holder, activeFrameLink) : removeFrame(holder));
+        return;
+      }
+      holderObserver = observeElement(
+        HOLDER_SELECTOR,
+        (holder) => {
+          if (holder.dataset.rovalraFrameRenderMode === "true") {
+            removeFrame(holder);
+            return;
+          }
+          !activeFrameLink || !isFramedHolder(holder) || applyFrameToHolder(holder, activeFrameLink);
+        },
+        { multiple: !0 }
+      );
+    }
+  }
+  __name(watchHolders, "watchHolders");
+  async function init117() {
+    try {
+      let profileUserId = getUserIdFromUrl();
+      if (!profileUserId) return;
+      startObserving();
+      let applyCurrentFrame = /* @__PURE__ */ __name(async () => {
+        watchHolders(await getEnabledFrameLink(profileUserId));
+      }, "applyCurrentFrame");
+      document.addEventListener("rovalra:settingSaved", (event) => {
+        event.detail?.name === SETTING_NAME2 && applyCurrentFrame();
+      });
+      let authedId = await getAuthenticatedUserId().catch(() => null);
+      authedId && String(authedId) === String(profileUserId) && document.addEventListener(SYNC_EVENT, async (event) => {
+        if (!(await loadSettings().catch(() => null))?.profileFrameEnabled) return;
+        let nextLink = event.detail?.frameUrl || null;
+        watchHolders(nextLink && nextLink !== "none" ? nextLink : null);
+      }), await applyCurrentFrame();
+    } catch (error3) {
+      console.error("RoValra: Profile frame init failed", error3);
+    }
+  }
+  __name(init117, "init");
+
+  // src/content/features/profile/header/ProfileRender.js
   FLAGS.ENABLE_API_MESH_CACHE = !1;
   FLAGS.ENABLE_API_RBX_CACHE = !1;
   FLAGS.USE_WORKERS = !1;
   FLAGS.ONLINE_ASSETS = !0;
   FLAGS.AUDIO_ENABLED = !1;
   backgroundRendererRequests();
-  var currentRig2 = null, currentRigType = null, profileBackgroundRenderer = null, profileRenderAuthentication = new Authentication(), emoteStopTimer = null, preloadedCanvas = null, isPreloading = !1, globalAvatarData = null, globalAvatarBackgroundId = null, interceptedProfileData = null, profileEnvironmentEnabled = !1, customModelInstance = null, avatarDataPromise = null, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, animationSpeed = 1, EFFECT_BLACK_KEY_THRESHOLD = 0.08, EFFECT_BLACK_KEY_SOFTNESS = 0.02, isAnimatePatched = !1, raycaster = new Raycaster(), intendedDistance = 10, lastAppliedDistance = 10, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, currentDirectTrack = null, directEmoteTimer = null, hasMovedCamera = !1, hasSetInitialCamera = !1, activeProfileRenderUserId = null, profileRenderObserversSetup = !1, removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, animationLoopStarted = !1, autoSwitchedProfileUserId = null, resizeObserversByContainer = /* @__PURE__ */ new WeakMap(), blackKeyedEffectMaterials = /* @__PURE__ */ new WeakSet();
+  var currentRig2 = null, currentRigType = null, profileBackgroundRenderer = null, profileRenderAuthentication = new Authentication(), emoteStopTimer = null, preloadedCanvas = null, isPreloading = !1, globalAvatarData = null, globalAvatarBackgroundId = null, interceptedProfileData = null, profileEnvironmentEnabled = !1, customModelInstance = null, avatarDataPromise = null, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, animationSpeed = 1, EFFECT_BLACK_KEY_THRESHOLD = 0.08, EFFECT_BLACK_KEY_SOFTNESS = 0.02, isAnimatePatched = !1, raycaster = new Raycaster(), intendedDistance = 10, lastAppliedDistance = 10, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, currentDirectTrack = null, directEmoteTimer = null, hasMovedCamera = !1, hasSetInitialCamera = !1, activeProfileRenderUserId = null, profileRenderObserversSetup = !1, removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, animationLoopStarted = !1, autoSwitchedProfileUserId = null, profileRenderFrameSettingListener = null, profileFrameOverflowStyles = /* @__PURE__ */ new Map(), resizeObserversByContainer = /* @__PURE__ */ new WeakMap(), blackKeyedEffectMaterials = /* @__PURE__ */ new WeakSet();
   function updateProfileBackground(profileData) {
     let backgroundId = Number(profileData?.components?.ProfileBackground?.assetId) || null;
     globalAvatarBackgroundId !== backgroundId && (globalAvatarBackgroundId = backgroundId, profileBackgroundRenderer && profileBackgroundRenderer.backgroundRenderer.setBackground(
@@ -160210,8 +160465,11 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       alignItems: "center",
       width: "100%",
       height: "100%",
-      position: "relative"
+      position: "relative",
+      overflow: "visible"
     });
+    let profileHolder = container.closest(".thumbnail-holder-position");
+    setFrameRenderMode(profileHolder, !0), allowProfileFrameBleed(container), syncProfileRenderFrame(container);
     let twoDContainer = document.querySelector(
       ".thumbnail-holder-position .thumbnail-2d-container"
     );
@@ -160243,8 +160501,36 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(attachPreloadedAvatar, "attachPreloadedAvatar");
+  function allowProfileFrameBleed(container) {
+    let element = container;
+    for (let depth = 0; depth < 8 && element && (window.getComputedStyle(element).overflow !== "visible" && (profileFrameOverflowStyles.has(element) || profileFrameOverflowStyles.set(element, element.style.overflow), element.style.overflow = "visible"), !element.classList.contains("profile-avatar-left")); depth += 1)
+      element = element.parentElement;
+  }
+  __name(allowProfileFrameBleed, "allowProfileFrameBleed");
+  function restoreProfileFrameBleed() {
+    for (let [element, overflow] of profileFrameOverflowStyles)
+      overflow ? element.style.overflow = overflow : element.style.removeProperty("overflow");
+    profileFrameOverflowStyles.clear();
+  }
+  __name(restoreProfileFrameBleed, "restoreProfileFrameBleed");
+  async function syncProfileRenderFrame(container) {
+    let frameLink = await getEnabledFrameLink(
+      activeProfileRenderUserId || getUserIdFromUrl()
+    );
+    container.isConnected && (container.style.overflow = "visible", applyFrameToHolder(container, frameLink, { mountDirectly: !0 }));
+  }
+  __name(syncProfileRenderFrame, "syncProfileRenderFrame");
+  function syncProfileRenderFrames() {
+    document.querySelectorAll(".thumbnail-holder-position .thumbnail-3d-container").forEach((container) => syncProfileRenderFrame(container));
+  }
+  __name(syncProfileRenderFrames, "syncProfileRenderFrames");
   function setupProfileRenderObservers() {
-    profileRenderObserversSetup || (profileRenderObserversSetup = !0, injectStylesheet("css/thumbnailholder.css", "rovalra-thumbnail-holder-css"), removeRoblox3dObserver = observeElement(
+    profileRenderObserversSetup || (profileRenderObserversSetup = !0, profileRenderFrameSettingListener = /* @__PURE__ */ __name((event) => {
+      event.detail?.name === "profileFrameEnabled" && syncProfileRenderFrames();
+    }, "profileRenderFrameSettingListener"), document.addEventListener(
+      "rovalra:settingSaved",
+      profileRenderFrameSettingListener
+    ), injectStylesheet("css/thumbnailholder.css", "rovalra-thumbnail-holder-css"), removeRoblox3dObserver = observeElement(
       ".thumbnail-holder-position .thumbnail-3d-container > canvas:not(.rovalra-canvas), .thumbnail-holder-position .thumbnail-3d-container > .placeholder-generated-image",
       (elementToRemove) => {
         elementToRemove.remove();
@@ -160289,10 +160575,13 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(refreshProfileRenderDomForCurrentUser, "refreshProfileRenderDomForCurrentUser");
   function teardownProfileRenderObservers() {
-    profileRenderObserversSetup && (removeRoblox3dObserver?.disconnect(), renderContainerObserver?.disconnect(), autoSwitchObserver?.disconnect(), removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, profileRenderObserversSetup = !1, removeStylesheet("rovalra-thumbnail-holder-css"));
+    profileRenderObserversSetup && (removeRoblox3dObserver?.disconnect(), renderContainerObserver?.disconnect(), autoSwitchObserver?.disconnect(), profileRenderFrameSettingListener && (document.removeEventListener(
+      "rovalra:settingSaved",
+      profileRenderFrameSettingListener
+    ), profileRenderFrameSettingListener = null), document.querySelectorAll(".thumbnail-holder-position .thumbnail-3d-container").forEach((container) => applyFrameToHolder(container, null)), document.querySelectorAll(".thumbnail-holder-position").forEach((holder) => setFrameRenderMode(holder, !1)), restoreProfileFrameBleed(), removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, profileRenderObserversSetup = !1, removeStylesheet("rovalra-thumbnail-holder-css"));
   }
   __name(teardownProfileRenderObservers, "teardownProfileRenderObservers");
-  function init117() {
+  function init118() {
     migrateLegacyEnvironment();
     let userId = getUserIdFromUrl();
     if (!userId) {
@@ -160315,7 +160604,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init117, "init");
+  __name(init118, "init");
 
   // src/content/features/profile/testTab.js
   init_observer();
@@ -160381,10 +160670,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     contentPane.textContent = "test";
   }
   __name(addTestTab, "addTestTab");
-  async function init118() {
+  async function init119() {
     await settings.profileTestTabEnabled && observeElement(".profile-tabs", addTestTab, { multiple: !0 });
   }
-  __name(init118, "init");
+  __name(init119, "init");
 
   // src/content/features/profile/showcase.js
   init_observer();
@@ -160932,7 +161221,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), closeGroupDropdown = /* @__PURE__ */ __name(() => groupDropdown.toggleVisibility(!1), "closeGroupDropdown");
   }
   __name(addShowcaseTab, "addShowcaseTab");
-  async function init119() {
+  async function init120() {
     await settings.profileShowcaseEnabled && observeElement(
       ".profile-tabs",
       (tabs) => addShowcaseTab(tabs).catch((error3) => {
@@ -160944,7 +161233,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init119, "init");
+  __name(init120, "init");
 
   // src/content/features/profile/header/status.js
   init_observer();
@@ -161273,7 +161562,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(addHomeStatusHover, "addHomeStatusHover");
-  async function init120() {
+  async function init121() {
     if (!await settings.statusBubbleEnabled) return;
     migrateLegacyStatus(), startObserving(), injectStylesheet("css/thinkingbubble.css", "rovalra-profile-status-css"), observeElement(".user-profile-header-details-avatar-container:not(.rovalra-sendrobux-avatar)", (el2) => addStatusBubble(el2), {
       multiple: !0
@@ -161281,7 +161570,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       exclude: [".rovalra-donator-card", ".user-item-clickable", ".rovalra-sendrobux-profile"]
     }));
   }
-  __name(init120, "init");
+  __name(init121, "init");
 
   // src/content/features/profile/header/lastplayed.js
   init_friendslist();
@@ -161388,14 +161677,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initLastPlayed, "initLastPlayed");
-  function init121() {
+  function init122() {
     chrome.storage.local.get({ lastOnlineEnabled: !0 }, (data) => {
       data.lastOnlineEnabled && initLastOnline();
     }), chrome.storage.local.get({ lastPlayedTogetherEnabled: !0 }, (data) => {
       data.lastPlayedTogetherEnabled && initLastPlayed();
     });
   }
-  __name(init121, "init");
+  __name(init122, "init");
 
   // src/content/features/profile/header/profileViews.js
   init_idExtractor();
@@ -161479,10 +161768,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initProfileViews, "initProfileViews");
-  function init122() {
+  function init123() {
     initProfileViews();
   }
-  __name(init122, "init");
+  __name(init123, "init");
 
   // src/content/features/profile/header/pronouns.js
   init_idExtractor();
@@ -161594,10 +161883,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(initProfilePronouns, "initProfilePronouns");
-  function init123() {
+  function init124() {
     initProfilePronouns();
   }
-  __name(init123, "init");
+  __name(init124, "init");
 
   // src/content/features/profile/header/profileNotes.js
   init_idExtractor();
@@ -161802,10 +162091,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(startStorageListener, "startStorageListener");
-  function init124() {
+  function init125() {
     startStorageListener(), initProfileNotes();
   }
-  __name(init124, "init");
+  __name(init125, "init");
 
   // src/content/features/profile/header/currentlyPlayingSubplace.js
   init_idExtractor();
@@ -162830,7 +163119,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), scheduleProfileScans());
   }
   __name(registerProfileFallbackSubplaces, "registerProfileFallbackSubplaces");
-  async function init125() {
+  async function init126() {
     if (!await settings.currentlyPlayingSubplaceEnabled) {
       cleanupHomeSubplaceCards(), cleanupProfileSubplaceCards();
       return;
@@ -162848,7 +163137,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     }), await scheduleProfileScans();
   }
-  __name(init125, "init");
+  __name(init126, "init");
 
   // src/content/features/profile/header/idVerificationBadge.js
   init_api();
@@ -162954,7 +163243,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     userId && initProfileAboutDialogObserver(userId);
   }
   __name(run, "run");
-  function init126() {
+  function init127() {
     if (watcherSet) return;
     watcherSet = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -162962,7 +163251,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run();
   }
-  __name(init126, "init");
+  __name(init127, "init");
 
   // src/content/features/profile/friends/friendsSince.js
   init_idExtractor();
@@ -163174,7 +163463,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(run2, "run");
-  async function init127() {
+  async function init128() {
     if (watcherSet2) return;
     watcherSet2 = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -163182,7 +163471,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run2();
   }
-  __name(init127, "init");
+  __name(init128, "init");
 
   // src/content/features/profile/friends/unfriend.js
   init_observer();
@@ -163482,7 +163771,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initializeIfOnFriendsPage, "initializeIfOnFriendsPage");
-  async function init128() {
+  async function init129() {
     if (!(await chrome.storage.local.get("bulkUnfriendEnabled")).bulkUnfriendEnabled)
       return;
     let handlePageChange = /* @__PURE__ */ __name(async () => {
@@ -163503,7 +163792,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !1 }
     ), window.addEventListener("popstate", handlePageChange);
   }
-  __name(init128, "init");
+  __name(init129, "init");
 
   // src/content/features/profile/header/avatarDownload.js
   init_observer();
@@ -163613,159 +163902,15 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     button.classList.replace("text-label-medium", "text-label-large"), button.classList.add(buttonIdentifier), toggleContainer.style.display = "flex", toggleContainer.style.gap = "10px", toggleContainer.prepend(button);
   }
   __name(addDownloadButton, "addDownloadButton");
-  async function init129() {
+  async function init130() {
     await settings.avatarDownloadEnabled && observeElement(".avatar-toggle-button", addDownloadButton, {
       multiple: !0
     });
   }
-  __name(init129, "init");
+  __name(init130, "init");
 
   // src/content/index.js
   init_avatarBorder();
-
-  // src/content/features/profile/profileFrame.js
-  init_observer();
-  init_idExtractor();
-  init_settingHandler();
-  init_handlesettings();
-  init_user();
-  var HOLDER_SELECTOR = ".thumbnail-holder.thumbnail-holder-position", FRAME_CLASS = "rovalra-profile-frame", FRAME_SELECTOR = `.${FRAME_CLASS}`, SYNC_EVENT = "rovalra:syncProfileFrame", SETTING_NAME2 = "profileFrameEnabled", FRAME_BLEED_REFERENCE_HEIGHT = 300, FRAME_BLEED_AT_REFERENCE = 24;
-  function getFrameBleed(holderRect) {
-    return holderRect.height * FRAME_BLEED_AT_REFERENCE / FRAME_BLEED_REFERENCE_HEIGHT;
-  }
-  __name(getFrameBleed, "getFrameBleed");
-  var MOUNT_MAX_DEPTH = 6, activeFrameLink = null, holderObserver = null, frameStates = /* @__PURE__ */ new WeakMap();
-  function isFramedHolder(holder) {
-    return holder instanceof HTMLElement && !holder.closest(FRAME_SELECTOR);
-  }
-  __name(isFramedHolder, "isFramedHolder");
-  function clipsContent(computedStyle) {
-    return computedStyle.overflow !== "visible" || computedStyle.overflowX !== "visible" || computedStyle.overflowY !== "visible";
-  }
-  __name(clipsContent, "clipsContent");
-  function isScrollContainer(computedStyle) {
-    let scrollable = /* @__PURE__ */ new Set(["auto", "scroll"]);
-    return scrollable.has(computedStyle.overflowX) || scrollable.has(computedStyle.overflowY);
-  }
-  __name(isScrollContainer, "isScrollContainer");
-  function findFrameMount(holder) {
-    let element = holder, mount = holder;
-    for (let depth = 0; depth < MOUNT_MAX_DEPTH && !(!element || element === document.body || element === document.documentElement); depth += 1) {
-      let computedStyle = window.getComputedStyle(element);
-      if (element !== holder && isScrollContainer(computedStyle)) break;
-      clipsContent(computedStyle) && (mount = element.parentElement || mount), element = element.parentElement;
-    }
-    return mount;
-  }
-  __name(findFrameMount, "findFrameMount");
-  function ensurePositioned(element) {
-    window.getComputedStyle(element).position === "static" && (element.style.position = "relative");
-  }
-  __name(ensurePositioned, "ensurePositioned");
-  function syncFrameGeometry(holder) {
-    let state4 = frameStates.get(holder);
-    if (!state4 || !state4.frame.isConnected) return;
-    let { frame, mount } = state4, holderRect = holder.getBoundingClientRect();
-    if (!holderRect.width || !holderRect.height) return;
-    let bleed = getFrameBleed(holderRect);
-    if (mount === holder)
-      frame.style.left = `${-bleed}px`, frame.style.top = `${-bleed}px`;
-    else {
-      let mountRect = mount.getBoundingClientRect();
-      frame.style.left = `${holderRect.left - mountRect.left - bleed}px`, frame.style.top = `${holderRect.top - mountRect.top - bleed}px`;
-    }
-    frame.style.width = `${holderRect.width + bleed * 2}px`, frame.style.height = `${holderRect.height + bleed * 2}px`;
-  }
-  __name(syncFrameGeometry, "syncFrameGeometry");
-  function removeFrame(holder) {
-    if (!holder) return;
-    delete holder.dataset.rovalraFrameLoading, delete holder.dataset.rovalraIntendedFrame;
-    let state4 = frameStates.get(holder);
-    if (state4) {
-      for (let handle of state4.resizeHandles) handle.unobserve();
-      state4.frame.remove(), frameStates.delete(holder);
-    }
-    for (let frame of holder.querySelectorAll(`:scope > ${FRAME_SELECTOR}`))
-      frame.remove();
-  }
-  __name(removeFrame, "removeFrame");
-  function applyFrameToHolder(holder, frameLink) {
-    if (!holder || !frameLink) return;
-    if (frameStates.has(holder)) {
-      if (holder.dataset.rovalraIntendedFrame === frameLink) return;
-      removeFrame(holder);
-    }
-    holder.dataset.rovalraIntendedFrame = frameLink;
-    let frame = document.createElement("img");
-    frame.className = FRAME_CLASS, frame.alt = "", frame.decoding = "async", frame.style.display = "none", frame.onload = () => {
-      frameStates.get(holder)?.frame === frame && (frame.style.display = "block");
-    }, frame.onerror = () => {
-      frameStates.get(holder)?.frame === frame ? removeFrame(holder) : frame.remove();
-    }, frame.src = frameLink;
-    let mount = findFrameMount(holder);
-    ensurePositioned(mount), mount.appendChild(frame);
-    let state4 = { frame, mount, resizeHandles: [] };
-    frameStates.set(holder, state4), syncFrameGeometry(holder), state4.resizeHandles.push(
-      observeResize(holder, () => syncFrameGeometry(holder))
-    ), mount !== holder && state4.resizeHandles.push(
-      observeResize(mount, () => syncFrameGeometry(holder))
-    );
-  }
-  __name(applyFrameToHolder, "applyFrameToHolder");
-  async function resolveFrameLink(userId) {
-    if (!userId) return null;
-    let userSettings = await getUserSettings(userId).catch(() => null);
-    if (userSettings?.berts && userSettings.berts !== "none")
-      return userSettings.berts;
-    let authedId = await getAuthenticatedUserId().catch(() => null);
-    if (!(authedId && String(authedId) === String(userId))) return null;
-    let localChoice = (await loadSettings().catch(() => null))?.profileFrameChoice;
-    return localChoice && localChoice !== "none" ? localChoice : null;
-  }
-  __name(resolveFrameLink, "resolveFrameLink");
-  function watchHolders(frameLink) {
-    if (activeFrameLink = frameLink, !(!frameLink && !holderObserver)) {
-      if (holderObserver) {
-        for (let holder of document.querySelectorAll(HOLDER_SELECTOR))
-          isFramedHolder(holder) && (activeFrameLink ? applyFrameToHolder(holder, activeFrameLink) : removeFrame(holder));
-        return;
-      }
-      holderObserver = observeElement(
-        HOLDER_SELECTOR,
-        (holder) => {
-          !activeFrameLink || !isFramedHolder(holder) || applyFrameToHolder(holder, activeFrameLink);
-        },
-        { multiple: !0 }
-      );
-    }
-  }
-  __name(watchHolders, "watchHolders");
-  async function init130() {
-    try {
-      let profileUserId = getUserIdFromUrl();
-      if (!profileUserId) return;
-      startObserving();
-      let applyCurrentFrame = /* @__PURE__ */ __name(async () => {
-        if (!(await loadSettings().catch(() => null))?.profileFrameEnabled) {
-          watchHolders(null);
-          return;
-        }
-        watchHolders(await resolveFrameLink(profileUserId));
-      }, "applyCurrentFrame");
-      document.addEventListener("rovalra:settingSaved", (event) => {
-        event.detail?.name === SETTING_NAME2 && applyCurrentFrame();
-      });
-      let authedId = await getAuthenticatedUserId().catch(() => null);
-      authedId && String(authedId) === String(profileUserId) && document.addEventListener(SYNC_EVENT, async (event) => {
-        if (!(await loadSettings().catch(() => null))?.profileFrameEnabled) return;
-        let nextLink = event.detail?.frameUrl || null;
-        watchHolders(nextLink && nextLink !== "none" ? nextLink : null);
-      }), await applyCurrentFrame();
-    } catch (error3) {
-      console.error("RoValra: Profile frame init failed", error3);
-    }
-  }
-  __name(init130, "init");
 
   // src/content/features/profile/improvedAvatarCard.js
   init_observer();
@@ -164367,6 +164512,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   // src/content/features/profile/profileCustomization.js
   init_api();
   init_borders();
+  init_frames();
   init_settingHandler();
   init_idExtractor();
   init_observer();
@@ -164418,6 +164564,140 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return { borders: /* @__PURE__ */ new Set(), gamepasses: /* @__PURE__ */ new Set() };
   }
   __name(getOwnedBorders, "getOwnedBorders");
+  async function getOwnedFrames() {
+    try {
+      let response = await callRobloxApi({
+        subdomain: "apis",
+        endpoint: "/v1/auth/berts",
+        method: "GET",
+        isRovalraApi: !0
+      });
+      if (response.ok) {
+        let data = await response.json(), owned = /* @__PURE__ */ new Set();
+        for (let bert of data.owned_berts || [])
+          bert && typeof bert == "object" ? (bert.value != null && owned.add(String(bert.value)), bert.link != null && owned.add(String(bert.link))) : bert != null && owned.add(String(bert));
+        return owned;
+      }
+    } catch (error3) {
+      console.warn("RoValra: Failed to fetch owned profile frames.", error3);
+    }
+    return /* @__PURE__ */ new Set();
+  }
+  __name(getOwnedFrames, "getOwnedFrames");
+  function createFramePreview(thumbData) {
+    let holder = document.createElement("div");
+    holder.className = "rovalra-profile-frame-preview";
+    let scene = document.createElement("div");
+    if (scene.className = "rovalra-profile-frame-preview-scene", thumbData?.imageUrl) {
+      let image = document.createElement("img");
+      image.src = thumbData.imageUrl, image.alt = "", image.decoding = "async", scene.appendChild(image);
+    }
+    return holder.appendChild(scene), holder;
+  }
+  __name(createFramePreview, "createFramePreview");
+  async function saveProfileFrame(link) {
+    let value2 = link || "none";
+    await handleSaveSettings("profileFrameChoice", value2).catch(() => {
+    }), document.dispatchEvent(
+      new CustomEvent("rovalra:syncProfileFrame", {
+        detail: { frameUrl: value2 }
+      })
+    ), await updateUserSettingViaApi("berts", link || "").catch(() => {
+    });
+  }
+  __name(saveProfileFrame, "saveProfileFrame");
+  async function renderFramePicker(container, userId) {
+    container.innerHTML = "";
+    try {
+      let [frames, ownedFrames, userSettings, userData] = await Promise.all(
+        [
+          getFrames(),
+          getOwnedFrames(),
+          getUserSettings(userId).catch(() => null),
+          getAuthedFramePreviewData(userId)
+        ]
+      );
+      if (!frames.length) {
+        let empty = document.createElement("p");
+        empty.style.color = "var(--rovalra-secondary-text-color)", empty.textContent = ts2("profileCustomization.noFrames"), container.appendChild(empty);
+        return;
+      }
+      let currentFrame = findFrameByLink(frames, userSettings?.berts), currentValue = currentFrame?.value || "none", previewWrapper = document.createElement("div");
+      previewWrapper.style.cssText = "display:flex; flex-direction:column; align-items:center; padding:20px; background:var(--rovalra-container-background-color); border-radius:12px; margin-bottom:20px;", previewWrapper.innerHTML = `<div style="font-weight:700; font-size:12px; text-transform:uppercase; margin-bottom:10px; color:var(--rovalra-secondary-text-color);">${ts2("profileFrame.currentPreview")}</div><div class="setting-label-divider" style="width:100%; margin-bottom:15px;"></div>`;
+      let preview = createFramePreview(userData.thumbData);
+      preview.style.maxWidth = "520px", previewWrapper.appendChild(preview), currentFrame && applyFrameToHolder(preview, currentFrame.link, {
+        mountDirectly: !0
+      }), container.appendChild(previewWrapper);
+      let unequipButton = createSquareButton({
+        content: ts2("profileFrame.unequip"),
+        onClick: /* @__PURE__ */ __name(async () => {
+          currentValue = "none", applyFrameToHolder(preview, null), unequipButton.style.opacity = "0.5", unequipButton.style.cursor = "not-allowed", await saveProfileFrame(null), container.querySelectorAll("[data-profile-frame-option]").forEach((item) => {
+            item.dataset.profileFrameOwned === "true" && (item.textContent = ts2("profileCustomization.equip"));
+          });
+        }, "onClick"),
+        width: "120px",
+        height: "height-1000",
+        paddingX: "padding-x-medium",
+        radius: "radius-medium",
+        disableTextTruncation: !0
+      });
+      unequipButton.style.cssText = `margin-top:15px; opacity:${currentFrame ? "1" : "0.5"}; cursor:${currentFrame ? "pointer" : "not-allowed"};`, previewWrapper.appendChild(unequipButton);
+      let sections = [], categories2 = groupFramesByCategory(frames), categoryTabs = document.createElement("div");
+      categoryTabs.style.cssText = "display:flex; margin:0 0 16px; overflow-x:auto; max-width:100%;";
+      let emptyMessage = document.createElement("p");
+      emptyMessage.style.color = "var(--rovalra-secondary-text-color)", emptyMessage.textContent = ts2("profileCustomization.noFramesInTab"), emptyMessage.hidden = !0, container.appendChild(categoryTabs);
+      let applyCategory = /* @__PURE__ */ __name((value2) => {
+        let visible = 0;
+        for (let section of sections) {
+          let show = value2 === "all" || value2 === section.value;
+          section.header.hidden = !show, section.grid.hidden = !show, show && (visible += 1);
+        }
+        emptyMessage.hidden = visible > 0;
+      }, "applyCategory"), tabs = createPillToggle({
+        options: [
+          { text: ts2("profileCustomization.all"), value: "all" },
+          ...categories2.map((category) => ({
+            text: category.label,
+            value: category.value
+          }))
+        ],
+        initialValue: "all",
+        onChange: applyCategory
+      });
+      tabs.style.flexWrap = "wrap", categoryTabs.appendChild(tabs), container.appendChild(emptyMessage);
+      for (let category of categories2) {
+        let header = document.createElement("h3");
+        header.style.cssText = "color:var(--rovalra-main-text-color); font-size:16px; margin:20px 0 10px; padding-bottom:8px; border-bottom:1px solid var(--rovalra-border-color);", header.textContent = category.label;
+        let grid = document.createElement("div");
+        grid.style.cssText = "display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:16px; margin-bottom:10px;", container.append(header, grid), sections.push({ value: category.value, header, grid });
+        for (let frame of category.frames) {
+          let owned = frame.isFree || ownedFrames.has(frame.value) || ownedFrames.has(frame.link), card = document.createElement("div");
+          card.style.cssText = "display:flex; flex-direction:column; align-items:center; padding:12px; background:var(--rovalra-container-background-color); border-radius:12px;";
+          let cardPreview = createFramePreview(userData.thumbData);
+          card.appendChild(cardPreview);
+          let label = document.createElement("div");
+          label.style.cssText = "color:var(--rovalra-main-text-color); font-weight:600; font-size:13px; text-align:center; margin:8px 0 4px;", label.textContent = frame.label, card.appendChild(label);
+          let button = createPill(
+            owned && currentValue === frame.value ? ts2("profileCustomization.equipped") : owned ? ts2("profileCustomization.equip") : ts2("profileCustomization.unowned"),
+            owned ? ts2("profileCustomization.equipTooltip") : ts2("profileCustomization.unownedTooltip"),
+            { isButton: !0 }
+          );
+          button.style.cssText = "width:100%; justify-content:center; font-size:12px; font-weight:700;", owned ? button.addEventListener("click", async () => {
+            let nextFrame = currentValue === frame.value ? null : frame;
+            applyFrameToHolder(preview, nextFrame?.link || null, {
+              mountDirectly: !0
+            }), currentValue = nextFrame?.value || "none", unequipButton.style.opacity = currentValue === "none" ? "0.5" : "1", unequipButton.style.cursor = currentValue === "none" ? "not-allowed" : "pointer", await saveProfileFrame(nextFrame?.link), container.querySelectorAll("[data-profile-frame-option]").forEach((item) => {
+              item.dataset.profileFrameOwned === "true" && (item.textContent = item.dataset.profileFrameOption === currentValue ? ts2("profileCustomization.equipped") : ts2("profileCustomization.equip"));
+            });
+          }) : (button.style.opacity = "0.6", button.style.cursor = "not-allowed"), button.dataset.profileFrameOption = frame.value, button.dataset.profileFrameOwned = owned ? "true" : "false", card.appendChild(button), grid.appendChild(card), applyFrameToHolder(cardPreview, frame.link);
+        }
+      }
+      applyCategory("all");
+    } catch (error3) {
+      console.error("RoValra: Failed to render profile frames.", error3), container.textContent = ts2("profileCustomization.failedToLoad");
+    }
+  }
+  __name(renderFramePicker, "renderFramePicker");
   function findBorderItem(categories2, value2) {
     if (!value2 || value2 === "none") return null;
     for (let category of categories2) {
@@ -164771,6 +165051,21 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     overlayInstance && overlayInstance.close();
     let body = document.createElement("div");
     body.style.cssText = "color: var(--rovalra-main-text-color);";
+    let tabControls = document.createElement("div");
+    tabControls.style.cssText = "display:flex; margin-bottom:16px; overflow-x:auto; max-width:100%;";
+    let content = document.createElement("div"), bordersContent = document.createElement("div"), framesContent = document.createElement("div");
+    content.append(bordersContent, framesContent), body.append(tabControls, content);
+    let tabs = createPillToggle({
+      options: [
+        { text: ts2("profileCustomization.tabFrames"), value: "frames" },
+        { text: ts2("profileCustomization.tabBorders"), value: "borders" }
+      ],
+      initialValue: "frames",
+      onChange: /* @__PURE__ */ __name((tab) => {
+        bordersContent.hidden = tab !== "borders", framesContent.hidden = tab !== "frames", tab === "frames" && !framesContent.dataset.loaded && (framesContent.dataset.loaded = "true", renderFramePicker(framesContent, userId));
+      }, "onChange")
+    });
+    tabs.style.flexWrap = "wrap", tabControls.appendChild(tabs), bordersContent.hidden = !0, framesContent.dataset.loaded = "true", renderFramePicker(framesContent, userId);
     let getMoreButton = createSquareButton({
       content: ts2("profileCustomization.getMore"),
       onClick: /* @__PURE__ */ __name(() => {
@@ -164793,9 +165088,15 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       onClose: /* @__PURE__ */ __name(() => {
         overlayInstance = null;
       }, "onClose")
-    }), renderOwnedBorderPicker(body, userId);
+    }), renderOwnedBorderPicker(bordersContent, userId);
   }
   __name(openCustomizationOverlay, "openCustomizationOverlay");
+  async function getAuthedFramePreviewData(userId) {
+    return {
+      thumbData: (await getBatchThumbnails([userId], "Avatar", "420x420"))[0] || { state: "Error" }
+    };
+  }
+  __name(getAuthedFramePreviewData, "getAuthedFramePreviewData");
   function keepPillAfterUsernameDetails2(targetContainer, pill) {
     let appendPill = /* @__PURE__ */ __name(() => {
       if (!pill.isConnected || pill.parentElement !== targetContainer) return;
@@ -168138,10 +168439,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     let showSection = /* @__PURE__ */ __name((value2) => {
       for (let [name2, section] of sections)
         section.hidden = name2 !== value2;
-    }, "showSection"), requestedTab = new URLSearchParams(window.location.search).get("tab"), initialValue = sections.has(requestedTab) ? requestedTab : "borders", tabs = createPillToggle({
+    }, "showSection"), requestedTab = new URLSearchParams(window.location.search).get("tab"), initialValue = sections.has(requestedTab) ? requestedTab : "frames", tabs = createPillToggle({
       options: [
-        { text: ts2("profileFrame.tabBorders"), value: "borders" },
-        { text: ts2("profileFrame.tabFrames"), value: "frames" }
+        { text: ts2("profileFrame.tabFrames"), value: "frames" },
+        { text: ts2("profileFrame.tabBorders"), value: "borders" }
       ],
       initialValue,
       onChange: showSection
@@ -168187,8 +168488,6 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(saveEquippedFrame, "saveEquippedFrame");
   function updateFrameStoreUI(container, selectedValue) {
-    for (let card of container.querySelectorAll("[data-frame-card]"))
-      card.style.borderColor = card.dataset.frameCard === selectedValue ? "var(--rovalra-main-text-color)" : "transparent";
     for (let button of container.querySelectorAll("[data-frame-equip-btn]")) {
       let isSelected = button.dataset.frameEquipBtn === selectedValue && selectedValue !== "none", isOwned = button.dataset.frameOwned === "true", text2, tooltip;
       isSelected ? (text2 = ts2("profileFrame.equipped"), tooltip = ts2("profileFrame.unequipTooltip")) : isOwned ? (text2 = ts2("profileFrame.equip"), tooltip = ts2("profileFrame.equipTooltip")) : (text2 = ts2("profileFrame.buy"), tooltip = ts2("profileFrame.buyTooltip"));
@@ -168406,13 +168705,11 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         });
         for (let frame of category.frames) {
           let frameIsOwned = isFrameOwned({ frame, ownedData }), isSelected = currentFrameValue === frame.value, frameCard = document.createElement("div");
-          frameCard.dataset.frameCard = frame.value, frameCard.style.cssText = "display: flex; flex-direction: column; align-items: center; padding: 12px; background: var(--rovalra-container-background-color); border-radius: 12px; border: 2px solid transparent;";
+          frameCard.dataset.frameCard = frame.value, frameCard.style.cssText = "display: flex; flex-direction: column; align-items: center; padding: 12px; background: var(--rovalra-container-background-color); border-radius: 12px; border: none;";
           let cardPreview = createFrameHolderPreview(
             authedUserData?.thumbData
           );
           frameCard.appendChild(cardPreview);
-          let kindLabel = document.createElement("div");
-          kindLabel.style.cssText = "font-size: 11px; color: var(--rovalra-secondary-text-color); text-align: center; margin-top: 8px; font-weight: 700;", kindLabel.textContent = frame.animated ? ts2("profileFrame.animated") : ts2("profileFrame.static"), frameCard.appendChild(kindLabel);
           let frameLabel = document.createElement("div");
           frameLabel.style.cssText = "color: var(--rovalra-main-text-color); font-weight: 600; font-size: 13px; text-align: center; margin: 4px 0;", frameLabel.textContent = frame.label, frameCard.appendChild(frameLabel);
           let priceLabel = document.createElement("div");
@@ -173825,14 +174122,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init32,
         init34,
         init35,
-        init120,
+        init121,
         init33,
         init21,
         init49,
         init2,
         init29,
         init132,
-        init125,
+        init126,
         init23,
         initializeModernIcons,
         init37,
@@ -173969,28 +174266,28 @@ ${locale4.suggestOnDiscord}`), subtitle;
       features: [
         init104,
         init131,
-        init130,
+        init117,
         init103,
         init105,
         init106,
         init107,
         init109,
         init116,
-        init117,
         init118,
         init119,
-        init126,
+        init120,
         init127,
         init128,
-        init121,
-        init123,
-        init124,
+        init129,
         init122,
+        init124,
         init125,
+        init123,
+        init126,
         init111,
         init133,
         init110,
-        init129,
+        init130,
         init135,
         init136,
         initProfileButton
