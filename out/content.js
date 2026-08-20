@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init149 = {
+          let init150 = {
             ...params,
             headers
           };
-          return this.onSite && (init149.credentials = "include"), (this._fetchFn ?? fetch)(url, init149);
+          return this.onSite && (init150.credentials = "include"), (this._fetchFn ?? fetch)(url, init150);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init149 } = response2;
-              resolve(new Response(body2, init149));
+              let { body: body2, ...init150 } = response2;
+              resolve(new Response(body2, init150));
             }
           );
         });
@@ -2910,6 +2910,14 @@ Never used outside your local device.`;
               ],
               type: "checkbox",
               default: !0
+            },
+            socialLinksEnabled: {
+              label: "Profile Social Links",
+              description: [
+                "Shows social links below the profile description."
+              ],
+              type: "checkbox",
+              default: !1
             },
             profileCustomizationEnabled: {
               label: "Profile Customization",
@@ -58726,7 +58734,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init149 = /* @__PURE__ */ __name(() => {
+      let init150 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58752,7 +58760,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init149() : window.addEventListener("load", init149, { once: !0 });
+      document.readyState === "complete" ? init150() : window.addEventListener("load", init150, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -60244,16 +60252,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init149) {
-    return init149?.body !== void 0 ? init149.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init150) {
+    return init150?.body !== void 0 ? init150.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init149 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init149.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init149.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init150 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init150.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init150.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -60261,8 +60269,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init149),
-      credentials: init149.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init150),
+      credentials: init150.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -60271,9 +60279,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init149 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init149.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init149) : await originalFetch(input, init149);
+    window.fetch = async (input, init150 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init150.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init150) : await originalFetch(input, init150);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62429,7 +62437,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init149 = /* @__PURE__ */ __name(() => {
+    let init150 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62446,7 +62454,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init149() : window.addEventListener("load", init149, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init150() : window.addEventListener("load", init150, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -86258,10 +86266,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init149() {
+    function init150() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init149, "init");
+    __name(init150, "init");
     function materialVariant(object) {
       let variant = 0;
       return object.isInstancedMesh && (variant += 2), object.isSkinnedMesh && (variant += 1), variant;
@@ -86307,7 +86315,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init149,
+      init: init150,
       push,
       unshift,
       finish,
@@ -86552,10 +86560,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [], lightProbeGridArray = [];
-    function init149(camera) {
+    function init150(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0, lightProbeGridArray.length = 0;
     }
-    __name(init149, "init");
+    __name(init150, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -86586,7 +86594,7 @@ Program Info Log: ` + programLog + `
       textureUnits: 0
     };
     return {
-      init: init149,
+      init: init150,
       state: state4,
       setupLights,
       setupLightsView,
@@ -165174,6 +165182,86 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(init136, "init");
 
+  // src/content/features/profile/socialLinks.js
+  init_observer();
+  init_i18n();
+  init_getSettings();
+  var MORE_BUTTON_SELECTOR = 'button.more-btn[aria-label="more"]', SECTION_CLASS = "rovalra-social-links", SOCIAL_LINKS = [
+    ["facebook", "icon-regular-facebook"],
+    ["x", "icon-regular-twitter"],
+    ["twitter", "icon-regular-twitter"],
+    ["youtube", "icon-regular-youtube"],
+    ["twitch", "icon-regular-twitch"],
+    ["guilded", "icon-regular-guilded"],
+    ["discord", "icon-regular-discord"]
+  ], profileSocialLinks = null;
+  function getSocialLinks(data) {
+    let socialLinks = data?.components?.About?.socialLinks;
+    if (!socialLinks || typeof socialLinks != "object") return [];
+    let seen = /* @__PURE__ */ new Set();
+    return SOCIAL_LINKS.flatMap(([type, icon]) => {
+      let link = socialLinks[type];
+      if (!link?.url || !link?.target || seen.has(link.url)) return [];
+      let url;
+      try {
+        url = new URL(link.url);
+      } catch {
+        return [];
+      }
+      return ["http:", "https:"].includes(url.protocol) ? (seen.add(link.url), [{ type, icon, url: url.href, target: link.target }]) : [];
+    });
+  }
+  __name(getSocialLinks, "getSocialLinks");
+  async function renderSocialLinks(moreButton) {
+    if (!moreButton?.isConnected || (moreButton.parentElement?.querySelector(`.${SECTION_CLASS}`)?.remove(), !profileSocialLinks?.length)) return;
+    let section = document.createElement("div");
+    section.className = "gap-small flex flex-col", section.classList.add(SECTION_CLASS), section.style.marginTop = "10px";
+    let heading = document.createElement("span");
+    heading.className = "group-description-dialog-body-header text-heading-small block", heading.textContent = await t2("profile.socialLinks");
+    let links = document.createElement("div");
+    links.className = "gap-small flex flex-row", profileSocialLinks.forEach(({ icon, url, target }) => {
+      let link = document.createElement("a");
+      link.target = "_blank", link.rel = "noreferrer noopener", link.href = url, link.setAttribute("aria-disabled", "false"), link.className = "foundation-web-button relative clip group/interactable focus-visible:outline-focus disabled:outline-none cursor-pointer flex items-center justify-center stroke-none padding-y-none select-none radius-medium text-label-small height-800 padding-x-small bg-action-subtle content-action-standard", link.style.textDecoration = "none";
+      let stateLayer = document.createElement("div");
+      stateLayer.ariaHidden = "true", stateLayer.dataset.testid = "foundation-web-state-layer", stateLayer.className = "absolute inset-[0] transition-colors group-hover/interactable:bg-[var(--color-state-hover)] group-active/interactable:bg-[var(--color-state-press)] group-disabled/interactable:bg-none";
+      let outer = document.createElement("span");
+      outer.className = "flex items-center min-width-0 gap-xsmall";
+      let textWrapper = document.createElement("span");
+      textWrapper.className = "padding-y-xsmall text-truncate-end text-no-wrap";
+      let content = document.createElement("div");
+      content.className = "items-center gap-xsmall flex";
+      let iconWrapper = document.createElement("span");
+      iconWrapper.className = "social-link-icon content-emphasis flex";
+      let iconElement = document.createElement("span");
+      iconElement.ariaHidden = "true", iconElement.dataset.testid = "foundation-web-icon", iconElement.className = `grow-0 shrink-0 basis-auto icon ${icon} size-[var(--icon-size-small)]`;
+      let label = document.createElement("span");
+      label.className = "content-emphasis text-caption-medium", label.style.fontSize = "12px", label.textContent = target, iconWrapper.append(iconElement), content.append(iconWrapper, label), textWrapper.append(content), outer.append(textWrapper), link.append(stateLayer, outer), links.append(link);
+    }), section.append(heading, links), moreButton.insertAdjacentElement("afterend", section);
+  }
+  __name(renderSocialLinks, "renderSocialLinks");
+  function renderAllSocialLinks() {
+    document.querySelectorAll(MORE_BUTTON_SELECTOR).forEach((button) => {
+      renderSocialLinks(button).catch(
+        (error3) => console.error("RoValra: Failed to render social links", error3)
+      );
+    });
+  }
+  __name(renderAllSocialLinks, "renderAllSocialLinks");
+  async function init137() {
+    await settings.socialLinksEnabled && (window.addEventListener("rovalra-profile-platform-response", (event) => {
+      event.detail?.components?.About && (profileSocialLinks = getSocialLinks(event.detail), renderAllSocialLinks());
+    }), observeElement(
+      MORE_BUTTON_SELECTOR,
+      (button) => {
+        renderSocialLinks(button).catch(
+          (error3) => console.error("RoValra: Failed to render social links", error3)
+        );
+      },
+      { multiple: !0 }
+    ));
+  }
+  __name(init137, "init");
+
   // src/content/features/settings/index.js
   init_assets();
   init_regions();
@@ -169089,10 +169177,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init137() {
+  function init138() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init137, "init");
+  __name(init138, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -169289,7 +169377,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init138() {
+  function init139() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -169301,7 +169389,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init138, "init");
+  __name(init139, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -169359,7 +169447,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init139() {
+  async function init140() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -169370,7 +169458,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init139, "init");
+  __name(init140, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -169662,7 +169750,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init140() {
+  async function init141() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
@@ -169673,7 +169761,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init140, "init");
+  __name(init141, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -170257,7 +170345,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init141() {
+  async function init142() {
     if (!initialized17) {
       if (await settings.homeLayoutEnabled === !1) {
         initialized17 = !0, publishHomeLayoutState([], []);
@@ -170296,7 +170384,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init141, "init");
+  __name(init142, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
@@ -170377,14 +170465,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init142() {
+  function init143() {
     initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error3) => console.error("RoValra: Failed to open custom background settings.", error3)
       );
     }));
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/features/home/friendLabels.js
   init_userCardElements();
@@ -170858,14 +170946,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init143() {
+  async function init144() {
     if (registerStorageListener(), enabled = await settings.friendLabelsEnabled === !0, !enabled) {
       removeFeatureUi();
       return;
     }
     friendLabels = await loadFriendLabels(), registerObservers(), refreshExistingCards(), attachActionsToExistingDropdowns();
   }
-  __name(init143, "init");
+  __name(init144, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -171144,7 +171232,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init144() {
+  async function init145() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -171159,7 +171247,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error3);
     }));
   }
-  __name(init144, "init");
+  __name(init145, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
@@ -171214,14 +171302,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener2, "registerStorageListener");
-  async function init145() {
+  async function init146() {
     if (registerStorageListener2(), enabled2 = await settings.HideAddFriendsButton === !0, !enabled2) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init145, "init");
+  __name(init146, "init");
 
   // src/content/features/home/friendsSecondRow.js
   init_getSettings();
@@ -171240,12 +171328,12 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener3, "registerStorageListener");
-  async function init146() {
+  async function init147() {
     registerStorageListener3();
     let enabled3 = await settings.friendsSecondRowEnabled === !0;
     publishState(enabled3);
   }
-  __name(init146, "init");
+  __name(init147, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -171525,7 +171613,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init147() {
+  function init148() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -171540,7 +171628,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init147, "init");
+  __name(init148, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -174070,7 +174158,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init148() {
+  async function init149() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -174080,7 +174168,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init148, "init");
+  __name(init149, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -174091,7 +174179,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init137,
+        init138,
         init66,
         init7,
         init8,
@@ -174143,7 +174231,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init45,
         init47,
         init48,
-        init142,
+        init143,
         initNotificationCenter
       ]
     },
@@ -174174,7 +174262,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init148
+        init149
       ]
     },
     // Avatar pages
@@ -174218,7 +174306,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init70,
         init81,
         init112,
-        init148,
+        init149,
         init83
       ]
     },
@@ -174290,6 +174378,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init130,
         init135,
         init136,
+        init137,
         initProfileButton
       ]
     },
@@ -174335,22 +174424,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init147]
+      features: [init148]
     },
     {
       paths: ["/home"],
       features: [
-        init141,
-        init144,
-        init140,
+        init142,
         init145,
-        init143,
-        init146
+        init141,
+        init146,
+        init144,
+        init147
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init138, init139]
+      features: [init139, init140]
     },
     // Scam prevention
     {
@@ -174405,11 +174494,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init149) => {
-        if (!featuresRunThisPass.has(init149) && !(route.once && initializedPersistentFeatures.has(init149))) {
-          featuresRunThisPass.add(init149), route.once && initializedPersistentFeatures.add(init149);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init150) => {
+        if (!featuresRunThisPass.has(init150) && !(route.once && initializedPersistentFeatures.has(init150))) {
+          featuresRunThisPass.add(init150), route.once && initializedPersistentFeatures.add(init150);
           try {
-            init149();
+            init150();
           } catch (error3) {
             console.error("RoValra: Feature init failed", error3);
           }

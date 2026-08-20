@@ -732,6 +732,14 @@
           type: "checkbox",
           default: !0
         },
+        socialLinksEnabled: {
+          label: "Profile Social Links",
+          description: [
+            "Shows social links below the profile description."
+          ],
+          type: "checkbox",
+          default: !1
+        },
         profileCustomizationEnabled: {
           label: "Profile Customization",
           description: [
