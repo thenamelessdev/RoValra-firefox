@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RoValra - Firefox Edition",
-  "version": "2.6.6",
+  "version": "2.6.7",
   "description": "An unofficial Firefox version of RoValra (Roblox Improved)",
   "background": {
     "scripts": [
@@ -21,9 +21,9 @@
   "action": {
     "default_popup": "public/Assets/popup/popup.html",
     "default_icon": {
+      "48": "public/Assets/icon-48.png",
       "128": "public/Assets/icon-128.png",
-      "16": "public/Assets/icon-16.png",
-      "48": "public/Assets/icon-48.png"
+      "16": "public/Assets/icon-16.png"
     }
   },
   "permissions": [
@@ -44,16 +44,6 @@
       ],
       "js": [
         "intercept.js"
-      ],
-      "run_at": "document_start",
-      "all_frames": true
-    },
-    {
-      "matches": [
-        "*://*.roblox.com/*"
-      ],
-      "js": [
-        "friendsSecondRowHijack.js"
       ],
       "run_at": "document_start",
       "all_frames": true
@@ -91,7 +81,6 @@
         "Assets/data/serverid_extractor.js",
         "data/*",
         "intercept.js",
-        "friendsSecondRowHijack.js",
         "assets/*",
         "css/*"
       ],
@@ -109,8 +98,8 @@
     }
   },
   "icons": {
-    "128": "public/Assets/icon-128.png",
     "16": "public/Assets/icon-16.png",
+    "128": "public/Assets/icon-128.png",
     "48": "public/Assets/icon-48.png"
   },
   "declarative_net_request": {

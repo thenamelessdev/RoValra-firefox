@@ -1,5 +1,5 @@
 /*!
- * rovalra v2.6.6
+ * rovalra v2.6.7
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
@@ -917,6 +917,16 @@
           type: "checkbox",
           default: !0
         },
+        unfriendDetectorEnabled: {
+          label: "Unfriend Detector",
+          experimental: "May cause issues",
+          type: "checkbox",
+          default: !1,
+          contributors: ["390309731"],
+          description: [
+            "Tracks your friends list and alerts you with a popup if someone unfriends you, showing who unfriended you."
+          ]
+        },
         PrivateServerBulkEnabled: {
           label: "Private Server Bulk Removal",
           description: [
@@ -929,7 +939,17 @@
         idVerificationBadgeEnabled: {
           label: "ID Verification Badge",
           description: [
-            "Shows if a user has verified their ID on their profile."
+            "Shows if a user has verified their ID on their profile.",
+            'This is added to the "more" tab of the profile.'
+          ],
+          type: "checkbox",
+          default: !0
+        },
+        ageVerificationBadgeEnabled: {
+          label: "Age Checked Badge",
+          description: [
+            "Shows whether a user has completed Roblox age check on their profile.",
+            'This is added to the "more" tab of the profile.'
           ],
           type: "checkbox",
           default: !0
@@ -1250,7 +1270,9 @@
           ],
           type: "checkbox",
           default: !1,
-          contributors: ["2830488781"]
+          contributors: ["2830488781"],
+          locked: "Caused issues with other extensions",
+          isPermanent: !1
         },
         HideAddFriendsButton: {
           label: "Hide Add Friends Button",
@@ -1542,6 +1564,22 @@
           label: "Total Spent",
           description: [
             "This calculates the total amount of Robux and money you have spent on your account based on your transaction history."
+          ],
+          type: "checkbox",
+          default: !0
+        },
+        spentPerGameEnabled: {
+          label: "Spent Per Experience",
+          description: [
+            "Shows how much Robux you have spent on each experience on the transactions page."
+          ],
+          type: "checkbox",
+          default: !0
+        },
+        spentPerCreatorEnabled: {
+          label: "Spent Per Creator",
+          description: [
+            "Shows how much Robux you have spent on each user and group on the transactions page."
           ],
           type: "checkbox",
           default: !0

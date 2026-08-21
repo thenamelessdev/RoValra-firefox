@@ -380,6 +380,36 @@
         "multiplePurchases": "{{count}} purchases",
         "stillCalculating": "Total Spent is still calculating."
     },
+    "spentPerGame": {
+        "title": "Total Spent per Game",
+        "disclaimer": "This can be inaccurate due to Roblox limitations",
+        "mostSpent": "Most spent",
+        "mostPurchases": "Most purchases",
+        "noPurchases": "No game purchases found.",
+        "singlePurchase": "1 purchase",
+        "multiplePurchases": "{{count}} purchases",
+        "loadMore": "Load more ({{remaining}} remaining)",
+        "searchPlaceholder": "Search games",
+        "loading": "Loading game spending…",
+        "scanInProgress": "Transaction scan in progress. This may take a while.",
+        "loadError": "Unable to load game spending."
+    },
+    "spentPerCreator": {
+        "title": "Total Spent per Creator",
+        "disclaimer": "This can be inaccurate due to Roblox limitations",
+        "mostSpent": "Most spent",
+        "mostPurchases": "Most purchases",
+        "noPurchases": "No creator purchases found.",
+        "unknownCreator": "Unknown creator",
+        "includeGameCreators": "Include game creators",
+        "singlePurchase": "1 purchase",
+        "multiplePurchases": "{{count}} purchases",
+        "loadMore": "Load more ({{remaining}} remaining)",
+        "searchPlaceholder": "Search creators",
+        "loading": "Loading creator spending…",
+        "scanInProgress": "Transaction scan in progress. This may take a while.",
+        "loadError": "Unable to load creator spending."
+    },
     "settings": {
         "tabs": {
             "info": "Info",
@@ -849,7 +879,10 @@
     },
     "rovalraBadges": {
         "userVerified": "User is ID verified.",
-        "userNotVerified": "User is not ID verified."
+        "userNotVerified": "User is not ID verified.",
+        "userAgeVerified": "User is age checked.",
+        "userNotAgeVerified": "User is not age checked.",
+        "userAgeVerificationMayBeInaccurate": "This may be inaccurate"
     },
     "friendsSince": {
         "friended": "Friended",
@@ -897,6 +930,14 @@
         "bulkUnfriend": "Bulk Unfriend",
         "exitBulkMode": "Exit Bulk Mode",
         "successMessage": "Successfully unfriended {{successCount}}/{{totalCount}} friends!"
+    },
+    "unfriendDetector": {
+        "titleSingle": "Unfriend Detected",
+        "titlePlural": "Unfriends Detected",
+        "descriptionSingle": "This friend removed you since you last played:",
+        "descriptionPlural": "These {{count}} friends removed you since you last played:",
+        "viewProfile": "View {{name}}'s profile",
+        "dismiss": "Dismiss"
     },
     "leaveGroups": {
         "confirmLeave": "Confirm Leave",

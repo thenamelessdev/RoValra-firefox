@@ -1,5 +1,5 @@
 /*!
- * rovalra v2.6.6
+ * rovalra v2.6.7
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
@@ -677,11 +677,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init150 = {
+          let init153 = {
             ...params,
             headers
           };
-          return this.onSite && (init150.credentials = "include"), (this._fetchFn ?? fetch)(url, init150);
+          return this.onSite && (init153.credentials = "include"), (this._fetchFn ?? fetch)(url, init153);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1452,8 +1452,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init150 } = response2;
-              resolve(new Response(body2, init150));
+              let { body: body2, ...init153 } = response2;
+              resolve(new Response(body2, init153));
             }
           );
         });
@@ -3096,6 +3096,16 @@ Never used outside your local device.`;
               type: "checkbox",
               default: !0
             },
+            unfriendDetectorEnabled: {
+              label: "Unfriend Detector",
+              experimental: "May cause issues",
+              type: "checkbox",
+              default: !1,
+              contributors: ["390309731"],
+              description: [
+                "Tracks your friends list and alerts you with a popup if someone unfriends you, showing who unfriended you."
+              ]
+            },
             PrivateServerBulkEnabled: {
               label: "Private Server Bulk Removal",
               description: [
@@ -3108,7 +3118,17 @@ Never used outside your local device.`;
             idVerificationBadgeEnabled: {
               label: "ID Verification Badge",
               description: [
-                "Shows if a user has verified their ID on their profile."
+                "Shows if a user has verified their ID on their profile.",
+                'This is added to the "more" tab of the profile.'
+              ],
+              type: "checkbox",
+              default: !0
+            },
+            ageVerificationBadgeEnabled: {
+              label: "Age Checked Badge",
+              description: [
+                "Shows whether a user has completed Roblox age check on their profile.",
+                'This is added to the "more" tab of the profile.'
               ],
               type: "checkbox",
               default: !0
@@ -3429,7 +3449,9 @@ Never used outside your local device.`;
               ],
               type: "checkbox",
               default: !1,
-              contributors: ["2830488781"]
+              contributors: ["2830488781"],
+              locked: "Caused issues with other extensions",
+              isPermanent: !1
             },
             HideAddFriendsButton: {
               label: "Hide Add Friends Button",
@@ -3721,6 +3743,22 @@ Never used outside your local device.`;
               label: "Total Spent",
               description: [
                 "This calculates the total amount of Robux and money you have spent on your account based on your transaction history."
+              ],
+              type: "checkbox",
+              default: !0
+            },
+            spentPerGameEnabled: {
+              label: "Spent Per Experience",
+              description: [
+                "Shows how much Robux you have spent on each experience on the transactions page."
+              ],
+              type: "checkbox",
+              default: !0
+            },
+            spentPerCreatorEnabled: {
+              label: "Spent Per Creator",
+              description: [
+                "Shows how much Robux you have spent on each user and group on the transactions page."
               ],
               type: "checkbox",
               default: !0
@@ -13188,8 +13226,10 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         // syra (concept artist)
         "760897332",
         // ceyexm
-        "2830488781"
+        "2830488781",
         //idhglua
+        "390309731"
+        // AxnxDev 
       ], TESTER_USER_IDS = [
         "1163412141"
         //Tino
@@ -15157,9 +15197,19 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     if (itemType === "GamePass") {
       let requestPromise2 = callRobloxApiJson({
         subdomain: "apis",
-        endpoint: `/game-passes/v1/game-passes/${itemId}/details`,
+        endpoint: `/game-passes/v1/game-passes/${itemId}/product-info`,
         method: "GET"
-      }).catch((error3) => {
+      }).then((productInfo) => ({
+        ...productInfo,
+        id: productInfo?.TargetId ?? itemId,
+        gamePassId: productInfo?.TargetId ?? itemId,
+        name: productInfo?.Name,
+        description: productInfo?.Description,
+        price: productInfo?.PriceInRobux,
+        isForSale: productInfo?.IsForSale,
+        productId: productInfo?.ProductId,
+        iconImageAssetId: productInfo?.IconImageAssetId
+      })).catch((error3) => {
         throw itemDetailsCache.delete(key), error3;
       });
       return itemDetailsCache.set(key, requestPromise2), requestPromise2;
@@ -16570,7 +16620,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         let robuxAfterPurchase = userRobux - robuxPrice, isDonating = useRoValraGroup || savedPlaceId === "ROVALRA_GROUP", savingsPercentage = isGamePass ? 0.1 : 0.4;
         if (await fetchCatalogMetadata(), assetType && !isGamePass && !isBundle && assetToSubcategoryMap && classicClothingSubcategories) {
           let subcategoryId = assetToSubcategoryMap[String(assetType)];
-          classicClothingSubcategories.includes(subcategoryId) && (robuxPrice < 10 ? savingsPercentage = 0 : savingsPercentage = 0.1);
+          classicClothingSubcategories.includes(subcategoryId) && (savingsPercentage = 0.4);
         }
         let robuxSaved = Math.floor(robuxPrice * savingsPercentage), itemType = isGamePass ? "GamePass" : isBundle ? "Bundle" : "Asset";
         if (prefetchData && prefetchData.ownership ? await prefetchData.ownership : await checkItemOwnership(currentUserId, itemId, itemType)) {
@@ -16911,20 +16961,14 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
                     let subcategoryId = assetToSubcategoryMap[String(details.assetType)];
                     classicClothingSubcategories.includes(
                       subcategoryId
-                    ) && (item.price < 10 ? itemSavingsPercent = 0 : itemSavingsPercent = 0.1);
+                    ) && (itemSavingsPercent = 0.4);
                   }
                 } catch {
                 }
                 savings += Math.floor(item.price * itemSavingsPercent);
               }
-          } else {
-            let savingsPercentage = isGamePass ? 0.1 : 0.4;
-            if (assetType && !isGamePass && !isBundle && assetToSubcategoryMap && classicClothingSubcategories) {
-              let subcategoryId = assetToSubcategoryMap[String(assetType)];
-              classicClothingSubcategories.includes(subcategoryId) && (robuxPrice < 10 ? savingsPercentage = 0 : savingsPercentage = 0.1);
-            }
-            savings = Math.floor(robuxPrice * savingsPercentage);
-          }
+          } else
+            savings = Math.floor(robuxPrice * (isGamePass ? 0.1 : 0.4));
           let saveButton = document.createElement("button");
           saveButton.type = "button";
           let isGamePassWarningActive = isGamePass && isGamePassBeforeDisable(), creatorName = itemData?.creatorName ? ` (${itemData.creatorName})` : "", warningHtml = isRestricted ? `<span style="font-size: 10px; color: #d32f2f; display: block; line-height: 1.2; margin-top: 2px; font-weight: 500;">The creator of this Item${creatorName} may have disabled buying in experiences</span>` : isGamePassWarningActive ? '<span style="font-size: 10px; color: #ffa500; display: block; line-height: 1.2; margin-top: 2px; font-weight: 500;">\u26A0\uFE0F On May 29, saving 10% on gamepasses will be disabled by Roblox.</span>' : "", isUnified = modalWindow.classList.contains(
@@ -18478,6 +18522,50 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     }
   });
 
+  // src/content/core/utils/trackers/unfriendDetector.js
+  function setUnfriendDetectedListener(listener) {
+    onUnfriendsDetected = listener;
+  }
+  async function queueUnfriendedUsers(userId, removedFriends) {
+    if (!removedFriends.length) return;
+    let allPending = (await new Promise(
+      (resolve) => chrome.storage.local.get([PENDING_UNFRIENDS_KEY], resolve)
+    ))[PENDING_UNFRIENDS_KEY] || {}, existingPending = allPending[userId] || [], existingIds = new Set(existingPending.map((f) => f.id)), newEntries = removedFriends.filter((friend) => !existingIds.has(friend.id)).map((friend) => ({
+      ...friend,
+      detectedAt: Date.now()
+    }));
+    newEntries.length && (allPending[userId] = [...existingPending, ...newEntries].slice(
+      -200
+    ), await new Promise(
+      (resolve) => chrome.storage.local.set(
+        { [PENDING_UNFRIENDS_KEY]: allPending },
+        resolve
+      )
+    ));
+  }
+  async function reportDetectedUnfriends(userId, removedFriends) {
+    if (removedFriends?.length && (await queueUnfriendedUsers(userId, removedFriends), typeof onUnfriendsDetected == "function"))
+      try {
+        onUnfriendsDetected(removedFriends);
+      } catch (error3) {
+        console.error(
+          "RoValra: Unfriend Detector listener threw an error",
+          error3
+        );
+      }
+  }
+  function initUnfriendDetectorTracking() {
+  }
+  var PENDING_UNFRIENDS_KEY, onUnfriendsDetected, init_unfriendDetector = __esm({
+    "src/content/core/utils/trackers/unfriendDetector.js"() {
+      PENDING_UNFRIENDS_KEY = "rovalra_pending_unfriends", onUnfriendsDetected = null;
+      __name(setUnfriendDetectedListener, "setUnfriendDetectedListener");
+      __name(queueUnfriendedUsers, "queueUnfriendedUsers");
+      __name(reportDetectedUnfriends, "reportDetectedUnfriends");
+      __name(initUnfriendDetectorTracking, "initUnfriendDetectorTracking");
+    }
+  });
+
   // src/content/core/utils/trackers/friendslist.js
   function getFriendRequestOriginText(originId) {
     let fromText = ts2("friendsSince.originFrom");
@@ -18742,24 +18830,6 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       return console.error("RoValra: Failed to update friends list", error3), [];
     }
   }
-  async function refreshFriendsCountIfNeeded(userId, currentUserData) {
-    let friendsCount = await fetchFriendsCount(userId);
-    if (friendsCount === null || friendsCount !== currentUserData.friendsList.length)
-      return !0;
-    let allUsersFriendsData = (await new Promise(
-      (resolve) => chrome.storage.local.get([FRIENDS_DATA_KEY], resolve)
-    ))[FRIENDS_DATA_KEY] || {};
-    return allUsersFriendsData[userId] = {
-      ...allUsersFriendsData[userId],
-      friendsCount,
-      lastChecked: Date.now()
-    }, await new Promise(
-      (resolve) => chrome.storage.local.set(
-        { [FRIENDS_DATA_KEY]: allUsersFriendsData },
-        resolve
-      )
-    ), !1;
-  }
   async function updateOnlineStatusOnly(userId, currentFriendsList) {
     try {
       let onlineData = await fetchFriendsOnlineStatus(userId), onlineMap = /* @__PURE__ */ new Map();
@@ -18815,25 +18885,64 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       return console.error("RoValra: Failed to update trusted friends", error3), currentFriendsList;
     }
   }
+  async function detectUnfriendEvents(userId, currentFriendRecords) {
+    if (!await settings.unfriendDetectorEnabled || !currentFriendRecords?.length) return;
+    let allSnapshots = (await new Promise(
+      (resolve) => chrome.storage.local.get([UNFRIEND_SNAPSHOT_KEY], resolve)
+    ))[UNFRIEND_SNAPSHOT_KEY] || {}, previousSnapshot = allSnapshots[userId] || null, currentIds = new Set(currentFriendRecords.map((friend) => friend.id));
+    if (previousSnapshot) {
+      let removedFriends = Object.values(previousSnapshot).filter(
+        (friend) => !currentIds.has(friend.id)
+      );
+      await reportDetectedUnfriends(userId, removedFriends);
+    }
+    let allPending = (await new Promise(
+      (resolve) => chrome.storage.local.get([UNFRIEND_PENDING_KEY], resolve)
+    ))[UNFRIEND_PENDING_KEY] || {}, pending = allPending[userId] || [], stillUnfriended = pending.filter(
+      (friend) => !currentIds.has(friend.id)
+    );
+    stillUnfriended.length !== pending.length && (allPending[userId] = stillUnfriended, await new Promise(
+      (resolve) => chrome.storage.local.set(
+        { [UNFRIEND_PENDING_KEY]: allPending },
+        resolve
+      )
+    ));
+    let snapshot = {};
+    currentFriendRecords.forEach((friend) => {
+      snapshot[friend.id] = friend;
+    }), allSnapshots[userId] = snapshot, await new Promise(
+      (resolve) => chrome.storage.local.set(
+        { [UNFRIEND_SNAPSHOT_KEY]: allSnapshots },
+        resolve
+      )
+    );
+  }
   async function getFriendsList() {
     let userId = await getAuthenticatedUserId();
     if (!userId) return [];
     let currentUserData = ((await new Promise(
       (resolve) => chrome.storage.local.get([FRIENDS_DATA_KEY], resolve)
     ))[FRIENDS_DATA_KEY] || {})[userId];
-    if (!currentUserData?.friendsList)
-      return await updateFriendsList(userId);
+    if (!currentUserData?.friendsList) {
+      let friendsList = await updateFriendsList(userId);
+      return await detectUnfriendEvents(userId, friendsList), friendsList;
+    }
     let now = Date.now(), needsFullRefresh = currentUserData.dataVersion !== FRIENDS_DATA_VERSION || now - currentUserData.lastChecked > FRIENDS_CACHE_DURATION, needsOnlineRefresh = now - (currentUserData.lastOnlineChecked || 0) > ONLINE_STATUS_CACHE_DURATION, needsTrustedRefresh = now - (currentUserData.lastTrustedChecked || 0) > TRUSTED_FRIENDS_CACHE_DURATION;
-    return needsFullRefresh && await refreshFriendsCountIfNeeded(
-      userId,
-      currentUserData
-    ) ? await updateFriendsList(userId) : (needsOnlineRefresh && (currentUserData.friendsList = await updateOnlineStatusOnly(
-      userId,
-      currentUserData.friendsList
-    )), needsTrustedRefresh ? await updateTrustedFriendsOnly(
+    if (needsFullRefresh) {
+      let friendsList = await updateFriendsList(userId);
+      return await detectUnfriendEvents(userId, friendsList), friendsList;
+    }
+    if (needsOnlineRefresh && (currentUserData.friendsList = await updateOnlineStatusOnly(
       userId,
       currentUserData.friendsList
-    ) : currentUserData.friendsList);
+    )), needsTrustedRefresh) {
+      let friendsList = await updateTrustedFriendsOnly(
+        userId,
+        currentUserData.friendsList
+      );
+      return await detectUnfriendEvents(userId, friendsList), friendsList;
+    }
+    return await detectUnfriendEvents(userId, currentUserData.friendsList), currentUserData.friendsList;
   }
   async function getCachedFriendsList() {
     let userId = await getAuthenticatedUserId();
@@ -18842,7 +18951,17 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     ))[FRIENDS_DATA_KEY] || {})[userId]?.friendsList || [] : [];
   }
   function initFriendsListTracking() {
-    getFriendsList(), onlineStatusInterval || (onlineStatusInterval = setInterval(async () => {
+    initialFriendsRefreshPromise || (initialFriendsRefreshPromise = (async () => {
+      let userId = await getAuthenticatedUserId();
+      if (!userId) return;
+      let friendsList = await updateFriendsList(userId);
+      await detectUnfriendEvents(userId, friendsList);
+    })().catch((error3) => {
+      console.error(
+        "RoValra: Failed to refresh friends list on startup",
+        error3
+      );
+    })), onlineStatusInterval || (onlineStatusInterval = setInterval(async () => {
       let userId = await getAuthenticatedUserId();
       if (!userId) return;
       let currentUserData = ((await new Promise(
@@ -18860,13 +18979,15 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       }
     }, ONLINE_STATUS_CACHE_DURATION));
   }
-  var FRIENDS_DATA_KEY, FRIENDS_DATA_VERSION, FRIENDS_CACHE_DURATION, ONLINE_STATUS_CACHE_DURATION, TRUSTED_FRIENDS_CACHE_DURATION, onlineStatusInterval, init_friendslist = __esm({
+  var FRIENDS_DATA_KEY, FRIENDS_DATA_VERSION, FRIENDS_CACHE_DURATION, ONLINE_STATUS_CACHE_DURATION, TRUSTED_FRIENDS_CACHE_DURATION, UNFRIEND_SNAPSHOT_KEY, UNFRIEND_PENDING_KEY, onlineStatusInterval, initialFriendsRefreshPromise, init_friendslist = __esm({
     "src/content/core/utils/trackers/friendslist.js"() {
       init_api();
       init_user();
       init_i18n();
+      init_getSettings();
+      init_unfriendDetector();
       init_users();
-      FRIENDS_DATA_KEY = "rovalra_friends_data", FRIENDS_DATA_VERSION = 5, FRIENDS_CACHE_DURATION = 300 * 1e3, ONLINE_STATUS_CACHE_DURATION = 60 * 1e3, TRUSTED_FRIENDS_CACHE_DURATION = 300 * 1e3;
+      FRIENDS_DATA_KEY = "rovalra_friends_data", FRIENDS_DATA_VERSION = 5, FRIENDS_CACHE_DURATION = 300 * 1e3, ONLINE_STATUS_CACHE_DURATION = 60 * 1e3, TRUSTED_FRIENDS_CACHE_DURATION = 300 * 1e3, UNFRIEND_SNAPSHOT_KEY = "rovalra_unfriend_detector_snapshot", UNFRIEND_PENDING_KEY = "rovalra_pending_unfriends";
       __name(getFriendRequestOriginText, "getFriendRequestOriginText");
       __name(fetchChatConversationsPage, "fetchChatConversationsPage");
       __name(fetchAllConversations, "fetchAllConversations");
@@ -18877,12 +18998,12 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       __name(fetchFriendsOnlineStatus, "fetchFriendsOnlineStatus");
       __name(fetchDeletedAccountData, "fetchDeletedAccountData");
       __name(updateFriendsList, "updateFriendsList");
-      __name(refreshFriendsCountIfNeeded, "refreshFriendsCountIfNeeded");
       __name(updateOnlineStatusOnly, "updateOnlineStatusOnly");
       __name(updateTrustedFriendsOnly, "updateTrustedFriendsOnly");
+      __name(detectUnfriendEvents, "detectUnfriendEvents");
       __name(getFriendsList, "getFriendsList");
       __name(getCachedFriendsList, "getCachedFriendsList");
-      onlineStatusInterval = null;
+      onlineStatusInterval = null, initialFriendsRefreshPromise = null;
       __name(initFriendsListTracking, "initFriendsListTracking");
     }
   });
@@ -35034,13 +35155,13 @@ Error generating stack: ` + s4.message + `
             }
             __name(onclose, "onclose");
             function onerror(s4) {
-              if (cleanup4(), a.listenerCount(this, "error") === 0) throw s4;
+              if (cleanup5(), a.listenerCount(this, "error") === 0) throw s4;
             }
             __name(onerror, "onerror");
-            function cleanup4() {
-              i4.removeListener("data", ondata), s3.removeListener("drain", ondrain), i4.removeListener("end", onend), i4.removeListener("close", onclose), i4.removeListener("error", onerror), s3.removeListener("error", onerror), i4.removeListener("end", cleanup4), i4.removeListener("close", cleanup4), s3.removeListener("close", cleanup4);
+            function cleanup5() {
+              i4.removeListener("data", ondata), s3.removeListener("drain", ondrain), i4.removeListener("end", onend), i4.removeListener("close", onclose), i4.removeListener("error", onerror), s3.removeListener("error", onerror), i4.removeListener("end", cleanup5), i4.removeListener("close", cleanup5), s3.removeListener("close", cleanup5);
             }
-            return __name(cleanup4, "cleanup"), i4.on("error", onerror), s3.on("error", onerror), i4.on("end", cleanup4), i4.on("close", cleanup4), s3.on("close", cleanup4), s3.emit("pipe", i4), s3;
+            return __name(cleanup5, "cleanup"), i4.on("error", onerror), s3.on("error", onerror), i4.on("end", cleanup5), i4.on("close", cleanup5), s3.on("close", cleanup5), s3.emit("pipe", i4), s3;
           };
         }, 83141(s2, o2, i3) {
           "use strict";
@@ -49425,7 +49546,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           }, plugins_filter = /* @__PURE__ */ __name(async (s3, o3, i3) => {
             let a2 = await Promise.all(i3.map(lp([s3], o3)));
             return i3.filter(((s4, o4) => a2[o4]));
-          }, "plugins_filter"), run3 = /* @__PURE__ */ __name(async (s3, o3, i3) => {
+          }, "plugins_filter"), run4 = /* @__PURE__ */ __name(async (s3, o3, i3) => {
             let a2;
             for (let u2 of i3) try {
               let i4 = await u2[s3].call(u2, ...o3);
@@ -49451,7 +49572,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
             let u2 = new fw({ uri: o3.resolve.baseURI, parseResult: i3, mediaType: o3.parse.mediaType }), _3 = await plugins_filter("canDereference", [u2, o3], o3.dereference.strategies);
             if (sp(_3)) throw new yw(u2.uri);
             try {
-              let { result: s4 } = await run3("dereference", [u2, o3], _3);
+              let { result: s4 } = await run4("dereference", [u2, o3], _3);
               return a2 ? s4.get(0) : s4;
             } catch (s4) {
               throw new gw(`Error while dereferencing file "${u2.uri}"`, { cause: s4 });
@@ -49874,7 +49995,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
             })), x4 = await plugins_filter("canRead", [s3, o3], w3);
             if (sp(x4)) throw new Kw(s3.uri);
             try {
-              let { result: o4 } = await run3("read", [s3], x4), u3 = new fw({ ...s3, data: o4 }).toString();
+              let { result: o4 } = await run4("read", [s3], x4), u3 = new fw({ ...s3, data: o4 }).toString();
               return await setCacheFileResult({ cacheKey: a2, result: u3, error: null, cacheTTL: i3 }), o4;
             } catch (o4) {
               var C2, j3, L3;
@@ -49889,7 +50010,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
               })), a3 = await plugins_filter("canParse", [s4, o4], i4);
               if (sp(a3)) throw new Kw(s4.uri);
               try {
-                let { plugin: i5, result: u2 } = await run3("parse", [s4, o4], a3);
+                let { plugin: i5, result: u2 } = await run4("parse", [s4, o4], a3);
                 return !i5.allowEmpty && u2.isEmpty ? Promise.reject(new vw(`Error while parsing file "${s4.uri}". File is empty.`)) : u2;
               } catch (o5) {
                 throw new vw(`Error while parsing file "${s4.uri}"`, { cause: o5 });
@@ -58734,7 +58855,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init150 = /* @__PURE__ */ __name(() => {
+      let init153 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -58760,7 +58881,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init150() : window.addEventListener("load", init150, { once: !0 });
+      document.readyState === "complete" ? init153() : window.addEventListener("load", init153, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -59080,7 +59201,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
         return reject(new Error("Invalid video data: Asset is likely not a video."));
       let mediaSource = new MediaSource(), objectUrl = URL.createObjectURL(mediaSource);
       videoElement.src = objectUrl;
-      let cleanup4 = /* @__PURE__ */ __name(() => {
+      let cleanup5 = /* @__PURE__ */ __name(() => {
         videoElement.src === objectUrl && URL.revokeObjectURL(objectUrl);
       }, "cleanup"), isClosed = /* @__PURE__ */ __name(() => mediaSource.readyState !== "open", "isClosed");
       mediaSource.addEventListener("sourceopen", async () => {
@@ -59134,7 +59255,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
           }
           isClosed() || (mediaSource.endOfStream(), onProgress("Complete"), resolve(new Blob(fullFileChunks, { type: "video/webm" })));
         } catch (err4) {
-          console.error("Streamer Error:", err4), isClosed() || mediaSource.endOfStream("network"), cleanup4(), reject(err4);
+          console.error("Streamer Error:", err4), isClosed() || mediaSource.endOfStream("network"), cleanup5(), reject(err4);
         }
       });
     });
@@ -59169,17 +59290,17 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
       if (sourceBuffer.updating)
         return reject(new Error("Buffer is busy"));
       let onUpdateEnd = /* @__PURE__ */ __name(() => {
-        cleanup4(), resolve();
+        cleanup5(), resolve();
       }, "onUpdateEnd"), onError = /* @__PURE__ */ __name((e) => {
-        cleanup4(), reject(new Error("SourceBuffer append error"));
-      }, "onError"), cleanup4 = /* @__PURE__ */ __name(() => {
+        cleanup5(), reject(new Error("SourceBuffer append error"));
+      }, "onError"), cleanup5 = /* @__PURE__ */ __name(() => {
         sourceBuffer.removeEventListener("updateend", onUpdateEnd), sourceBuffer.removeEventListener("error", onError);
       }, "cleanup");
       sourceBuffer.addEventListener("updateend", onUpdateEnd), sourceBuffer.addEventListener("error", onError);
       try {
         sourceBuffer.appendBuffer(data);
       } catch (e) {
-        cleanup4(), e.name !== "InvalidStateError" && reject(e);
+        cleanup5(), e.name !== "InvalidStateError" && reject(e);
       }
     });
   }
@@ -60252,16 +60373,16 @@ function run() {
     }), nextHeaders;
   }
   __name(removeRequestHeader, "removeRequestHeader");
-  async function getSwaggerRequestBody(input, init150) {
-    return init150?.body !== void 0 ? init150.body : input instanceof Request ? await input.clone().text() : null;
+  async function getSwaggerRequestBody(input, init153) {
+    return init153?.body !== void 0 ? init153.body : input instanceof Request ? await input.clone().text() : null;
   }
   __name(getSwaggerRequestBody, "getSwaggerRequestBody");
   function getRovalraSubdomain(hostname) {
     return hostname === "rovalra.com" ? "www" : hostname.replace(".rovalra.com", "") || "apis";
   }
   __name(getRovalraSubdomain, "getRovalraSubdomain");
-  async function callSwaggerRequestThroughApi(input, init150 = {}) {
-    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init150.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init150.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
+  async function callSwaggerRequestThroughApi(input, init153 = {}) {
+    let request = input instanceof Request ? input : null, url = request ? request.url : String(input || ""), parsedUrl = new URL(url), requestHeaders = request ? request.headers : init153.headers, headers = removeRequestHeader(requestHeaders, SWAGGER_BRIDGE_HEADER), method = init153.method || request?.method || "GET", isRovalraApi = parsedUrl.hostname.endsWith("rovalra.com");
     return await callRobloxApi({
       fullUrl: url,
       endpoint: `${parsedUrl.pathname}${parsedUrl.search}`,
@@ -60269,8 +60390,8 @@ function run() {
       method,
       isRovalraApi,
       headers,
-      body: await getSwaggerRequestBody(input, init150),
-      credentials: init150.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
+      body: await getSwaggerRequestBody(input, init153),
+      credentials: init153.credentials || request?.credentials || (isRovalraApi ? "omit" : "include"),
       noCache: !0
     });
   }
@@ -60279,9 +60400,9 @@ function run() {
     if (swaggerFetchBridgeInstalled) return;
     swaggerFetchBridgeInstalled = !0;
     let originalFetch = window.fetch.bind(window);
-    window.fetch = async (input, init150 = {}) => {
-      let requestHeaders = input instanceof Request ? input.headers : init150.headers;
-      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init150) : await originalFetch(input, init150);
+    window.fetch = async (input, init153 = {}) => {
+      let requestHeaders = input instanceof Request ? input.headers : init153.headers;
+      return getRequestHeaderValue(requestHeaders, SWAGGER_BRIDGE_HEADER) ? await callSwaggerRequestThroughApi(input, init153) : await originalFetch(input, init153);
     };
   }
   __name(installSwaggerFetchBridge, "installSwaggerFetchBridge");
@@ -62097,6 +62218,7 @@ function run() {
 
   // src/content/index.js
   init_friendslist();
+  init_unfriendDetector();
 
   // src/content/core/utils/trackers/transactions.js
   init_api();
@@ -62161,6 +62283,23 @@ function run() {
     return { name: gameName, totalSpent, totalTransactions, isScanning };
   }
   __name(getGameSpending, "getGameSpending");
+  async function getAllGameSpending() {
+    let data = await getTransactionData();
+    if (!data) return { games: [], isScanning: !1 };
+    let games = /* @__PURE__ */ new Map();
+    for (let creator of Object.values(data.creators || {}))
+      for (let [id, gameData] of Object.entries(creator.games || {})) {
+        let existing = games.get(id) || {
+          id,
+          name: gameData.name || "Unknown game",
+          totalSpent: 0,
+          totalTransactions: 0
+        };
+        existing.name = gameData.name || existing.name, existing.totalSpent += Number(gameData.totalSpent) || 0, existing.totalTransactions += Number(gameData.totalTransactions) || 0, games.set(id, existing);
+      }
+    return { games: [...games.values()], isScanning: data.isScanning };
+  }
+  __name(getAllGameSpending, "getAllGameSpending");
   function initTransactionsTracking() {
     getAuthenticatedUserId().then((userId) => {
       userId && chrome.runtime.sendMessage({
@@ -62437,7 +62576,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init150 = /* @__PURE__ */ __name(() => {
+    let init153 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -62454,7 +62593,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init150() : window.addEventListener("load", init150, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init153() : window.addEventListener("load", init153, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -63978,9 +64117,9 @@ ${ts2("privateGames.disabledLinkText")}`)}
           }
           __name(handlePrivateRedirect, "handlePrivateRedirect"), (async () => {
             if (isErrorPage) {
-              let lastUrl4 = await getLastClickedUrl();
-              if (lastUrl4) {
-                let gameUrlMatch = (lastUrl4.includes("://") ? new URL(lastUrl4).pathname : lastUrl4).match(
+              let lastUrl5 = await getLastClickedUrl();
+              if (lastUrl5) {
+                let gameUrlMatch = (lastUrl5.includes("://") ? new URL(lastUrl5).pathname : lastUrl5).match(
                   /^(?:\/[a-z]{2})?\/games\/(\d+)/
                 );
                 if (gameUrlMatch) {
@@ -65125,30 +65264,23 @@ ${ts2("privateGames.disabledLinkText")}`)}
   init_getSettings();
   var ERROR_SEL = ".request-error-page-content, .default-error-page, .error-page-container", ROVALRA_ONLY_ICON = '<svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2m-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2m3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1z"></path></svg>', renderedFor = null, activeObservation = null;
   async function fetchPass(passId) {
-    let [productInfo, details] = await Promise.all([
-      callRobloxApiJson({
-        subdomain: "apis",
-        endpoint: `/game-passes/v1/game-passes/${passId}/product-info`
-      }).catch(() => null),
-      callRobloxApiJson({
-        subdomain: "apis",
-        endpoint: `/game-passes/v1/game-passes/${passId}/details`
-      }).catch(() => null)
-    ]);
-    return !productInfo && !details ? null : {
-      name: productInfo?.Name ?? details?.name ?? "",
-      description: productInfo?.Description ?? details?.description ?? "",
-      price: productInfo?.PriceInRobux ?? details?.priceInformation?.defaultPriceInRobux ?? 0,
-      isForSale: productInfo?.IsForSale ?? details?.isForSale ?? !1,
+    let productInfo = await callRobloxApiJson({
+      subdomain: "apis",
+      endpoint: `/game-passes/v1/game-passes/${passId}/product-info`
+    }).catch(() => null);
+    return productInfo ? {
+      name: productInfo.Name ?? "",
+      description: productInfo.Description ?? "",
+      price: productInfo.PriceInRobux ?? 0,
+      isForSale: productInfo.IsForSale ?? !1,
       productId: productInfo?.ProductId,
-      iconId: productInfo?.IconImageAssetId ?? details?.iconAssetId,
-      placeId: details?.placeId,
+      iconId: productInfo.IconImageAssetId,
       creator: {
-        id: productInfo?.Creator?.CreatorTargetId ?? 0,
-        name: productInfo?.Creator?.Name ?? ts2("privateGames.unknown"),
-        type: productInfo?.Creator?.CreatorType === "Group" ? "Group" : "User"
+        id: productInfo.Creator?.CreatorTargetId ?? 0,
+        name: productInfo.Creator?.Name ?? ts2("privateGames.unknown"),
+        type: productInfo.Creator?.CreatorType === "Group" ? "Group" : "User"
       }
-    };
+    } : null;
   }
   __name(fetchPass, "fetchPass");
   async function fetchPlace(placeId) {
@@ -86266,10 +86398,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init150() {
+    function init153() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init150, "init");
+    __name(init153, "init");
     function materialVariant(object) {
       let variant = 0;
       return object.isInstancedMesh && (variant += 2), object.isSkinnedMesh && (variant += 1), variant;
@@ -86315,7 +86447,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init150,
+      init: init153,
       push,
       unshift,
       finish,
@@ -86560,10 +86692,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [], lightProbeGridArray = [];
-    function init150(camera) {
+    function init153(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0, lightProbeGridArray.length = 0;
     }
-    __name(init150, "init");
+    __name(init153, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -86594,7 +86726,7 @@ Program Info Log: ` + programLog + `
       textureUnits: 0
     };
     return {
-      init: init150,
+      init: init153,
       state: state4,
       setupLights,
       setupLightsView,
@@ -89978,7 +90110,16 @@ void main() {
       let value2 = this.view.getUint8(this.viewOffset);
       return this.viewOffset += 1, value2;
     }
-  }, magic = "<roblox!", xmlMagic = "<roblox ", ParticleFlipbookLayout = {
+  }, magic = "<roblox!", xmlMagic = "<roblox ", CameraType = {
+    Fixed: 0,
+    Attach: 1,
+    Watch: 2,
+    Track: 3,
+    Follow: 4,
+    Custom: 5,
+    Scriptable: 6,
+    Orbital: 7
+  }, ParticleFlipbookLayout = {
     None: 0,
     Grid2x2: 1,
     Grid4x4: 2,
@@ -90117,7 +90258,8 @@ void main() {
     RightFoot: BodyPart.RightLeg,
     UpperTorso: BodyPart.Torso,
     LowerTorso: BodyPart.Torso
-  }, BodyPartEnumToNames = {
+  };
+  var BodyPartEnumToNames = {
     [BodyPart.Head]: ["Head"],
     [BodyPart.Torso]: ["Torso", "UpperTorso", "LowerTorso"],
     [BodyPart.LeftArm]: ["Left Arm", "LeftUpperArm", "LeftLowerArm", "LeftHand"],
@@ -92422,6 +92564,9 @@ void main() {
           throw log(!0, "actual vs required:", newPropertyNames, this.static().requiredProperties), new Error("setup() does not add all properties listed in requiredProperties");
       }
     }
+    addProp(name2, type, value2) {
+      this.instance.HasProperty(name2) || this.instance.addProperty(new Property(name2, type), value2);
+    }
     setup() {
       throw new Error("Virtual method setup() called");
     }
@@ -92453,7 +92598,7 @@ void main() {
      */
     preRender() {
     }
-  }, __vite_glob_0_13 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_14 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     GetWrapperForInstance,
     InstanceWrapper
@@ -92562,6 +92707,13 @@ void main() {
     }
     isSame(other) {
       return isSameFloat(this.X, other.X) && isSameFloat(this.Y, other.Y) && isSameFloat(this.Z, other.Z);
+    }
+    lerp(other, t3) {
+      return new _Vector3(
+        lerp(this.X, other.X, t3),
+        lerp(this.Y, other.Y, t3),
+        lerp(this.Z, other.Z, t3)
+      );
     }
     static new(X2, Y2, Z2) {
       return new _Vector3(X2, Y2, Z2);
@@ -92773,6 +92925,10 @@ void main() {
     constructor(x3 = 0, y2 = 0, z2 = 0) {
       this.Position = [x3, y2, z2];
     }
+    static Angles(x3, y2, z2) {
+      let cf = new _CFrame();
+      return cf.Orientation = [x3, y2, z2], cf;
+    }
     clone() {
       let cloneCF = new _CFrame(this.Position[0], this.Position[1], this.Position[2]);
       return cloneCF.Orientation = [this.Orientation[0], this.Orientation[1], this.Orientation[2]], cloneCF;
@@ -92829,6 +92985,14 @@ void main() {
       let matrix = new Matrix4().makeRotationFromEuler(new Euler(rx, ry, rz, order));
       return new _CFrame().fromMatrix(matrix.elements);
     }
+    rotationOnly() {
+      let copy2 = this.clone();
+      return copy2.Position = [0, 0, 0], copy2;
+    }
+    toEulerAngles(order = "XYZ") {
+      let [rx, ry, rz] = this.Orientation, euler = new Euler(rad(rx), rad(ry), rad(rz), "YXZ");
+      return euler = euler.reorder(order), euler.toArray();
+    }
     inverse() {
       let inverse = new Matrix4().fromArray(this.getMatrix()).clone();
       return inverse.invert(), new _CFrame().fromMatrix(inverse.elements);
@@ -92836,6 +93000,22 @@ void main() {
     multiply(cf) {
       let thisM = new Matrix4().fromArray(this.getMatrix()), cfM = new Matrix4().fromArray(cf.getMatrix()), newM = thisM.multiply(cfM);
       return new _CFrame().fromMatrix(newM.elements);
+    }
+    multiplyVector(vector) {
+      let vectorCF = new _CFrame(...vector.toVec3()), resultCF = this.multiply(vectorCF);
+      return new Vector3(...resultCF.Position);
+    }
+    removeNaN(newValue = 0) {
+      let newCF = new _CFrame();
+      return newCF.Position = [
+        isNaN(this.Position[0]) ? newValue : this.Position[0],
+        isNaN(this.Position[1]) ? newValue : this.Position[1],
+        isNaN(this.Position[2]) ? newValue : this.Position[2]
+      ], newCF.Orientation = [
+        isNaN(this.Orientation[0]) ? newValue : this.Orientation[0],
+        isNaN(this.Orientation[1]) ? newValue : this.Orientation[1],
+        isNaN(this.Orientation[2]) ? newValue : this.Orientation[2]
+      ], newCF;
     }
     isSame(other) {
       return isSameFloat(this.Position[0], other.Position[0]) && isSameFloat(this.Position[1], other.Position[1]) && isSameFloat(this.Position[2], other.Position[2]) && isSameFloat(this.Orientation[0], other.Orientation[0]) && isSameFloat(this.Orientation[1], other.Orientation[1]) && isSameFloat(this.Orientation[2], other.Orientation[2]);
@@ -95352,8 +95532,9 @@ void main() {
     fromJson(data) {
       return this.name = data.name, this.id = data.id, this.creator = data.creator, this.image = data.image, this.buffer = data.buffer, this.bg = data.bg || 0, this;
     }
-    update(outfit) {
-      this.buffer = arrayBufferToBase64(outfit.toBuffer()), this.image = void 0;
+    update(outfitModel) {
+      let outfit = outfitModel instanceof OutfitModel ? outfitModel.outfit : outfitModel;
+      this.buffer = arrayBufferToBase64(outfit.toBuffer()), outfitModel instanceof OutfitModel && (this.bg = outfitModel.background?.id || 0), this.image = void 0;
     }
     /**
      * @deprecated Use toOutfitModel() instead
@@ -96833,8 +97014,14 @@ void main() {
         } else
           return response;
       }, "GetAvatarDetails"),
+      GetUserAvatarModel: /* @__PURE__ */ __name(async function(userId) {
+        let response = await RBLXGet(`https://avatar.roblox.com/v4/avatar/users/${userId}?selectionTypes=0&selectionTypes=1&selectionTypes=2&selectionTypes=3&selectionTypes=4&selectionTypes=5&selectionTypes=6`);
+        if (response.status !== 200) return response;
+        let body = await response.json();
+        return new OutfitModel().fromJson(body);
+      }, "GetUserAvatarModel"),
       GetAvatarModel: /* @__PURE__ */ __name(async function() {
-        let response = await RBLXGet("https://avatar.roblox.com/v4/avatar?selectionTypes=0&selectionTypes=1&selectionTypes=2&selectionTypes=3&selectionTypes=4&selectionTypes=5");
+        let response = await RBLXGet("https://avatar.roblox.com/v4/avatar?selectionTypes=0&selectionTypes=1&selectionTypes=2&selectionTypes=3&selectionTypes=4&selectionTypes=5&selectionTypes=6");
         if (response.status !== 200) return response;
         let body = await response.json();
         return new OutfitModel().fromJson(body);
@@ -99766,7 +99953,7 @@ void main() {
     setup() {
       this.instance.HasProperty("Name") || this.instance.addProperty(new Property("Name", DataType.String), this.instance.className), this.instance.HasProperty("Attachment0") || this.instance.addProperty(new Property("Attachment0", DataType.Referent), void 0), this.instance.HasProperty("Attachment1") || this.instance.addProperty(new Property("Attachment1", DataType.Referent), void 0);
     }
-  }, __vite_glob_0_9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_10 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     ConstraintWrapper
   }, Symbol.toStringTag, { value: "Module" })), AnimationConstraintWrapper = class extends ConstraintWrapper {
@@ -101172,7 +101359,7 @@ void main() {
     fromWrapTextureTransfer(child) {
       this.wrapTextureMinBound = child.Prop("UVMinBound"), this.wrapTextureMaxBound = child.Prop("UVMaxBound");
       let wrapTarget = child.parent?.parent?.FindFirstChildOfClass("WrapTarget");
-      wrapTarget && (this.wrapTextureTarget = wrapTarget.Prop("CageMeshId"), this.wrapTextureTargetOrigin = wrapTarget.Prop("CageOrigin"));
+      wrapTarget && (this.wrapTextureTarget = wrapTarget.Prop("CageMeshId"), this.wrapTextureTargetOrigin = wrapTarget.Prop("CageOrigin").removeNaN());
     }
   }, compositMeshPaths = [
     "rbxasset://avatar/compositing/CompositFullAtlasBaseTexture.mesh",
@@ -102146,7 +102333,7 @@ void main() {
       for (let propertyName of _FaceControlsWrapper.requiredProperties)
         this.instance.HasProperty(propertyName) || this.instance.addProperty(new Property(propertyName, DataType.NonSerializable), 0);
     }
-  }, __vite_glob_0_11 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_12 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     FaceControlsWrapper
   }, Symbol.toStringTag, { value: "Module" }));
@@ -102413,21 +102600,26 @@ void main() {
     async compileResults(renderer, scene) {
       let loadingLabel = this.instance ? this.instance.GetFullName() : "unknown";
       API.Misc.startCurrentlyLoadingAssets(loadingLabel);
-      let originalResult = this.results, originalSkeletonDesc = this.skeletonDesc;
-      this.results = void 0, this.skeletonDesc = void 0;
-      let promises = [
-        this.meshDesc.compileMesh(),
-        this.materialDesc.compileMaterial(this.meshDesc)
-      ], [threeMesh, threeMaterial] = await Promise.all(promises);
-      if (!(threeMesh instanceof Mesh))
-        return warn(!0, "Failed to get mesh for objectDesc", this.instance ? this.instance.GetFullName() : "unknown"), API.Misc.stopCurrentlyLoadingAssets(loadingLabel), threeMesh;
-      if (threeMesh instanceof SkinnedMesh && (threeMaterial.skinning = !0, this.isSkinned = !0), threeMesh.material = threeMaterial, threeMesh.receiveShadow = !0, threeMaterial.needsUpdate = !0, threeMesh.visible = threeMaterial.visible, this.results = [threeMesh], this.originalScale = threeMesh.scale.clone(), !this.meshDesc.scaleIsRelative)
-        threeMesh.scale.set(this.size.X, this.size.Y, this.size.Z);
-      else {
-        let oldSize = this.originalScale;
-        threeMesh.scale.set(this.size.X / oldSize.x, this.size.Y / oldSize.y, this.size.Z / oldSize.z);
+      try {
+        let originalResult = this.results, originalSkeletonDesc = this.skeletonDesc;
+        this.results = void 0, this.skeletonDesc = void 0;
+        let promises = [
+          this.meshDesc.compileMesh(),
+          this.materialDesc.compileMaterial(this.meshDesc)
+        ], [threeMesh, threeMaterial] = await Promise.all(promises);
+        if (!(threeMesh instanceof Mesh))
+          return warn(!0, "Failed to get mesh for objectDesc", this.instance ? this.instance.GetFullName() : "unknown"), API.Misc.stopCurrentlyLoadingAssets(loadingLabel), threeMesh;
+        if (threeMesh instanceof SkinnedMesh && (threeMaterial.skinning = !0, this.isSkinned = !0), threeMesh.material = threeMaterial, threeMesh.receiveShadow = !0, threeMaterial.needsUpdate = !0, threeMesh.visible = threeMaterial.visible, this.results = [threeMesh], this.originalScale = threeMesh.scale.clone(), !this.meshDesc.scaleIsRelative)
+          threeMesh.scale.set(this.size.X, this.size.Y, this.size.Z);
+        else {
+          let oldSize = this.originalScale;
+          threeMesh.scale.set(this.size.X / oldSize.x, this.size.Y / oldSize.y, this.size.Z / oldSize.z);
+        }
+        SkeletonDesc.descNeedsSkeleton(this.meshDesc) ? this.skeletonDesc = new SkeletonDesc(this, this.meshDesc, scene) : this.meshDesc.fileMesh = void 0, originalResult && this.disposeMeshes(scene, originalResult), originalSkeletonDesc && this.disposeSkeleton(scene, originalSkeletonDesc), originalResult && this.disposeRenderLists(renderer);
+      } finally {
+        API.Misc.stopCurrentlyLoadingAssets(loadingLabel);
       }
-      return SkeletonDesc.descNeedsSkeleton(this.meshDesc) ? this.skeletonDesc = new SkeletonDesc(this, this.meshDesc, scene) : this.meshDesc.fileMesh = void 0, originalResult && this.disposeMeshes(scene, originalResult), originalSkeletonDesc && this.disposeSkeleton(scene, originalSkeletonDesc), originalResult && this.disposeRenderLists(renderer), API.Misc.stopCurrentlyLoadingAssets(loadingLabel), this.results;
+      return this.results;
     }
     getScale() {
       if (!this.results)
@@ -103093,7 +103285,7 @@ void main() {
     tick(deltaTime = 1 / 60) {
       let addTime = deltaTime * this.pSpeed;
       this.pFadedTime += addTime;
-      let newWeight = lerp(this.pOriginalWeight, this.pTargetWeight, specialClamp(this.pFadedTime / this.pFadeTime, 0, 1));
+      let newWeight = this.pFadeTime === 0 ? this.pTargetWeight : lerp(this.pOriginalWeight, this.pTargetWeight, specialClamp(this.pFadedTime / this.pFadeTime, 0, 1));
       this.weight = newWeight;
       let ogTime = this.timePosition;
       return this.weight >= 0.01 && this.setTime(this.timePosition += addTime), ogTime + addTime >= this.length && this.weight >= 1e-5;
@@ -103115,6 +103307,7 @@ void main() {
     toolTracks = [];
     toolAddedConnection;
     toolRemovedConnection;
+    forceTransitionTime;
   }, AnimatorWrapper = class extends InstanceWrapper {
     static {
       __name(this, "AnimatorWrapper");
@@ -103163,14 +103356,14 @@ void main() {
       let realId = BigInt(API.Misc.idFromStr(id));
       return this.data.animationTracks.get(realId);
     }
-    _switchAnimation(name2) {
+    _switchAnimation(name2, subAnimSpecifier) {
       let transitionTime = 0.2;
       name2 === this.data.currentAnimation && (transitionTime = 0.15), (name2 === "jump" || name2 === "climb") && (transitionTime = 0.1), this.data.currentAnimation = name2;
       let toPlayTrack;
       if (!name2.startsWith("emote.") && !name2.startsWith("id.")) {
         let entries2 = this.data.animationSet[name2];
         if (entries2 && entries2.length > 0) {
-          let entry = this._pickRandom(entries2);
+          let entry = subAnimSpecifier !== void 0 && subAnimSpecifier >= 0 ? entries2[subAnimSpecifier] : this._pickRandom(entries2);
           entry && (toPlayTrack = this._getTrack(entry.id));
         }
       } else if (name2.startsWith("emote.")) {
@@ -103180,7 +103373,7 @@ void main() {
         let animId = BigInt(name2.split(".")[1]);
         toPlayTrack = this.data.animationTracks.get(animId);
       }
-      return toPlayTrack !== this.data.currentAnimationTrack && (toPlayTrack || name2 === "") && (toPlayTrack && (toPlayTrack.animatesParts = !0), this.data.currentAnimationTrack && this.data.currentAnimationTrack.Stop(transitionTime), this.data.currentAnimationTrack = void 0, this.data.currentAnimationTrack = toPlayTrack, toPlayTrack && toPlayTrack.Play(transitionTime)), !!toPlayTrack;
+      return toPlayTrack !== this.data.currentAnimationTrack && (toPlayTrack || name2 === "") && (toPlayTrack && (toPlayTrack.animatesParts = !0), this.data.currentAnimationTrack && this.data.currentAnimationTrack.Stop(transitionTime), this.data.currentAnimationTrack = void 0, this.data.currentAnimationTrack = toPlayTrack, toPlayTrack && toPlayTrack.Play(this.data.forceTransitionTime === void 0 ? transitionTime : this.data.forceTransitionTime)), !!toPlayTrack;
     }
     stopMoodAnimation() {
       this.data.currentMoodAnimationTrack && this.data.currentMoodAnimationTrack.Stop(), this.data.currentMoodAnimationTrack = void 0, this.data.currentMoodAnimation = void 0;
@@ -103193,7 +103386,7 @@ void main() {
         let entry = this._pickRandom(entries2);
         entry && (toPlayTrack = this._getTrack(entry.id));
       }
-      return toPlayTrack !== this.data.currentMoodAnimationTrack && toPlayTrack && (toPlayTrack.animatesParts = !1, this.data.currentMoodAnimationTrack && this.data.currentMoodAnimationTrack.Stop(transitionTime), this.data.currentMoodAnimationTrack = void 0, this.data.moodTracks.includes(toPlayTrack) || this.data.moodTracks.push(toPlayTrack), this.data.currentMoodAnimationTrack = toPlayTrack, toPlayTrack.Play(transitionTime)), !!toPlayTrack;
+      return toPlayTrack !== this.data.currentMoodAnimationTrack && toPlayTrack && (toPlayTrack.animatesParts = !1, this.data.currentMoodAnimationTrack && this.data.currentMoodAnimationTrack.Stop(transitionTime), this.data.currentMoodAnimationTrack = void 0, this.data.moodTracks.includes(toPlayTrack) || this.data.moodTracks.push(toPlayTrack), this.data.currentMoodAnimationTrack = toPlayTrack, toPlayTrack.Play(this.data.forceTransitionTime === void 0 ? transitionTime : this.data.forceTransitionTime)), !!toPlayTrack;
     }
     stopToolAnimation() {
       this.data.currentToolAnimationTrack && this.data.currentToolAnimationTrack.Stop(), this.data.currentToolAnimationTrack = void 0, this.data.currentToolAnimation = void 0;
@@ -103206,7 +103399,7 @@ void main() {
         let entry = this._pickRandom(entries2);
         entry && (toPlayTrack = this._getTrack(entry.id));
       }
-      return toPlayTrack !== this.data.currentToolAnimationTrack && toPlayTrack && (toPlayTrack.animatesParts = !0, this.data.currentToolAnimationTrack && this.data.currentToolAnimationTrack.Stop(transitionTime), this.data.currentToolAnimationTrack = void 0, this.data.toolTracks.includes(toPlayTrack) || this.data.toolTracks.push(toPlayTrack), this.data.currentToolAnimationTrack = toPlayTrack, toPlayTrack.Play(transitionTime)), !!toPlayTrack;
+      return toPlayTrack !== this.data.currentToolAnimationTrack && toPlayTrack && (toPlayTrack.animatesParts = !0, this.data.currentToolAnimationTrack && this.data.currentToolAnimationTrack.Stop(transitionTime), this.data.currentToolAnimationTrack = void 0, this.data.toolTracks.includes(toPlayTrack) || this.data.toolTracks.push(toPlayTrack), this.data.currentToolAnimationTrack = toPlayTrack, toPlayTrack.Play(this.data.forceTransitionTime === void 0 ? transitionTime : this.data.forceTransitionTime)), !!toPlayTrack;
     }
     isValidTrackForSet(track, name2) {
       if (this.data.animationSet[name2]) {
@@ -103362,7 +103555,7 @@ void main() {
     }
     /**
      * Switches to new animation
-     * @param name Animation name, such as "idle", "walk", "emote.1234" or "id.1234"
+     * @param name Animation name, such as "idle", "walk", "emote.1234" or "id.1234", can also specify sub animation like "idle:0"
      * @param type 
      * @returns If animation sucessfully played
      */
@@ -103371,9 +103564,15 @@ void main() {
       if (!humanoid)
         throw new Error("Parent is missing from Animator");
       let humanoidDescription = humanoid.FindFirstChildOfClass("HumanoidDescription"), staticFacialAnimation = !1;
-      switch (humanoidDescription && (staticFacialAnimation = humanoidDescription.Prop("StaticFacialAnimation"), staticFacialAnimation && this.restPose(!1, !0)), type) {
+      humanoidDescription && (staticFacialAnimation = humanoidDescription.Prop("StaticFacialAnimation"), staticFacialAnimation && this.restPose(!1, !0));
+      let subAnimSpecifier = -1;
+      if (name2.includes(":")) {
+        let splitName = name2.split(":");
+        name2 = splitName[0], subAnimSpecifier = Number(splitName[1]);
+      }
+      switch (type) {
         case "main":
-          return this.data.currentAnimation !== name2 ? (!name2.startsWith("emote.") || staticFacialAnimation ? this.playAnimation("mood", "mood") : this.stopMoodAnimation(), log(!1, "playing", name2), this._switchAnimation(name2)) : !0;
+          return this.data.currentAnimation !== name2 ? (!name2.startsWith("emote.") || staticFacialAnimation ? this.playAnimation("mood", "mood") : this.stopMoodAnimation(), log(!1, "playing", name2), log(!1, this.data.forceTransitionTime), this._switchAnimation(name2, subAnimSpecifier)) : !0;
         case "mood":
           return this.data.currentMoodAnimation !== name2 ? (log(!1, "playing", name2), this._switchMoodAnimation(name2)) : !0;
         case "tool":
@@ -103483,6 +103682,23 @@ void main() {
   }, __vite_glob_0_8 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     BoneWrapper
+  }, Symbol.toStringTag, { value: "Module" })), CameraWrapper = class extends InstanceWrapper {
+    static {
+      __name(this, "CameraWrapper");
+    }
+    static className = "Camera";
+    static requiredProperties = [
+      "Name",
+      "CFrame",
+      "CameraType",
+      "FieldOfView"
+    ];
+    setup() {
+      this.addProp("Name", DataType.String, this.instance.className), this.addProp("CFrame", DataType.CFrame, new CFrame()), this.addProp("CameraType", DataType.Enum, CameraType.Fixed), this.addProp("FieldOfView", DataType.Float32, 70);
+    }
+  }, __vite_glob_0_9 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    CameraWrapper
   }, Symbol.toStringTag, { value: "Module" })), DecalWrapper = class extends InstanceWrapper {
     static {
       __name(this, "DecalWrapper");
@@ -103500,7 +103716,7 @@ void main() {
     setup() {
       this.instance.HasProperty("Name") || this.instance.addProperty(new Property("Name", DataType.String), this.instance.className), this.instance.HasProperty("ZIndex") || this.instance.addProperty(new Property("ZIndex", DataType.Int32), 1), this.instance.HasProperty("Texture") || this.instance.addProperty(new Property("Texture", DataType.Content), new Content()), this.instance.HasProperty("Face") || this.instance.addProperty(new Property("Face", DataType.Enum), NormalId.Front), this.instance.HasProperty("Transparency") || this.instance.addProperty(new Property("Transparency", DataType.Float32), 0), this.instance.HasProperty("UVOffset") || this.instance.addProperty(new Property("UVOffset", DataType.Vector2), new Vector2()), this.instance.HasProperty("UVScale") || this.instance.addProperty(new Property("UVScale", DataType.Vector2), new Vector2());
     }
-  }, __vite_glob_0_10 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_11 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     DecalWrapper
   }, Symbol.toStringTag, { value: "Module" }));
@@ -103557,7 +103773,7 @@ void main() {
     setup() {
       this.instance.HasProperty("Name") || this.instance.addProperty(new Property("Name", DataType.String), this.instance.className), this.instance.HasProperty("AssetId") || this.instance.addProperty(new Property("AssetId", DataType.Int64), 0n), this.instance.HasProperty("MakeupType") || this.instance.addProperty(new Property("MakeupType", DataType.Enum), MakeupType.Face), this.instance.HasProperty("Order") || this.instance.addProperty(new Property("Order", DataType.Int32), 1), this.instance.HasProperty("Instance") || this.instance.addProperty(new Property("Instance", DataType.Referent), void 0);
     }
-  }, __vite_glob_0_15 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_16 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     MakeupDescriptionWrapper
   }, Symbol.toStringTag, { value: "Module" }));
@@ -104286,12 +104502,12 @@ void main() {
         if (this.instance.PropOrDefault(animationProp, 0n) > 0n && avatarType === AvatarType.R15) {
           let id = this.instance.Prop(animationProp);
           promises.push(new Promise((resolve) => {
-            animatorW.loadAvatarAnimation(id, !1, !0).then((result) => {
+            animationProp === "IdleAnimation" && delete animatorW.data.animationSet.pose, animatorW.loadAvatarAnimation(id, !1, !0).then((result) => {
               resolve(result);
             });
           }));
         } else
-          this._loadDefaultAnimation(animationProp, avatarType, animatorW, promises);
+          this._loadDefaultAnimation(animationProp, avatarType, animatorW, promises), animationProp === "IdleAnimation" && !toChange.includes("pose") && this._loadDefaultAnimation("pose", avatarType, animatorW, promises);
       let values = await Promise.all(promises);
       if (!this.cancelApply) {
         for (let value2 of values)
@@ -104360,7 +104576,7 @@ void main() {
         return this.instance.setParent(humanoid), this.instance;
       }
     }
-  }, __vite_glob_0_12 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_13 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     HumanoidDescriptionWrapper
   }, Symbol.toStringTag, { value: "Module" })), JointInstanceWrapperData = class {
@@ -104446,7 +104662,7 @@ void main() {
         }), this.instance.addConnectionReference(this.data.part0ChangedConnection));
       }
     }
-  }, __vite_glob_0_14 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_15 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     JointInstanceWrapper
   }, Symbol.toStringTag, { value: "Module" })), ManualWeldWrapper = class extends JointInstanceWrapper {
@@ -104454,7 +104670,7 @@ void main() {
       __name(this, "ManualWeldWrapper");
     }
     static className = "ManualWeld";
-  }, __vite_glob_0_16 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_17 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     ManualWeldWrapper
   }, Symbol.toStringTag, { value: "Module" })), MeshPartWrapper = class extends BasePartWrapper {
@@ -104469,7 +104685,7 @@ void main() {
     setup() {
       super.setup(), this.instance.HasProperty("DoubleSided") || this.instance.addProperty(new Property("DoubleSided", DataType.Bool), !1);
     }
-  }, __vite_glob_0_17 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     MeshPartWrapper
   }, Symbol.toStringTag, { value: "Module" })), ModelWrapper = class extends InstanceWrapper {
@@ -104487,7 +104703,7 @@ void main() {
         return primaryPart.Prop("CFrame");
       throw new Error("Model has no PrimaryPart");
     }
-  }, __vite_glob_0_18 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_19 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     ModelWrapper
   }, Symbol.toStringTag, { value: "Module" })), Motor6DWrapper = class extends JointInstanceWrapper {
@@ -104502,7 +104718,7 @@ void main() {
     setup() {
       super.setup(), this.instance.HasProperty("Transform") || this.instance.addProperty(new Property("Transform", DataType.CFrame), new CFrame());
     }
-  }, __vite_glob_0_19 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_20 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     Motor6DWrapper
   }, Symbol.toStringTag, { value: "Module" })), PartWrapper = class extends BasePartWrapper {
@@ -104517,7 +104733,7 @@ void main() {
     setup() {
       super.setup(), this.instance.HasProperty("shape") || this.instance.addProperty(new Property("shape", DataType.Enum), PartType.Block);
     }
-  }, __vite_glob_0_20 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_21 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     PartWrapper
   }, Symbol.toStringTag, { value: "Module" })), particle_vertexShader = (
@@ -105167,7 +105383,7 @@ if (opacityColor.r + opacityColor.g + opacityColor.b <= 0.05) {
             for (let i2 = 0; i2 < count; i2++)
               emitterDesc.emit(renderDesc, !0);
     }
-  }, __vite_glob_0_21 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_22 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     ParticleEmitterWrapper
   }, Symbol.toStringTag, { value: "Module" })), SoundWrapperData = class {
@@ -105229,7 +105445,7 @@ if (opacityColor.r + opacityColor.g + opacityColor.b <= 0.05) {
     Stop() {
       this.setPlaying(!1), this.data.playingSource && (this.data.playingSource.stop(), this.data.playingSource = void 0);
     }
-  }, __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     SoundWrapper
   }, Symbol.toStringTag, { value: "Module" })), ScriptWrapperData = class {
@@ -105327,7 +105543,7 @@ if (opacityColor.r + opacityColor.g + opacityColor.b <= 0.05) {
         }
       }
     }
-  }, __vite_glob_0_22 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_23 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     ScriptWrapper
   }, Symbol.toStringTag, { value: "Module" })), ToolWrapper = class extends InstanceWrapper {
@@ -105368,7 +105584,7 @@ if (opacityColor.r + opacityColor.g + opacityColor.b <= 0.05) {
         }
       }
     }
-  }, __vite_glob_0_24 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     ToolWrapper
   }, Symbol.toStringTag, { value: "Module" })), WedgePartWrapper = class extends BasePartWrapper {
@@ -105376,7 +105592,7 @@ if (opacityColor.r + opacityColor.g + opacityColor.b <= 0.05) {
       __name(this, "WedgePartWrapper");
     }
     static className = "WedgePart";
-  }, __vite_glob_0_25 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     WedgePartWrapper
   }, Symbol.toStringTag, { value: "Module" })), WeldWrapper = class extends JointInstanceWrapper {
@@ -105384,10 +105600,10 @@ if (opacityColor.r + opacityColor.g + opacityColor.b <= 0.05) {
       __name(this, "WeldWrapper");
     }
     static className = "Weld";
-  }, __vite_glob_0_26 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+  }, __vite_glob_0_27 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
     __proto__: null,
     WeldWrapper
-  }, Symbol.toStringTag, { value: "Module" })), modules$1 = /* @__PURE__ */ Object.assign({ "./instance/Accessory.ts": __vite_glob_0_0$1, "./instance/AccessoryDescription.ts": __vite_glob_0_1$1, "./instance/AnimationConstraint.ts": __vite_glob_0_2$1, "./instance/Animator.ts": __vite_glob_0_3, "./instance/Attachment.ts": __vite_glob_0_4, "./instance/BasePart.ts": __vite_glob_0_5, "./instance/BodyColors.ts": __vite_glob_0_6, "./instance/BodyPartDescription.ts": __vite_glob_0_7, "./instance/Bone.ts": __vite_glob_0_8, "./instance/Constraint.ts": __vite_glob_0_9, "./instance/Decal.ts": __vite_glob_0_10, "./instance/FaceControls.ts": __vite_glob_0_11, "./instance/HumanoidDescription.ts": __vite_glob_0_12, "./instance/InstanceWrapper.ts": __vite_glob_0_13, "./instance/JointInstance.ts": __vite_glob_0_14, "./instance/MakeupDescription.ts": __vite_glob_0_15, "./instance/ManualWeld.ts": __vite_glob_0_16, "./instance/MeshPart.ts": __vite_glob_0_17, "./instance/Model.ts": __vite_glob_0_18, "./instance/Motor6D.ts": __vite_glob_0_19, "./instance/Part.ts": __vite_glob_0_20, "./instance/ParticleEmitter.ts": __vite_glob_0_21, "./instance/Script.ts": __vite_glob_0_22, "./instance/Sound.ts": __vite_glob_0_23, "./instance/Tool.ts": __vite_glob_0_24, "./instance/WedgePart.ts": __vite_glob_0_25, "./instance/Weld.ts": __vite_glob_0_26 });
+  }, Symbol.toStringTag, { value: "Module" })), modules$1 = /* @__PURE__ */ Object.assign({ "./instance/Accessory.ts": __vite_glob_0_0$1, "./instance/AccessoryDescription.ts": __vite_glob_0_1$1, "./instance/AnimationConstraint.ts": __vite_glob_0_2$1, "./instance/Animator.ts": __vite_glob_0_3, "./instance/Attachment.ts": __vite_glob_0_4, "./instance/BasePart.ts": __vite_glob_0_5, "./instance/BodyColors.ts": __vite_glob_0_6, "./instance/BodyPartDescription.ts": __vite_glob_0_7, "./instance/Bone.ts": __vite_glob_0_8, "./instance/Camera.ts": __vite_glob_0_9, "./instance/Constraint.ts": __vite_glob_0_10, "./instance/Decal.ts": __vite_glob_0_11, "./instance/FaceControls.ts": __vite_glob_0_12, "./instance/HumanoidDescription.ts": __vite_glob_0_13, "./instance/InstanceWrapper.ts": __vite_glob_0_14, "./instance/JointInstance.ts": __vite_glob_0_15, "./instance/MakeupDescription.ts": __vite_glob_0_16, "./instance/ManualWeld.ts": __vite_glob_0_17, "./instance/MeshPart.ts": __vite_glob_0_18, "./instance/Model.ts": __vite_glob_0_19, "./instance/Motor6D.ts": __vite_glob_0_20, "./instance/Part.ts": __vite_glob_0_21, "./instance/ParticleEmitter.ts": __vite_glob_0_22, "./instance/Script.ts": __vite_glob_0_23, "./instance/Sound.ts": __vite_glob_0_24, "./instance/Tool.ts": __vite_glob_0_25, "./instance/WedgePart.ts": __vite_glob_0_26, "./instance/Weld.ts": __vite_glob_0_27 });
   function RegisterWrappers() {
     for (let module of Object.values(modules$1))
       for (let exprt of Object.values(module)) {
@@ -109761,7 +109977,92 @@ return orthographicDepthToViewZ(depth,cameraNear,cameraFar);
         this.outerThresholds[i2] = dist / 2;
       }
     }
-  }, BackgroundRenderer = class {
+  };
+  var HEAD_X_ROTATION_RAD = rad(15), HEAD_Y_ROTATION_RAD = rad(30), FACE_LEFT_CFRAME = CFrame.fromEulerAngles(rad(-20), rad(20), 0, "YXZ"), FACE_RIGHT_CFRAME = CFrame.fromEulerAngles(rad(-20), rad(-20), 0, "YXZ");
+  var ACCESSORY_DEFAULT_CFRAME = CFrame.Angles(rad(25), rad(25), rad(0));
+  var LEFT_SHOE_CFRAME = CFrame.Angles(rad(0), rad(90), rad(0)), RIGHT_SHOE_CFRAME = CFrame.Angles(rad(0), rad(-90), rad(0));
+  var CONSTANTS_CameraPresetsUtility = {
+    GOLDEN_RATIO: 600 / 1e3,
+    //game:DefineFastInt("AvatarGoldenRatio", 618) / 1000 -- = 0.618
+    UPVECTOR_ORENTATION_TRESHOLD: -60 / 100,
+    //game:DefineFastInt("UpVectorOrentationThreshold1", -60) / 100 // = -0.6
+    AVATAR_ROTATION_DEGREE: 15
+    //game:DefineFastInt("LookAvatarRotationDegree1", 23)
+  };
+  function getCorners(cframe, size) {
+    let halfX = size.X / 2, halfY = size.Y / 2, halfZ = size.Z / 2;
+    return [
+      cframe.multiply(new CFrame(halfX, halfY, halfZ)),
+      cframe.multiply(new CFrame(halfX, halfY, -halfZ)),
+      cframe.multiply(new CFrame(-halfX, halfY, halfZ)),
+      cframe.multiply(new CFrame(-halfX, halfY, -halfZ)),
+      cframe.multiply(new CFrame(halfX, -halfY, halfZ)),
+      cframe.multiply(new CFrame(halfX, -halfY, -halfZ)),
+      cframe.multiply(new CFrame(-halfX, -halfY, halfZ)),
+      cframe.multiply(new CFrame(-halfX, -halfY, -halfZ))
+    ];
+  }
+  __name(getCorners, "getCorners");
+  function getLower(a, b3) {
+    return new Vector3(
+      a.X < b3.X ? a.X : b3.X,
+      a.Y < b3.Y ? a.Y : b3.Y,
+      a.Z < b3.Z ? a.Z : b3.Z
+    );
+  }
+  __name(getLower, "getLower");
+  function getHigher(a, b3) {
+    return new Vector3(
+      a.X > b3.X ? a.X : b3.X,
+      a.Y > b3.Y ? a.Y : b3.Y,
+      a.Z > b3.Z ? a.Z : b3.Z
+    );
+  }
+  __name(getHigher, "getHigher");
+  function getExtentsForParts(parts, includeTransform) {
+    let lowerExtents = new Vector3(0, 0, 0), higherExtents = new Vector3(0, 0, 0);
+    for (let child of parts)
+      if (child.createWrapper()?.IsA("BasePart")) {
+        let cframe = traverseRigCFrame(child, includeTransform, !0), size = child.Prop("Size"), corners = getCorners(cframe, size);
+        for (let corner of corners)
+          lowerExtents = getLower(lowerExtents, new Vector3().fromVec3(corner.Position)), higherExtents = getHigher(higherExtents, new Vector3().fromVec3(corner.Position));
+      }
+    return [lowerExtents, higherExtents];
+  }
+  __name(getExtentsForParts, "getExtentsForParts");
+  function getExtents(cframe, parts) {
+    let inverseCF = cframe.inverse(), lowerExtents = new Vector3(0, 0, 0), higherExtents = new Vector3(0, 0, 0);
+    for (let child of parts)
+      if (child.createWrapper()?.IsA("BasePart")) {
+        let partCF = child.Prop("CFrame"), partSize = child.Prop("Size"), corners = getCorners(inverseCF.multiply(partCF), partSize);
+        for (let corner of corners)
+          lowerExtents = getLower(lowerExtents, new Vector3().fromVec3(corner.Position)), higherExtents = getHigher(higherExtents, new Vector3().fromVec3(corner.Position));
+      }
+    return [lowerExtents, higherExtents];
+  }
+  __name(getExtents, "getExtents");
+  function zoomExtents(cameraCFrame, modelCFrame, modelSize, targetFOV, distanceScale, sizeType = "calculate") {
+    let largestSize = Math.max(modelSize.X, modelSize.Y, modelSize.Z);
+    sizeType === "calculate" && (largestSize = modelSize.magnitude() / 2 / Math.sin(rad(targetFOV / 2)));
+    let fovMultiplier = sizeType === "largestAxis" ? 70 / targetFOV : 1, lookDir = multiply(normalize(minus(cameraCFrame.Position, modelCFrame.Position)), [distanceScale, distanceScale, distanceScale]);
+    cameraCFrame.Position = add(modelCFrame.Position, multiply(multiply(lookDir, [largestSize, largestSize, largestSize]), [fovMultiplier, fovMultiplier, fovMultiplier]));
+  }
+  __name(zoomExtents, "zoomExtents");
+  function getHeadExtents(rig) {
+    let head = rig.FindFirstChild("Head");
+    if (!head) return;
+    let headParts = [];
+    for (let child of rig.GetDescendants())
+      if (child === head)
+        headParts.push(head);
+      else {
+        let weld = child.FindFirstChildOfClass("Weld");
+        weld && child.parent && child.parent.className === "Accessory" && (weld.Prop("Part0") === head || weld.Prop("Part1") === head) && headParts.push(child);
+      }
+    return getExtents(head.Prop("CFrame"), headParts);
+  }
+  __name(getHeadExtents, "getHeadExtents");
+  var BackgroundRenderer = class {
     static {
       __name(this, "BackgroundRenderer");
     }
@@ -109902,7 +110203,7 @@ return orthographicDepthToViewZ(depth,cameraNear,cameraFar);
     doCameraUpdate = !1;
     /**Does camera update every frame */
     doAddInstance = !0;
-    /**If outfitRenderer should call RBXRenderer.addInstance() */
+    /**If outfitRenderer should call RBXRenderer.addInstance(), setting this to false will make OutfitRenderer return success early */
     forceAnimationLoop = !0;
     /**If future loaded animations should be set to loop */
     backgroundRenderer;
@@ -109944,6 +110245,16 @@ return orthographicDepthToViewZ(depth,cameraNear,cameraFar);
      * @returns void
      */
     onRenderError = new Event2();
+    get humanoid() {
+      return this.currentRig?.FindFirstChildOfClass("Humanoid");
+    }
+    get animator() {
+      return this.humanoid?.FindFirstChildOfClass("Animator");
+    }
+    get animatorW() {
+      let animator = this.animator;
+      if (animator) return new AnimatorWrapper(animator);
+    }
     /**
      * Creates a new OutfitRenderer which makes it easy to render outfits
      * @param auth The authentication object, you should have one you use for everything
@@ -110050,8 +110361,27 @@ return orthographicDepthToViewZ(depth,cameraNear,cameraFar);
       this.animationInterval && (clearInterval(this.animationInterval), this.animationInterval = void 0);
     }
     /**
+     * Checks if the provided animation set is loaded
+     * @param name The name of the animation, for example "idle", "run", but NOT "emote.1234" or "id.1234" as they are not in the animation set
+     * @returns If the animation is loaded
+     */
+    hasAnimationSetAnimation(name2) {
+      if (this.currentRig) {
+        let humanoid = this.currentRig.FindFirstChildOfClass("Humanoid");
+        if (humanoid) {
+          let animator = humanoid.FindFirstChildOfClass("Animator");
+          if (animator) {
+            let entries2 = new AnimatorWrapper(animator).data.animationSet[name2];
+            if (entries2)
+              return entries2.length > 0;
+          }
+        }
+      }
+      return !1;
+    }
+    /**
      * Sets the current animation being played
-     * @param name The name of the animation, for example "idle", "run", "emote.1234" or "anim.1234"
+     * @param name The name of the animation, for example "idle", "run", "emote.1234" or "id.1234"
      * @returns If the animation started playing, it may start playing later if it has been queued despite returning false
      */
     setMainAnimation(name2) {
@@ -110108,17 +110438,20 @@ return orthographicDepthToViewZ(depth,cameraNear,cameraFar);
       return result;
     }
     async _prepareForThumbnail() {
-      return this.doAddInstance = !1, this.outfit.playerAvatarType === AvatarType.R6 && (this.deltaTimeMultiplier = 0), await new Promise((resolve) => {
+      return this.doAddInstance = !1, this.backgroundRenderer.affectSceneAppearance = !1, this.backgroundRenderer.cameraAffectsTransparency = !1, this.outfit.playerAvatarType === AvatarType.R6 && (this.deltaTimeMultiplier = 0), await new Promise((resolve) => {
         this.onSuccess.Connect(() => {
-          this.outfit.containsAssetType("Gear") ? this.setMainAnimation("toolnone").then(() => {
+          let animatorW = this.animatorW;
+          animatorW && (animatorW.data.forceTransitionTime = 0), this.outfit.containsAssetType("Gear") ? this.setMainAnimation("toolnone").then(() => {
             resolve(void 0);
-          }) : this.outfit.playerAvatarType === AvatarType.R15 ? this.setMainAnimation("pose").then(() => {
+          }) : this.outfit.playerAvatarType === AvatarType.R15 ? this.hasAnimationSetAnimation("pose") ? this.setMainAnimation("pose").then(() => {
             resolve(void 0);
-          }) : this.setMainAnimation("idle").then(() => {
+          }) : this.setMainAnimation("idle:0").then(() => {
+            resolve(void 0);
+          }) : this.setMainAnimation("idle:0").then(() => {
             resolve(void 0);
           });
         });
-      }), this.animateOnce(!this.outfit.containsAssetType("Gear") && this.outfit.playerAvatarType === AvatarType.R6 ? 0 : 1), this.currentRig && RBXRenderer.addInstance(this.currentRig, this.auth, this.renderScene), await new Promise((resolve) => {
+      }), this.animateOnce(0), this.outfit.playerAvatarType !== AvatarType.R6 && this.animatorW?.data.currentAnimation === "idle" && this.animateOnce((this.animatorW?.data.currentAnimationTrack?.length || 0) / 2), this.currentRig && RBXRenderer.addInstance(this.currentRig, this.auth, this.renderScene), this.hasFiredFullyRendered = !1, await new Promise((resolve) => {
         let connection = this.onRenderSuccess.Connect(() => {
           resolve(void 0), connection.Disconnect();
         });
@@ -114092,8 +114425,8 @@ Bundled Items:
         })
       );
     });
-    let cleanup4 = setupDragList(list, classNamePrefix);
-    return container.appendChild(list), { container, list, cleanup: cleanup4 };
+    let cleanup5 = setupDragList(list, classNamePrefix);
+    return container.appendChild(list), { container, list, cleanup: cleanup5 };
   }
   __name(createLayoutEditorBody, "createLayoutEditorBody");
 
@@ -114245,7 +114578,7 @@ Bundled Items:
   }
   __name(createSidebarLayoutBody, "createSidebarLayoutBody");
   function openSidebarLayoutOverlay() {
-    let sidebarItems = getSidebarItems(currentSidebar), nextHiddenKeys = new Set(hiddenSidebarKeys), { container, list, cleanup: cleanup4 } = createSidebarLayoutBody(
+    let sidebarItems = getSidebarItems(currentSidebar), nextHiddenKeys = new Set(hiddenSidebarKeys), { container, list, cleanup: cleanup5 } = createSidebarLayoutBody(
       sidebarItems,
       nextHiddenKeys
     ), overlayHandle = null, resetButton = createButton(locale.reset, "secondary", {
@@ -114280,7 +114613,7 @@ Bundled Items:
       actions: [resetButton, saveButton],
       maxWidth: "620px",
       showLogo: !0,
-      onClose: cleanup4
+      onClose: cleanup5
     });
   }
   __name(openSidebarLayoutOverlay, "openSidebarLayoutOverlay");
@@ -114912,7 +115245,7 @@ Bundled Items:
   function openTopbarLayoutOverlay() {
     let topbarRoot = currentTopbarRoot?.isConnected ? currentTopbarRoot : document.querySelector(TOPBAR_ROOT_SELECTOR2), topbarItems = getTopbarItems(topbarRoot);
     saveOriginalOrder2(topbarItems);
-    let nextHiddenKeys = new Set(hiddenTopbarKeys), { container, list, cleanup: cleanup4 } = createTopbarLayoutBody(
+    let nextHiddenKeys = new Set(hiddenTopbarKeys), { container, list, cleanup: cleanup5 } = createTopbarLayoutBody(
       topbarItems,
       nextHiddenKeys
     ), overlayHandle = null, resetButton = createButton(locale2.reset, "secondary", {
@@ -114948,7 +115281,7 @@ Bundled Items:
       bodyContent: container,
       actions: [resetButton, saveButton],
       maxWidth: "620px",
-      onClose: cleanup4
+      onClose: cleanup5
     });
   }
   __name(openTopbarLayoutOverlay, "openTopbarLayoutOverlay");
@@ -115631,20 +115964,14 @@ Bundled Items:
   }
   __name(findEligibilityFlag, "findEligibilityFlag");
   async function fetchGamePass(gamePassId) {
-    let [productInfo, details] = await Promise.all([
-      callRobloxApiJson({
-        subdomain: "apis",
-        endpoint: `/game-passes/v1/game-passes/${gamePassId}/product-info`
-      }).catch(() => null),
-      callRobloxApiJson({
-        subdomain: "apis",
-        endpoint: `/game-passes/v1/game-passes/${gamePassId}/details`
-      }).catch(() => null)
-    ]);
-    return !productInfo && !details ? null : {
-      name: productInfo?.Name ?? details?.name ?? "Bonus item",
-      iconId: productInfo?.IconImageAssetId ?? details?.iconAssetId
-    };
+    let productInfo = await callRobloxApiJson({
+      subdomain: "apis",
+      endpoint: `/game-passes/v1/game-passes/${gamePassId}/product-info`
+    }).catch(() => null);
+    return productInfo ? {
+      name: productInfo.Name ?? "Bonus item",
+      iconId: productInfo.IconImageAssetId
+    } : null;
   }
   __name(fetchGamePass, "fetchGamePass");
   async function isEligibleForPersonalizedBonus() {
@@ -149069,6 +149396,446 @@ Markdown test
   }
   __name(init84, "init");
 
+  // src/content/features/transactions/spentPerGame.js
+  init_observer();
+  init_thumbnails();
+  init_dropdown();
+  init_input();
+  init_games();
+  init_shimmer();
+  init_i18n();
+  init_getSettings();
+  init_assets();
+  var ROW_SELECTOR2 = "#transactions-web-app .summary table.summary tr", ROW_MARKER = "data-rovalra-spent-per-game", TRANSACTIONS_DATA_KEY2 = "rovalra_transactions_v2", INITIAL_GAME_COUNT = 5, GAME_PAGE_SIZE = 5, SORTS = [
+    { value: "spent", label: "spentPerGame.mostSpent" },
+    { value: "transactions", label: "spentPerGame.mostPurchases" }
+  ];
+  async function loadGameSpending() {
+    return getAllGameSpending();
+  }
+  __name(loadGameSpending, "loadGameSpending");
+  async function loadGameDetails(games) {
+    if (games = Array.isArray(games) ? games : [], !games.length) return [];
+    let details = [];
+    for (let index = 0; index < games.length; index += 50) {
+      let batch = games.slice(index, index + 50), batchDetails = await getUniversesDetails(
+        batch.map((game) => game.id)
+      );
+      details.push(...Array.isArray(batchDetails) ? batchDetails : []);
+    }
+    let detailsByUniverseId = new Map(
+      details.map((game) => [String(game.id), game])
+    );
+    return games.flatMap((game) => {
+      let gameDetails = detailsByUniverseId.get(String(game.id));
+      return !gameDetails?.rootPlaceId || !gameDetails.name ? [] : [
+        {
+          ...game,
+          id: gameDetails.rootPlaceId,
+          name: gameDetails.name,
+          universeId: game.id
+        }
+      ];
+    });
+  }
+  __name(loadGameDetails, "loadGameDetails");
+  function sortGames(games, sort) {
+    return [...games].sort((a, b3) => sort === "transactions" ? b3.totalTransactions - a.totalTransactions || b3.totalSpent - a.totalSpent : b3.totalSpent - a.totalSpent || String(a.id).localeCompare(String(b3.id)));
+  }
+  __name(sortGames, "sortGames");
+  function createAmountElement(amount) {
+    let amountElement = document.createElement("span");
+    amountElement.className = "icon-robux-container", amountElement.style.display = "inline-flex", amountElement.style.alignItems = "center", amountElement.style.gap = "4px";
+    let icon = createRobuxIcon({ size: "16px" }), value2 = document.createElement("span");
+    return value2.className = "text-robux", value2.textContent = amount.toLocaleString(), amountElement.append(icon, value2), amountElement;
+  }
+  __name(createAmountElement, "createAmountElement");
+  function createGameShimmerList(count) {
+    let list = document.createElement("div");
+    list.style.display = "grid", list.style.gap = "8px";
+    for (let index = 0; index < count; index++) {
+      let item = document.createElement("div");
+      item.style.display = "flex", item.style.alignItems = "center", item.style.gap = "10px", item.style.minHeight = "50px";
+      let thumbnail = createShimmerBlock({
+        width: "42px",
+        height: "42px",
+        borderRadius: "6px"
+      });
+      thumbnail.style.flex = "0 0 42px";
+      let details = document.createElement("div");
+      details.style.display = "grid", details.style.gap = "6px", details.style.minWidth = "0", details.style.flex = "1", details.append(
+        createShimmerBlock({ width: "65%", height: "14px" }),
+        createShimmerBlock({ width: "35%", height: "12px" })
+      );
+      let amount = createShimmerBlock({ width: "58px", height: "16px" });
+      item.append(thumbnail, details, amount), list.appendChild(item);
+    }
+    return list;
+  }
+  __name(createGameShimmerList, "createGameShimmerList");
+  function showGameShimmers(container, count, append = !1) {
+    let shimmerList = createGameShimmerList(count);
+    if (!append) {
+      container.replaceChildren(shimmerList);
+      return;
+    }
+    let loadMore2 = container.lastElementChild;
+    loadMore2?.tagName === "BUTTON" ? container.insertBefore(shimmerList, loadMore2) : container.appendChild(shimmerList);
+  }
+  __name(showGameShimmers, "showGameShimmers");
+  async function renderGames(container, games, sort, visibleCount, onLoadMore, totalGameCount, isScanning) {
+    if (games = Array.isArray(games) ? games : [], totalGameCount = Number.isFinite(totalGameCount) ? totalGameCount : games.length, !games.length) {
+      if (isScanning) {
+        container.replaceChildren(), container.textContent = ts2("spentPerGame.scanInProgress");
+        return;
+      }
+      container.replaceChildren(), container.textContent = ts2("spentPerGame.noPurchases");
+      return;
+    }
+    let visibleGames = sortGames(games, sort).slice(0, visibleCount), thumbnails = await fetchThumbnails(
+      visibleGames.map((game) => ({ id: game.universeId })),
+      "GameIcon",
+      "150x150"
+    ), list = document.createElement("div");
+    list.style.display = "grid", list.style.gap = "8px";
+    for (let game of visibleGames) {
+      let item = document.createElement("div");
+      item.style.display = "flex", item.style.alignItems = "center", item.style.gap = "10px", item.style.minHeight = "50px";
+      let thumbnail = createThumbnailElement(
+        thumbnails.get(Number(game.universeId)),
+        game.name,
+        "rovalra-spent-game-thumbnail",
+        {
+          width: "42px",
+          height: "42px",
+          flex: "0 0 42px",
+          borderRadius: "6px"
+        }
+      ), details = document.createElement("div");
+      details.style.minWidth = "0", details.style.flex = "1";
+      let name2 = document.createElement("div");
+      name2.textContent = game.name, name2.style.overflow = "hidden", name2.style.textOverflow = "ellipsis", name2.style.whiteSpace = "nowrap";
+      let count = document.createElement("span");
+      count.style.fontSize = "12px", count.style.opacity = "0.7", count.textContent = game.totalTransactions === 1 ? ts2("spentPerGame.singlePurchase") : ts2("spentPerGame.multiplePurchases", {
+        count: game.totalTransactions
+      }), details.append(name2, count);
+      let gameLink = document.createElement("a");
+      gameLink.href = `https://www.roblox.com/games/${encodeURIComponent(game.id)}`, gameLink.target = "_blank", gameLink.rel = "noopener noreferrer", gameLink.style.display = "flex", gameLink.style.alignItems = "center", gameLink.style.gap = "10px", gameLink.style.minWidth = "0", gameLink.style.flex = "1", gameLink.style.color = "inherit", gameLink.style.textDecoration = "none", gameLink.append(thumbnail, details), item.append(gameLink, createAmountElement(game.totalSpent)), list.appendChild(item);
+    }
+    if (container.replaceChildren(), container.appendChild(list), visibleCount < totalGameCount) {
+      let loadMore2 = createProfileHeaderButton({
+        content: ts2("spentPerGame.loadMore", {
+          remaining: totalGameCount - visibleCount
+        }),
+        onClick: /* @__PURE__ */ __name(() => onLoadMore(), "onClick")
+      });
+      loadMore2.style.marginTop = "10px", container.appendChild(loadMore2);
+    }
+  }
+  __name(renderGames, "renderGames");
+  function addSpentPerGameSection(table) {
+    if (table.parentElement?.querySelector(
+      `section[${ROW_MARKER}]`
+    )) return;
+    let section = document.createElement("section");
+    section.setAttribute(ROW_MARKER, "true"), section.className = "rovalra-spent-per-game-summary", section.style.marginTop = "16px", section.style.paddingTop = "16px", section.style.paddingBottom = "16px", section.style.borderTop = "1px solid var(--rovalra-border-color, rgba(255, 255, 255, 0.12))";
+    let controls = document.createElement("div");
+    controls.style.display = "flex", controls.style.alignItems = "center", controls.style.flexWrap = "wrap", controls.style.gap = "8px", controls.style.marginBottom = "10px";
+    let title = document.createElement("h3");
+    title.style.margin = "0";
+    let logo = document.createElement("img");
+    logo.dataset.rovalraAsset = "rovalraIcon", logo.src = getAssets().rovalraIcon, logo.alt = "", logo.style.width = "20px", logo.style.height = "20px", logo.style.verticalAlign = "middle", logo.style.marginRight = "3px", title.append(logo, document.createTextNode(ts2("spentPerGame.title")));
+    let disclaimer = document.createElement("small");
+    disclaimer.textContent = ts2("spentPerGame.disclaimer"), disclaimer.style.color = "var(--rovalra-secondary-text-color)";
+    let titleGroup = document.createElement("div");
+    titleGroup.style.display = "grid", titleGroup.style.gap = "2px", titleGroup.style.marginRight = "auto", titleGroup.append(title, disclaimer);
+    let totalAmount = document.createElement("div");
+    totalAmount.style.display = "inline-flex", totalAmount.style.alignItems = "center", totalAmount.style.lineHeight = "1";
+    let search = createStyledInput({
+      id: `rovalra-spent-per-game-search-${Date.now()}`,
+      label: ts2("spentPerGame.searchPlaceholder")
+    });
+    search.container.style.width = "220px";
+    let sortContainer = document.createElement("div");
+    controls.append(titleGroup, totalAmount, search.container, sortContainer);
+    let gamesContainer = document.createElement("div");
+    gamesContainer.textContent = ts2("spentPerGame.loading");
+    let scanStatus = document.createElement("div");
+    scanStatus.style.marginTop = "8px", scanStatus.style.fontSize = "12px", scanStatus.style.opacity = "0.7", section.append(controls, gamesContainer, scanStatus), table.insertAdjacentElement("afterend", section);
+    let loadedGames = null, allGames = null, loadedGameDetails = /* @__PURE__ */ new Map(), currentSort = "spent", searchQuery = "", visibleCount = INITIAL_GAME_COUNT, loading2 = !1, isScanning = !1, getSearchCandidates = /* @__PURE__ */ __name(() => {
+      let games = Array.isArray(allGames) ? allGames : [];
+      return sortGames(games, currentSort).filter(
+        (game) => String(game.name || "").toLocaleLowerCase().includes(searchQuery)
+      );
+    }, "getSearchCandidates"), getVisibleGames = /* @__PURE__ */ __name(() => loadedGames || [], "getVisibleGames"), loadVisibleGames = /* @__PURE__ */ __name(async () => {
+      let candidates = getSearchCandidates().slice(0, visibleCount), missingDetails = candidates.filter(
+        (game) => !loadedGameDetails.has(String(game.id))
+      );
+      (await loadGameDetails(missingDetails)).forEach(
+        (game) => loadedGameDetails.set(String(game.universeId), game)
+      ), loadedGames = candidates.flatMap(
+        (game) => loadedGameDetails.get(String(game.id)) || []
+      );
+    }, "loadVisibleGames"), renderCurrentGames = /* @__PURE__ */ __name(async () => {
+      let searchCandidates = getSearchCandidates();
+      await renderGames(
+        gamesContainer,
+        getVisibleGames(),
+        currentSort,
+        visibleCount,
+        async () => {
+          visibleCount += GAME_PAGE_SIZE, showGameShimmers(gamesContainer, GAME_PAGE_SIZE, !0), await loadVisibleGames(), await renderCurrentGames();
+        },
+        searchCandidates.length,
+        isScanning
+      );
+    }, "renderCurrentGames"), updateTotalAmount = /* @__PURE__ */ __name(() => {
+      if (!allGames) return;
+      let total = allGames.reduce((sum, game) => sum + game.totalSpent, 0);
+      totalAmount.replaceChildren(createAmountElement(total));
+    }, "updateTotalAmount"), load = /* @__PURE__ */ __name(async () => {
+      if (!(loadedGames || loading2)) {
+        loading2 = !0, showGameShimmers(gamesContainer, INITIAL_GAME_COUNT);
+        try {
+          let result = await loadGameSpending();
+          allGames = Array.isArray(result?.games) ? result.games : [], isScanning = !!result?.isScanning, await loadVisibleGames();
+          let dropdown = createDropdown({
+            items: SORTS.map((sort) => ({
+              ...sort,
+              label: ts2(sort.label)
+            })),
+            initialValue: currentSort,
+            onValueChange: /* @__PURE__ */ __name(async (value2) => {
+              currentSort = value2, visibleCount = INITIAL_GAME_COUNT, await loadVisibleGames(), await renderCurrentGames();
+            }, "onValueChange")
+          });
+          sortContainer.appendChild(dropdown.element), await renderCurrentGames(), isScanning || scanStatus.replaceChildren(), updateTotalAmount();
+        } catch (error3) {
+          gamesContainer.textContent = ts2("spentPerGame.loadError"), console.error("RoValra: Failed to load spending per game", error3);
+        } finally {
+          loading2 = !1;
+        }
+      }
+    }, "load");
+    chrome.storage.onChanged.addListener(async (changes, areaName) => {
+      if (areaName !== "local" || !changes[TRANSACTIONS_DATA_KEY2]) return;
+      let latestData = await getTransactionData();
+      isScanning && !latestData?.isScanning && (loadedGames = null, await load());
+    }), search.input.addEventListener("input", () => {
+      searchQuery = search.input.value.trim().toLocaleLowerCase(), visibleCount = INITIAL_GAME_COUNT, loadVisibleGames().then(renderCurrentGames);
+    }), load();
+  }
+  __name(addSpentPerGameSection, "addSpentPerGameSection");
+  function processSummary(row) {
+    if (!window.location.pathname.startsWith("/transactions")) return;
+    let table = row.closest("#transactions-web-app .summary table.summary");
+    table && addSpentPerGameSection(table);
+  }
+  __name(processSummary, "processSummary");
+  async function init85() {
+    await settings.spentPerGameEnabled && observeElement(ROW_SELECTOR2, processSummary, { multiple: !0 });
+  }
+  __name(init85, "init");
+
+  // src/content/features/transactions/spentPerCreator.js
+  init_observer();
+  init_thumbnails();
+  init_dropdown();
+  init_input();
+  init_shimmer();
+  init_i18n();
+  init_getSettings();
+  init_assets();
+  var ROW_SELECTOR3 = "#transactions-web-app .summary table.summary tr", ROW_MARKER2 = "data-rovalra-spent-per-creator", TRANSACTIONS_DATA_KEY3 = "rovalra_transactions_v2", PAGE_SIZE2 = 5, SORTS2 = [
+    { value: "spent", label: "spentPerCreator.mostSpent" },
+    { value: "transactions", label: "spentPerCreator.mostPurchases" }
+  ], getCreators = /* @__PURE__ */ __name((data, includeGameCreators = !1) => Object.entries(data?.creators || {}).map(([id, creator]) => ({
+    ...creator,
+    id: creator.id || id,
+    type: creator.type === "Group" ? "Group" : "User",
+    totalSpent: includeGameCreators ? Number(creator.totalSpent) || 0 : Math.max(
+      0,
+      (Number(creator.totalSpent) || 0) - Object.values(creator.games || {}).reduce(
+        (sum, game) => sum + (Number(game.totalSpent) || 0),
+        0
+      )
+    ),
+    totalTransactions: includeGameCreators ? Number(creator.totalTransactions) || 0 : Math.max(
+      0,
+      (Number(creator.totalTransactions) || 0) - Object.values(creator.games || {}).reduce(
+        (sum, game) => sum + (Number(game.totalTransactions) || 0),
+        0
+      )
+    )
+  })).filter((creator) => creator.totalTransactions > 0), "getCreators");
+  function sortCreators(creators, sort) {
+    return [...creators].sort((a, b3) => sort === "transactions" ? b3.totalTransactions - a.totalTransactions || b3.totalSpent - a.totalSpent : b3.totalSpent - a.totalSpent || String(a.id).localeCompare(String(b3.id)));
+  }
+  __name(sortCreators, "sortCreators");
+  function createAmountElement2(amount) {
+    let element = document.createElement("span");
+    element.className = "icon-robux-container", element.style.display = "inline-flex", element.style.alignItems = "center", element.style.gap = "4px";
+    let icon = createRobuxIcon({ size: "16px" }), value2 = document.createElement("span");
+    return value2.className = "text-robux", value2.textContent = amount.toLocaleString(), element.append(icon, value2), element;
+  }
+  __name(createAmountElement2, "createAmountElement");
+  function createShimmerList(count) {
+    let list = document.createElement("div");
+    list.style.display = "grid", list.style.gap = "8px";
+    for (let index = 0; index < count; index++) {
+      let item = document.createElement("div");
+      item.style.display = "flex", item.style.alignItems = "center", item.style.gap = "10px", item.style.minHeight = "50px";
+      let thumbnail = createShimmerBlock({ width: "42px", height: "42px", borderRadius: "6px" });
+      thumbnail.style.flex = "0 0 42px";
+      let details = document.createElement("div");
+      details.style.display = "grid", details.style.gap = "6px", details.style.minWidth = "0", details.style.flex = "1", details.append(
+        createShimmerBlock({ width: "65%", height: "14px" }),
+        createShimmerBlock({ width: "35%", height: "12px" })
+      ), item.append(thumbnail, details, createShimmerBlock({ width: "58px", height: "16px" })), list.appendChild(item);
+    }
+    return list;
+  }
+  __name(createShimmerList, "createShimmerList");
+  function showCreatorShimmers(container, count, append = !1) {
+    let shimmerList = createShimmerList(count);
+    if (!append) {
+      container.replaceChildren(shimmerList);
+      return;
+    }
+    let loadMore2 = container.lastElementChild;
+    loadMore2?.tagName === "BUTTON" ? container.insertBefore(shimmerList, loadMore2) : container.appendChild(shimmerList);
+  }
+  __name(showCreatorShimmers, "showCreatorShimmers");
+  async function renderCreators(container, creators, visibleCount, sort, onLoadMore, isScanning) {
+    if (!creators.length) {
+      container.textContent = isScanning ? ts2("spentPerCreator.scanInProgress") : ts2("spentPerCreator.noPurchases");
+      return;
+    }
+    let visible = sortCreators(creators, sort).slice(0, visibleCount), userItems = visible.filter((creator) => creator.type === "User").map((creator) => ({ id: creator.id })), groupItems = visible.filter((creator) => creator.type === "Group").map((creator) => ({ id: creator.id })), [userThumbs, groupThumbs] = await Promise.all([
+      fetchThumbnails(userItems, "AvatarHeadshot", "150x150"),
+      fetchThumbnails(groupItems, "GroupIcon", "150x150")
+    ]), list = document.createElement("div");
+    list.style.display = "grid", list.style.gap = "8px";
+    for (let creator of visible) {
+      let isGroup = creator.type === "Group", thumbnail = createThumbnailElement(
+        (isGroup ? groupThumbs : userThumbs).get(Number(creator.id)),
+        creator.name,
+        "rovalra-spent-creator-thumbnail",
+        { width: "42px", height: "42px", flex: "0 0 42px", borderRadius: "6px" }
+      ), details = document.createElement("div");
+      details.style.minWidth = "0", details.style.flex = "1";
+      let name2 = document.createElement("div");
+      name2.textContent = creator.name || ts2("spentPerCreator.unknownCreator"), name2.style.overflow = "hidden", name2.style.textOverflow = "ellipsis", name2.style.whiteSpace = "nowrap";
+      let count = document.createElement("span");
+      count.style.fontSize = "12px", count.style.opacity = "0.7", count.textContent = creator.totalTransactions === 1 ? ts2("spentPerCreator.singlePurchase") : ts2("spentPerCreator.multiplePurchases", { count: creator.totalTransactions }), details.append(name2, count);
+      let link = document.createElement("a");
+      link.href = isGroup ? `https://www.roblox.com/groups/${encodeURIComponent(creator.id)}/-` : `https://www.roblox.com/users/${encodeURIComponent(creator.id)}/profile`, link.target = "_blank", link.rel = "noopener noreferrer", link.style.display = "flex", link.style.alignItems = "center", link.style.gap = "10px", link.style.minWidth = "0", link.style.flex = "1", link.style.color = "inherit", link.style.textDecoration = "none", link.append(thumbnail, details);
+      let item = document.createElement("div");
+      item.style.display = "flex", item.style.alignItems = "center", item.style.gap = "10px", item.style.minHeight = "50px", item.append(link, createAmountElement2(creator.totalSpent)), list.appendChild(item);
+    }
+    if (container.replaceChildren(list), visibleCount < creators.length) {
+      let loadMore2 = createProfileHeaderButton({
+        content: ts2("spentPerCreator.loadMore", { remaining: creators.length - visibleCount }),
+        onClick: onLoadMore
+      });
+      loadMore2.style.marginTop = "10px", container.appendChild(loadMore2);
+    }
+  }
+  __name(renderCreators, "renderCreators");
+  function addSection(table) {
+    if (table.parentElement?.querySelector(
+      `section[${ROW_MARKER2}]`
+    )) return;
+    let section = document.createElement("section");
+    section.setAttribute(ROW_MARKER2, "true"), section.className = "rovalra-spent-per-creator-summary", section.style.marginTop = "16px", section.style.padding = "16px 0", section.style.borderTop = "1px solid var(--rovalra-border-color, rgba(255, 255, 255, 0.12))";
+    let controls = document.createElement("div");
+    controls.style.display = "flex", controls.style.alignItems = "center", controls.style.flexWrap = "wrap", controls.style.gap = "8px", controls.style.marginBottom = "10px";
+    let title = document.createElement("h3");
+    title.style.margin = "0";
+    let logo = document.createElement("img");
+    logo.dataset.rovalraAsset = "rovalraIcon", logo.src = getAssets().rovalraIcon, logo.alt = "", logo.style.width = "20px", logo.style.height = "20px", logo.style.verticalAlign = "middle", logo.style.marginRight = "3px", title.append(logo, document.createTextNode(ts2("spentPerCreator.title")));
+    let disclaimer = document.createElement("small");
+    disclaimer.textContent = ts2("spentPerCreator.disclaimer"), disclaimer.style.color = "var(--rovalra-secondary-text-color)";
+    let titleGroup = document.createElement("div");
+    titleGroup.style.display = "grid", titleGroup.style.gap = "2px", titleGroup.style.marginRight = "auto", titleGroup.append(title, disclaimer);
+    let totalAmount = document.createElement("div");
+    totalAmount.style.display = "inline-flex", totalAmount.style.alignItems = "center";
+    let search = createStyledInput({ id: `rovalra-spent-per-creator-search-${Date.now()}`, label: ts2("spentPerCreator.searchPlaceholder") });
+    search.container.style.width = "220px";
+    let sortContainer = document.createElement("div"), includeGameCreatorsLabel = document.createElement("label");
+    includeGameCreatorsLabel.style.display = "inline-flex", includeGameCreatorsLabel.style.alignItems = "center", includeGameCreatorsLabel.style.gap = "6px", includeGameCreatorsLabel.style.fontSize = "12px", includeGameCreatorsLabel.style.cursor = "pointer";
+    let includeGameCreatorsToggle = createToggle({
+      id: `rovalra-spent-per-creator-include-games-${Date.now()}`,
+      checked: !1
+    }), includeGameCreatorsText = document.createElement("span");
+    includeGameCreatorsText.textContent = ts2("spentPerCreator.includeGameCreators"), includeGameCreatorsLabel.append(
+      includeGameCreatorsToggle,
+      includeGameCreatorsText
+    ), controls.append(
+      titleGroup,
+      totalAmount,
+      includeGameCreatorsLabel,
+      search.container,
+      sortContainer
+    );
+    let creatorsContainer = document.createElement("div");
+    creatorsContainer.textContent = ts2("spentPerCreator.loading");
+    let scanStatus = document.createElement("div");
+    scanStatus.style.marginTop = "8px", scanStatus.style.fontSize = "12px", scanStatus.style.opacity = "0.7", section.append(controls, creatorsContainer, scanStatus), table.insertAdjacentElement("afterend", section);
+    let transactionData = null, creators = [], sort = "spent", query = "", visibleCount = PAGE_SIZE2, loading2 = !1, isScanning = !1, includeGameCreators = !1, getVisible = /* @__PURE__ */ __name(() => sortCreators(creators, sort).filter(
+      (creator) => String(creator.name || "").toLocaleLowerCase().includes(query)
+    ), "getVisible"), render2 = /* @__PURE__ */ __name(() => renderCreators(creatorsContainer, getVisible(), visibleCount, sort, async () => {
+      visibleCount += PAGE_SIZE2, showCreatorShimmers(creatorsContainer, PAGE_SIZE2, !0), await render2();
+    }, isScanning), "render"), updateTotalAmount = /* @__PURE__ */ __name(() => {
+      totalAmount.replaceChildren(
+        createAmountElement2(
+          creators.reduce((sum, creator) => sum + creator.totalSpent, 0)
+        )
+      );
+    }, "updateTotalAmount"), updateCreatorFilter = /* @__PURE__ */ __name(async (include) => {
+      includeGameCreators = include, creators = getCreators(transactionData, includeGameCreators), visibleCount = PAGE_SIZE2, await render2(), updateTotalAmount();
+    }, "updateCreatorFilter");
+    includeGameCreatorsToggle.addEventListener("click", () => {
+      updateCreatorFilter(!includeGameCreators);
+    });
+    let load = /* @__PURE__ */ __name(async () => {
+      if (!loading2) {
+        loading2 = !0, showCreatorShimmers(creatorsContainer, PAGE_SIZE2);
+        try {
+          transactionData = await getTransactionData(), creators = getCreators(transactionData, includeGameCreators), isScanning = !!transactionData?.isScanning, sortContainer.appendChild(createDropdown({
+            items: SORTS2.map((item) => ({ ...item, label: ts2(item.label) })),
+            initialValue: sort,
+            onValueChange: /* @__PURE__ */ __name(async (value2) => {
+              sort = value2, visibleCount = PAGE_SIZE2, await render2();
+            }, "onValueChange")
+          }).element), await render2(), isScanning || scanStatus.replaceChildren(), updateTotalAmount();
+        } catch (error3) {
+          creatorsContainer.textContent = ts2("spentPerCreator.loadError"), console.error("RoValra: Failed to load spending per creator", error3);
+        } finally {
+          loading2 = !1;
+        }
+      }
+    }, "load");
+    chrome.storage.onChanged.addListener(async (changes, areaName) => {
+      if (areaName !== "local" || !changes[TRANSACTIONS_DATA_KEY3]) return;
+      let latest = await getTransactionData();
+      isScanning && !latest?.isScanning && (transactionData = null, creators = [], await load());
+    }), search.input.addEventListener("input", () => {
+      query = search.input.value.trim().toLocaleLowerCase(), visibleCount = PAGE_SIZE2, render2();
+    }), load();
+  }
+  __name(addSection, "addSection");
+  function processSummary2(row) {
+    if (!window.location.pathname.startsWith("/transactions")) return;
+    let table = row.closest("#transactions-web-app .summary table.summary");
+    table && addSection(table);
+  }
+  __name(processSummary2, "processSummary");
+  async function init86() {
+    await settings.spentPerCreatorEnabled && observeElement(ROW_SELECTOR3, processSummary2, { multiple: !0 });
+  }
+  __name(init86, "init");
+
   // src/content/features/transactions/pendingRobuxTrans.js
   init_observer();
   init_api();
@@ -149313,7 +150080,7 @@ Markdown test
     storeResults(state2.userId, finalResults), injectResultElement(rowToInjectInto, finalResults);
   }
   __name(onElementFound2, "onElementFound");
-  function init85() {
+  function init87() {
     chrome.storage.local.get({ pendingrobuxtrans: !0 }, async (settings2) => {
       if (!(!settings2.pendingrobuxtrans || !window.location.pathname.includes("/transactions")))
         try {
@@ -149336,7 +150103,7 @@ Markdown test
         }
     });
   }
-  __name(init85, "init");
+  __name(init87, "init");
 
   // src/content/features/transactions/totalearned.js
   init_observer();
@@ -149669,7 +150436,7 @@ Markdown test
     ), container.appendChild(totalEarnedButton);
   }
   __name(onElementFound3, "onElementFound");
-  function init86() {
+  function init88() {
     chrome.storage.local.get("totalearnedEnabled", (result) => {
       result.totalearnedEnabled && observeElement(
         ".dropdown-container.container-header",
@@ -149677,7 +150444,7 @@ Markdown test
       );
     });
   }
-  __name(init86, "init");
+  __name(init88, "init");
 
   // src/content/features/trading/confirmtrade.js
   init_observer();
@@ -150069,7 +150836,7 @@ Markdown test
     });
   }
   __name(hydrateTradePreviewThumbnails, "hydrateTradePreviewThumbnails");
-  function init87() {
+  function init89() {
     chrome.storage.local.get({ confirmTradeEnabled: !0 }, (settings2) => {
       if (!settings2.confirmTradeEnabled) return;
       let path = window.location.pathname;
@@ -150125,7 +150892,7 @@ Markdown test
       ));
     });
   }
-  __name(init87, "init");
+  __name(init89, "init");
   function startPrefetching() {
     prefetchRequests.forEach((req) => req.active = !1), prefetchRequests = [];
     let handleLink = /* @__PURE__ */ __name((el2) => {
@@ -150289,7 +151056,7 @@ Markdown test
     tradeShowTotalDemand: !0,
     tradeShowDiffPills: !0
   }, includeRobuxInCalculation = !0;
-  function init88() {
+  function init90() {
     chrome.storage.local.get(
       {
         tradeValuesEnabled: !0,
@@ -150368,7 +151135,7 @@ Markdown test
       }
     );
   }
-  __name(init88, "init");
+  __name(init90, "init");
   function onRolimonsUpdate(e) {
     let updatedIds = e.detail;
     Array.isArray(updatedIds) && (updatedIds.forEach((id) => {
@@ -150896,7 +151663,7 @@ Markdown test
     }
   }
   __name(onTradesData, "onTradesData");
-  function init89() {
+  function init91() {
     chrome.storage.local.get(
       { tradePreviewEnabled: !0 },
       async (settings2) => {
@@ -150918,7 +151685,7 @@ Markdown test
       }
     );
   }
-  __name(init89, "init");
+  __name(init91, "init");
 
   // src/content/features/trading/tradefilter.js
   init_input();
@@ -150930,7 +151697,7 @@ Markdown test
   document.addEventListener("rovalra-rolimons-data-update", () => {
     currentQuery && filterTrades(currentQuery);
   });
-  async function init90() {
+  async function init92() {
     !(await chrome.storage.local.get({
       tradeFilterEnabled: !0
     })).tradeFilterEnabled || !window.location.pathname.startsWith("/trades") || (myUserId = await getAuthenticatedUserId(), observeElement(".trade-row-list", (list) => {
@@ -150954,7 +151721,7 @@ Markdown test
       noResults.id = "rovalra-trade-filter-no-results", noResults.innerText = "No results found", noResults.className = "text-secondary", noResults.style.display = "none", noResults.style.textAlign = "center", noResults.style.marginTop = "8px", wrapper.appendChild(noResults), list.insertBefore(wrapper, scrollContainer);
     }));
   }
-  __name(init90, "init");
+  __name(init92, "init");
   async function getTradeDetails(tradeId) {
     let cached = await get("trade_history", tradeId, "local");
     if (Array.isArray(cached))
@@ -151048,7 +151815,7 @@ Markdown test
   init_observer();
   init_idExtractor();
   var PAGING_COOLDOWN = 100, activeSearches = /* @__PURE__ */ new WeakMap(), searchButtons = /* @__PURE__ */ new WeakMap();
-  function init91() {
+  function init93() {
     chrome.storage.local.get({ tradeSearchEnabled: !0 }, (settings2) => {
       if (!settings2.tradeSearchEnabled) return;
       let path = window.location.pathname;
@@ -151063,7 +151830,7 @@ Markdown test
       );
     });
   }
-  __name(init91, "init");
+  __name(init93, "init");
   function injectSearchInput(dropdown) {
     let { container, input } = createStyledInput({
       id: `rovalra-trade-search-${Math.random().toString(36).substr(2, 9)}`,
@@ -151163,7 +151930,7 @@ Markdown test
   // src/content/features/trading/tradeProof.js
   init_observer();
   init_user();
-  function init92() {
+  function init94() {
     chrome.storage.local.get({ tradeProofEnabled: !0 }, (settings2) => {
       !settings2.tradeProofEnabled || !window.location.pathname.startsWith("/trades") || observeElement(".trades-list-detail", (container) => {
         if (container.querySelector(".rovalra-copy-proof-btn")) return;
@@ -151179,7 +151946,7 @@ Markdown test
       });
     });
   }
-  __name(init92, "init");
+  __name(init94, "init");
   async function copyTradeProof(container, btn) {
     if (container.querySelectorAll(".trade-list-detail-offer").length < 2) return;
     let activeRow = document.querySelector(".trade-row.active"), tradeId = activeRow?.dataset.tradeId || getLatestTradeDetailsId(), myUserId2 = await getAuthenticatedUserId(), analysis = tradeId ? await getTradeAnalysis(tradeId, { myUserId: myUserId2 }).catch(() => null) : null;
@@ -151223,7 +151990,7 @@ D:${formattedDate}`;
   init_i18n();
   init_gameCard();
   init_idExtractor();
-  var PAGE_SIZE2 = 50, ACCESS_FILTER = { ALL: 1, PUBLIC: 2 }, el = /* @__PURE__ */ __name((tag, className, props = {}, children = []) => {
+  var PAGE_SIZE3 = 50, ACCESS_FILTER = { ALL: 1, PUBLIC: 2 }, el = /* @__PURE__ */ __name((tag, className, props = {}, children = []) => {
     let element = document.createElement(tag);
     return className && (element.className = className), Object.assign(element, props), Object.assign(element.style, props.style || {}), children.forEach((child) => child && element.append(child)), element;
   }, "el"), sleep6 = /* @__PURE__ */ __name((ms) => new Promise((r) => setTimeout(r, ms)), "sleep"), groupListCache = /* @__PURE__ */ new Map(), sharedStatsCache = {
@@ -151473,7 +152240,7 @@ D:${formattedDate}`;
       ) : sort === "name" ? processed.sort(
         (a, b3) => a.name.localeCompare(b3.name) * orderMultiplier
       ) : order === "asc" && processed.reverse(), this.filteredGames = processed, this.displayedCount = 0;
-      let firstBatch = this.filteredGames.slice(0, PAGE_SIZE2);
+      let firstBatch = this.filteredGames.slice(0, PAGE_SIZE3);
       firstBatch.length > 0 && (await Promise.all([
         api.getGameDetails(firstBatch, this.cache),
         api.getThumbnails(firstBatch, this.cache.thumbnails)
@@ -151501,7 +152268,7 @@ D:${formattedDate}`;
         try {
           let nextBatch = this.filteredGames.slice(
             this.displayedCount,
-            this.displayedCount + PAGE_SIZE2
+            this.displayedCount + PAGE_SIZE3
           );
           if (nextBatch.length > 0) {
             await Promise.all([
@@ -151523,8 +152290,8 @@ D:${formattedDate}`;
       }
     }
   };
-  function init93() {
-    init93._run || (init93._run = !0, chrome.storage.local.get(["groupGamesEnabled"], (result) => {
+  function init95() {
+    init95._run || (init95._run = !0, chrome.storage.local.get(["groupGamesEnabled"], (result) => {
       if (result.groupGamesEnabled !== !0) return;
       let isInserting = !1, ensureSingleButton = /* @__PURE__ */ __name(() => {
         let all = document.querySelectorAll(
@@ -151568,17 +152335,17 @@ D:${formattedDate}`;
       observeElement(".group-profile-header", () => {
         tryInsert();
       });
-      let lastUrl4 = window.location.href, checkForUrlChange = /* @__PURE__ */ __name(() => {
+      let lastUrl5 = window.location.href, checkForUrlChange = /* @__PURE__ */ __name(() => {
         let currentUrl = window.location.href;
-        if (currentUrl !== lastUrl4) {
-          if (lastUrl4 = currentUrl, !getGroupIdFromUrl()) return;
+        if (currentUrl !== lastUrl5) {
+          if (lastUrl5 = currentUrl, !getGroupIdFromUrl()) return;
           document.querySelectorAll(".rovalra-hidden-games-container").forEach((el2) => el2.remove()), isInserting = !1, tryInsert();
         }
       }, "checkForUrlChange");
       setInterval(checkForUrlChange, 500), window.addEventListener("popstate", checkForUrlChange), getGroupIdFromUrl() && tryInsert();
     }));
   }
-  __name(init93, "init");
+  __name(init95, "init");
 
   // src/content/features/groups/Antibots.js
   init_review();
@@ -152317,10 +153084,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )) : !active2 && isAntiBotScriptActive && antiBotsFullCleanup();
   }
   __name(checkUrlAndManageState, "checkUrlAndManageState");
-  function init94() {
+  function init96() {
     isInitialized8 || (isInitialized8 = !0, window.rovalra || (window.rovalra = {}), window.rovalra.ui || (window.rovalra.ui = {}), window.addEventListener("hashchange", checkUrlAndManageState), checkUrlAndManageState());
   }
-  __name(init94, "init");
+  __name(init96, "init");
 
   // src/content/features/groups/pendingRobux.js
   init_observer();
@@ -152514,12 +153281,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     storeResults2(state3.groupId, finalResults), await injectResultElement2(targetElement, finalResults);
   }
   __name(onElementFound4, "onElementFound");
-  function init95() {
+  function init97() {
     chrome.storage.local.get({ pendingRobuxEnabled: !0 }, (settings2) => {
       settings2.pendingRobuxEnabled && window.location.pathname.includes("communities/configure") && observeElement(TARGET_ELEMENT_SELECTOR2, onElementFound4);
     });
   }
-  __name(init95, "init");
+  __name(init97, "init");
 
   // src/content/features/groups/draggableGroups.js
   init_observer();
@@ -152534,14 +153301,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     holdTimer: null,
     preventClick: !1
   }, dropIndicator = null, isEnabled2 = !1;
-  function init96() {
+  function init98() {
     chrome.storage.local.get(["draggableGroupsEnabled"], (result) => {
       isEnabled2 = result.draggableGroupsEnabled !== !1, isEnabled2 && (startObserving(), initializeDragSystem());
     }), chrome.storage.onChanged.addListener((changes) => {
       changes.draggableGroupsEnabled && (isEnabled2 = changes.draggableGroupsEnabled.newValue !== !1, isEnabled2 ? initializeDragSystem() : destroyDragSystem());
     });
   }
-  __name(init96, "init");
+  __name(init98, "init");
   function initializeDragSystem() {
     observeElement("a.groups-list-item", (link) => {
       if (link.closest(".pending-join-requests"))
@@ -152943,8 +153710,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, 500));
   }
   __name(showSuccessAlertIfNeeded, "showSuccessAlertIfNeeded");
-  async function init97() {
-    (await chrome.storage.local.get("bulkLeaveGroupsEnabled")).bulkLeaveGroupsEnabled !== !1 && (init97._run || (init97._run = !0, showSuccessAlertIfNeeded(), fetchUserGroups(), document.addEventListener("click", onDocumentClickCapture, !0), observeElement(
+  async function init99() {
+    (await chrome.storage.local.get("bulkLeaveGroupsEnabled")).bulkLeaveGroupsEnabled !== !1 && (init99._run || (init99._run = !0, showSuccessAlertIfNeeded(), fetchUserGroups(), document.addEventListener("click", onDocumentClickCapture, !0), observeElement(
       ".groups-list-items-container",
       (container) => {
         injectToolbar(container);
@@ -152970,7 +153737,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     )));
   }
-  __name(init97, "init");
+  __name(init99, "init");
 
   // src/content/features/groups/placevisits.js
   init_api();
@@ -152997,7 +153764,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(fetchTotalVisits, "fetchTotalVisits");
-  function init98() {
+  function init100() {
     chrome.storage.local.get({ groupPlaceVisitsEnabled: !0 }, (settings2) => {
       settings2.groupPlaceVisitsEnabled && observeElement(
         ".profile-insights-container.flex.gap-small",
@@ -153024,7 +153791,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init98, "init");
+  __name(init100, "init");
 
   // src/content/features/groups/createDate.js
   init_observer();
@@ -153059,7 +153826,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/groups/createDate.js
   init_i18n();
-  function init99() {
+  function init101() {
     chrome.storage.local.get({ groupCreateDateEnabled: !0 }, (settings2) => {
       settings2.groupCreateDateEnabled && (observeElement(
         ".roseal-group-stats .group-created-date",
@@ -153104,7 +153871,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       ));
     });
   }
-  __name(init99, "init");
+  __name(init101, "init");
 
   // src/content/features/groups/groupPendingFunds.js
   init_observer();
@@ -153162,7 +153929,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     amount.className = "content-default", amount.textContent = pendingRobux.toLocaleString(), pendingRow.appendChild(amount), content.appendChild(pendingRow);
   }
   __name(injectPendingFunds, "injectPendingFunds");
-  function init100() {
+  function init102() {
     chrome.storage.local.get(
       { groupPendingFundsEnabled: !0 },
       (settings2) => {
@@ -153177,7 +153944,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init100, "init");
+  __name(init102, "init");
 
   // src/content/features/plus/stats.js
   init_i18n();
@@ -153343,7 +154110,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         </div>`, parent.appendChild(containerDiv), !0;
   }
   __name(makeHtml, "makeHtml");
-  function init101() {
+  function init103() {
     chrome.storage.local.get(
       {
         plusStatsEnabled: !0
@@ -153356,7 +154123,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init101, "init");
+  __name(init103, "init");
 
   // src/content/features/plus/transferLimits.js
   init_observer();
@@ -153752,7 +154519,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(attachTransferLimitListener, "attachTransferLimitListener");
-  async function init102() {
+  async function init104() {
     if (!await isFeatureEnabled()) {
       removeTransferLimits();
       return;
@@ -153765,7 +154532,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     });
   }
-  __name(init102, "init");
+  __name(init104, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_observer();
@@ -154045,7 +154812,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addUserRapDisplay, "addUserRapDisplay");
-  function init103() {
+  function init105() {
     chrome.storage.local.get({ userRapEnabled: !0 }, function(data) {
       data.userRapEnabled && observeElement(
         ".flex-nowrap.gap-small.flex, .profile-header-names",
@@ -154054,7 +154821,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init103, "init");
+  __name(init105, "init");
 
   // src/content/features/profile/header/donationlink.js
   init_purify_es();
@@ -154312,7 +155079,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     targetContainer.appendChild(donationButton);
   }
   __name(addDonationButton, "addDonationButton");
-  function init104() {
+  function init106() {
     if (window.location.pathname.includes("/game-pass") && window.location.search.includes("RoValra-Auto-Buy")) {
       let runAutoBuy = /* @__PURE__ */ __name(() => {
         observeElement('button[data-button-action="buy"]', (btn) => {
@@ -154338,7 +155105,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init104, "init");
+  __name(init106, "init");
 
   // src/content/features/profile/header/instantjoiner.js
   init_observer();
@@ -154575,7 +155342,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_purify_es();
   init_idExtractor();
   init_i18n();
-  function init105() {
+  function init107() {
     chrome.storage.local.get(
       { userSniperEnabled: !1, deeplinkEnabled: !0 },
       function(settings2) {
@@ -154794,7 +155561,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init105, "init");
+  __name(init107, "init");
 
   // src/content/features/profile/outfits.js
   init_review();
@@ -154807,7 +155574,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_dompurify();
   init_overlay();
   init_i18n();
-  function init106() {
+  function init108() {
     chrome.storage.local.get("useroutfitsEnabled", function(data) {
       if (data.useroutfitsEnabled !== !0)
         return;
@@ -155405,7 +156172,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       });
     });
   }
-  __name(init106, "init");
+  __name(init108, "init");
 
   // src/content/features/profile/privateserver.js
   init_observer();
@@ -155736,7 +156503,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), selectAllButton.addEventListener("click", handleSelectAll), mainButtonInactive.addEventListener("click", () => handleBulkAction(!1)), mainButtonActive.addEventListener("click", () => handleBulkAction(!0)), updateButtonStates();
   }
   __name(handlePageUpdate, "handlePageUpdate");
-  function init107() {
+  function init109() {
     chrome.storage.local.get({ PrivateServerBulkEnabled: !0 }, (data) => {
       if (data.PrivateServerBulkEnabled === !0) {
         let wrapHistory = /* @__PURE__ */ __name((type) => {
@@ -155750,7 +156517,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     });
   }
-  __name(init107, "init");
+  __name(init109, "init");
 
   // src/content/features/profile/header/RoValraBadges.js
   init_observer();
@@ -156311,7 +157078,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addProfileBadgeButtons, "addProfileBadgeButtons");
-  function init108() {
+  function init110() {
     settings.robloxGroupFeaturesEnabled.then((enabled3) => {
       document.dispatchEvent(
         new CustomEvent("rovalra:settingsState", {
@@ -156357,7 +157124,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init108, "init");
+  __name(init110, "init");
 
   // src/content/features/profile/hiddengames.js
   init_observer();
@@ -156669,7 +157436,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   }
   __name(getUserId, "getUserId");
   var isInitialized9 = !1;
-  function init109() {
+  function init111() {
     chrome.storage.local.get(["userGamesEnabled"], (result) => {
       if (result.userGamesEnabled !== !0 || isInitialized9) return;
       isInitialized9 = !0;
@@ -156704,7 +157471,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       window.addEventListener("hashchange", checkEmptyState), observeElement(".profile-tab-content", checkEmptyState);
     });
   }
-  __name(init109, "init");
+  __name(init111, "init");
 
   // src/content/features/profile/grouprole.js
   init_api();
@@ -156782,7 +157549,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return joinDatePromises.delete(groupId), result;
   }
   __name(getJoinDate, "getJoinDate");
-  function init110() {
+  function init112() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get({ groupFiltersEnabled: !0 }, (settings2) => {
       settings2.groupFiltersEnabled && observeElement(
@@ -156905,7 +157672,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init110, "init");
+  __name(init112, "init");
 
   // src/content/features/profile/grouprole.js
   init_i18n();
@@ -156926,7 +157693,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     })()), rolesPromise;
   }
   __name(getGroupRoles, "getGroupRoles");
-  function init111() {
+  function init113() {
     let userId = getUserIdFromUrl();
     userId && chrome.storage.local.get(
       { groupRoleEnabled: !0, groupJoinedDateEnabled: !0 },
@@ -156998,7 +157765,19 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
                 color: "var(--rovalra-secondary-text-color)",
                 fontSize: "14px",
                 marginTop: "2px"
-              });
+              }), joinDiv.style.setProperty(
+                "white-space",
+                "normal",
+                "important"
+              ), joinDiv.style.setProperty(
+                "text-overflow",
+                "clip",
+                "important"
+              ), joinDiv.style.setProperty(
+                "overflow",
+                "visible",
+                "important"
+              );
             }
             checkAndFixPlacement();
           },
@@ -157007,7 +157786,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init111, "init");
+  __name(init113, "init");
 
   // src/content/features/games/plusPrivateServerTooltip.js
   init_observer();
@@ -157018,7 +157797,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_assets();
   init_i18n();
   init_games();
-  async function init112() {
+  async function init114() {
     chrome.storage.local.get(
       { PlusPrivateServerTooltipEnabled: !0 },
       async (settings2) => {
@@ -157105,7 +157884,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init112, "init");
+  __name(init114, "init");
 
   // src/content/features/sitewide/PreviousPrice.js
   init_observer();
@@ -157137,7 +157916,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(addPriceIconToCard, "addPriceIconToCard");
-  function init113() {
+  function init115() {
     chrome.storage.local.get("PreviousPriceEnabled", (result) => {
       result.PreviousPriceEnabled === !0 && (listenersAttached || (listenersAttached = !0, observeElement(
         "#offsale-since-date",
@@ -157251,7 +158030,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       )));
     });
   }
-  __name(init113, "init");
+  __name(init115, "init");
   function handleItemCard(card) {
     if (!card.isConnected) return;
     let link = card.querySelector(".item-card-link") || card.querySelector(".rovalra-item-card-link");
@@ -157803,7 +158582,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     !card || card.parentElement === targetGrid || (targetGrid.appendChild(card), syncDiscoveredCategories(), refreshPillToggle());
   }
   __name(moveAssetCardToCategory, "moveAssetCardToCategory");
-  async function init114() {
+  async function init116() {
     let result = await new Promise(
       (resolve) => chrome.storage.local.get(
         [
@@ -157893,7 +158672,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       content && loadCurrentlyWearing(content);
     });
   }
-  __name(init114, "init");
+  __name(init116, "init");
 
   // src/content/features/profile/bannedusers.js
   init_api();
@@ -158000,7 +158779,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
 
   // src/content/features/profile/bannedusers.js
   init_i18n();
-  function init115() {
+  function init117() {
     chrome.storage.local.get(
       {
         bannedUserViewerEnabled: !1,
@@ -158116,9 +158895,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         }
         __name(handleBannedRedirect, "handleBannedRedirect"), (async () => {
           if (isErrorPage) {
-            let lastUrl4 = await getLastClickedUrl();
-            if (lastUrl4) {
-              let userUrlMatch = (lastUrl4.includes("://") ? new URL(lastUrl4).pathname : lastUrl4).match(
+            let lastUrl5 = await getLastClickedUrl();
+            if (lastUrl5) {
+              let userUrlMatch = (lastUrl5.includes("://") ? new URL(lastUrl5).pathname : lastUrl5).match(
                 /users\/(\d+)\/profile/
               );
               if (userUrlMatch) {
@@ -158142,7 +158921,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init115, "init");
+  __name(init117, "init");
   async function renderBannedUserProfile(user, settings2) {
     let content = document.getElementById("content");
     if (!content) return;
@@ -158945,7 +159724,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(addTrustedFriendButton, "addTrustedFriendButton");
-  function init116() {
+  function init118() {
     chrome.storage.local.get(
       { trustedConnectionsEnabledv3: !0 },
       async (settings2) => {
@@ -158956,7 +159735,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init116, "init");
+  __name(init118, "init");
 
   // src/content/features/profile/header/ProfileRender.js
   init_observer();
@@ -159268,7 +160047,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(watchHolders, "watchHolders");
-  async function init117() {
+  async function init119() {
     try {
       let profileUserId = getUserIdFromUrl();
       if (!profileUserId) return;
@@ -159289,7 +160068,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       console.error("RoValra: Profile frame init failed", error3);
     }
   }
-  __name(init117, "init");
+  __name(init119, "init");
 
   // src/content/features/profile/header/ProfileRender.js
   FLAGS.ENABLE_API_MESH_CACHE = !1;
@@ -159298,10 +160077,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   FLAGS.ONLINE_ASSETS = !0;
   FLAGS.AUDIO_ENABLED = !1;
   backgroundRendererRequests();
-  var currentRig2 = null, currentRigType = null, profileBackgroundRenderer = null, profileRenderAuthentication = new Authentication(), emoteStopTimer = null, preloadedCanvas = null, isPreloading = !1, globalAvatarData = null, globalAvatarBackgroundId = null, interceptedProfileData = null, profileEnvironmentEnabled = !1, customModelInstance = null, avatarDataPromise = null, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, animationSpeed = 1, EFFECT_BLACK_KEY_THRESHOLD = 0.08, EFFECT_BLACK_KEY_SOFTNESS = 0.02, isAnimatePatched = !1, raycaster = new Raycaster(), intendedDistance = 10, lastAppliedDistance = 10, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, currentDirectTrack = null, directEmoteTimer = null, hasMovedCamera = !1, hasSetInitialCamera = !1, activeProfileRenderUserId = null, profileRenderObserversSetup = !1, removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, animationLoopStarted = !1, autoSwitchedProfileUserId = null, profileRenderFrameSettingListener = null, profileFrameOverflowStyles = /* @__PURE__ */ new Map(), resizeObserversByContainer = /* @__PURE__ */ new WeakMap(), blackKeyedEffectMaterials = /* @__PURE__ */ new WeakSet();
+  var currentRig2 = null, currentRigType = null, profileBackgroundRenderer = null, profileRenderAuthentication = new Authentication(), emoteStopTimer = null, preloadedCanvas = null, isPreloading = !1, globalAvatarData = null, globalAvatarBackgroundId = null, interceptedProfileData = null, profileEnvironmentEnabled = !1, customModelInstance = null, avatarDataPromise = null, isCustomEnvLoaded = !1, environmentConfig = null, activeEmoteId = null, animationSpeed = 1, EFFECT_BLACK_KEY_THRESHOLD = 0.08, EFFECT_BLACK_KEY_SOFTNESS = 0.02, isAnimatePatched = !1, raycaster = new Raycaster(), intendedDistance = 10, lastAppliedDistance = 10, lastCameraPos = new Vector32(), lastTargetPos = new Vector32(), raycastFrameSkip = 0, raycastTargets = [], isRenderingPaused = !1, currentDirectTrack = null, directEmoteTimer = null, hasMovedCamera = !1, hasSetInitialCamera = !1, activeProfileRenderUserId = null, profileRenderObserversSetup = !1, removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, animationLoopStarted = !1, autoSwitchedProfileUserId = null, profileRenderFrameSettingListener = null, profileFrameOverflowStyles = /* @__PURE__ */ new Map(), resizeObserversByContainer = /* @__PURE__ */ new WeakMap(), blackKeyedEffectMaterials = /* @__PURE__ */ new WeakSet(), headFocusDistance = 4, bodyFocusDistance = 6, bodyCenterCFrame = new CFrame(0, 4, 0), bodyHeadCFrame = new CFrame(0, 4, 0);
   function updateProfileBackground(profileData) {
     let backgroundId = Number(profileData?.components?.ProfileBackground?.assetId) || null;
-    globalAvatarBackgroundId !== backgroundId && (globalAvatarBackgroundId = backgroundId, profileBackgroundRenderer && profileBackgroundRenderer.backgroundRenderer.setBackground(
+    globalAvatarBackgroundId !== backgroundId && (globalAvatarBackgroundId = backgroundId, profileBackgroundRenderer && profileBackgroundRenderer.setBackground(
       profileEnvironmentEnabled ? null : backgroundId
     ));
   }
@@ -159367,9 +160146,33 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     e.button === 0 && (isLeftMouseDown = !1);
   });
   var isMoving = /* @__PURE__ */ __name(() => movementKeys.some((key) => keysDown[key]), "isMoving"), isFreecamActive = /* @__PURE__ */ __name(() => isLeftMouseDown && isMoving(), "isFreecamActive");
+  function calculateControlsTargetCFrame() {
+    let distance2 = RBXRenderer.getRendererControls().getDistance(), time2 = Math.max(Math.min(mapNum(distance2, headFocusDistance, bodyFocusDistance, 0, 1), 1), 0);
+    return lerpCFrame(bodyHeadCFrame, bodyCenterCFrame, time2);
+  }
+  __name(calculateControlsTargetCFrame, "calculateControlsTargetCFrame");
+  function updateControlsTargetCFrame() {
+    let controls = RBXRenderer.getRendererControls(), newTarget = calculateControlsTargetCFrame().Position, oldTarget = controls.target.toArray(), diffTarget = minus(newTarget, oldTarget), cameraCF = RBXRenderer.getCameraCFrame();
+    cameraCF.Position = add(cameraCF.Position, diffTarget), RBXRenderer.setCameraCFrame(cameraCF), controls.target.set(...newTarget);
+  }
+  __name(updateControlsTargetCFrame, "updateControlsTargetCFrame");
   function resetCamera() {
     let controls = RBXRenderer.getRendererControls(), camera = RBXRenderer.getRendererCamera();
-    !controls || !camera || (controls.target.set(0, 4, 0), camera.position.set(0, 4, -6), intendedDistance = 10, lastAppliedDistance = 10, controls.update(), hasMovedCamera = !1, recenterBtnRef && (recenterBtnRef.style.display = "none"));
+    if (!(!controls || !camera)) {
+      if (currentRig2) {
+        let [lowerExtents, higherExtents] = getExtentsForParts(currentRig2.GetDescendants(), !1), size = higherExtents.minus(lowerExtents), centerCF = currentRig2.Child("HumanoidRootPart").Prop("CFrame"), cameraCF = centerCF.clone();
+        cameraCF.Position = add(cameraCF.Position, [0, 0.25, -1]), cameraCF = CFrame.lookAt(cameraCF.Position, centerCF.Position), zoomExtents(cameraCF, centerCF, size, camera.fov, 1.1, "calculate");
+        let currentDistance = magnitude(minus(cameraCF.Position, centerCF.Position)), headExtents = getHeadExtents(currentRig2);
+        if (headExtents) {
+          let [headLowerExtents, headHigherExtents] = headExtents, headSizeDistance = headHigherExtents.minus(headLowerExtents).magnitude();
+          headFocusDistance = Math.min(headSizeDistance, currentDistance - 1), bodyFocusDistance = currentDistance;
+        } else
+          bodyFocusDistance = currentDistance * 2 / 3, headFocusDistance = bodyFocusDistance * 1 / 3;
+        bodyCenterCFrame = centerCF, bodyHeadCFrame = traverseRigCFrame(currentRig2.Child("Head"), !1, !0), controls.target.set(...centerCF.Position), camera.position.set(...cameraCF.Position);
+      } else
+        controls.target.set(0, 4, 0), camera.position.set(0, 4, -6);
+      intendedDistance = 10, lastAppliedDistance = 10, controls.update(), hasMovedCamera = !1, recenterBtnRef && (recenterBtnRef.style.display = "none");
+    }
   }
   __name(resetCamera, "resetCamera");
   function updateCameraSystem() {
@@ -159392,7 +160195,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   __name(updateCameraSystem, "updateCameraSystem");
   function customAnimate2() {
     let controls = RBXRenderer.getRendererControls(), camera = RBXRenderer.getRendererCamera();
-    controls && camera && (updateCameraSystem(), controls.update());
+    controls && camera && (updateCameraSystem(), updateControlsTargetCFrame(), controls.update());
     let [width, height] = RBXRenderer.resolution;
     RBXRenderer.camera.aspect = width / height, RBXRenderer.camera.updateProjectionMatrix(), RBXRenderer.renderer.setRenderTarget(null), keyBlackFromEffectMaterials(), RBXRenderer.effectComposer ? RBXRenderer.effectComposer.render() : RBXRenderer.renderer.render(RBXRenderer.scene, RBXRenderer.camera), requestAnimationFrame(() => {
       customAnimate2();
@@ -159433,11 +160236,11 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     let outfit = new Outfit();
     outfit.fromJson(globalAvatarData), outfit.playerAvatarType = rigType;
     let outfitModel = new OutfitModel();
-    outfitModel.outfit = outfit, globalAvatarBackgroundId && (outfitModel.background = { id: globalAvatarBackgroundId }), profileBackgroundRenderer ? profileBackgroundRenderer.setOutfitModel(outfitModel) : (profileBackgroundRenderer = new OutfitRenderer(
+    outfitModel.outfit = outfit, globalAvatarBackgroundId && (outfitModel.background = { id: globalAvatarBackgroundId }), profileBackgroundRenderer ? profileBackgroundRenderer.setBackground(outfitModel.background?.id) : (profileBackgroundRenderer = new BackgroundRenderer(
       profileRenderAuthentication,
-      outfitModel,
+      outfitModel.background?.id,
       RBXRenderer.firstScene
-    ), profileBackgroundRenderer.doAddInstance = !1, profileBackgroundRenderer.backgroundRenderer.affectSceneAppearance = !1, profileBackgroundRenderer.startAnimating());
+    ), profileBackgroundRenderer.affectSceneAppearance = !1, profileBackgroundRenderer.startAnimating());
     let rigUrl = chrome.runtime.getURL(`assets/Rig${rigType}.rbxm`);
     try {
       let rigResult = await API.Asset.GetRBX(rigUrl, void 0);
@@ -160453,7 +161256,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
               DEFAULT_VOID_CONFIG.atmosphere,
               !1
             );
-          }), profileBackgroundRenderer?.backgroundRenderer.setBackground(
+          }), profileBackgroundRenderer?.setBackground(
             profileEnvironmentEnabled ? null : globalAvatarBackgroundId
           ), globalAvatarData);
         } catch (err4) {
@@ -160589,7 +161392,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), profileRenderFrameSettingListener = null), document.querySelectorAll(".thumbnail-holder-position .thumbnail-3d-container").forEach((container) => applyFrameToHolder(container, null)), document.querySelectorAll(".thumbnail-holder-position").forEach((holder) => setFrameRenderMode(holder, !1)), restoreProfileFrameBleed(), removeRoblox3dObserver = null, renderContainerObserver = null, autoSwitchObserver = null, profileRenderObserversSetup = !1, removeStylesheet("rovalra-thumbnail-holder-css"));
   }
   __name(teardownProfileRenderObservers, "teardownProfileRenderObservers");
-  function init118() {
+  function init120() {
     migrateLegacyEnvironment();
     let userId = getUserIdFromUrl();
     if (!userId) {
@@ -160612,7 +161415,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
     );
   }
-  __name(init118, "init");
+  __name(init120, "init");
 
   // src/content/features/profile/testTab.js
   init_observer();
@@ -160678,10 +161481,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     contentPane.textContent = "test";
   }
   __name(addTestTab, "addTestTab");
-  async function init119() {
+  async function init121() {
     await settings.profileTestTabEnabled && observeElement(".profile-tabs", addTestTab, { multiple: !0 });
   }
-  __name(init119, "init");
+  __name(init121, "init");
 
   // src/content/features/profile/showcase.js
   init_observer();
@@ -161229,7 +162032,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }), closeGroupDropdown = /* @__PURE__ */ __name(() => groupDropdown.toggleVisibility(!1), "closeGroupDropdown");
   }
   __name(addShowcaseTab, "addShowcaseTab");
-  async function init120() {
+  async function init122() {
     await settings.profileShowcaseEnabled && observeElement(
       ".profile-tabs",
       (tabs) => addShowcaseTab(tabs).catch((error3) => {
@@ -161241,7 +162044,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init120, "init");
+  __name(init122, "init");
 
   // src/content/features/profile/header/status.js
   init_observer();
@@ -161570,7 +162373,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(addHomeStatusHover, "addHomeStatusHover");
-  async function init121() {
+  async function init123() {
     if (!await settings.statusBubbleEnabled) return;
     migrateLegacyStatus(), startObserving(), injectStylesheet("css/thinkingbubble.css", "rovalra-profile-status-css"), observeElement(".user-profile-header-details-avatar-container:not(.rovalra-sendrobux-avatar)", (el2) => addStatusBubble(el2), {
       multiple: !0
@@ -161578,7 +162381,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       exclude: [".rovalra-donator-card", ".user-item-clickable", ".rovalra-sendrobux-profile"]
     }));
   }
-  __name(init121, "init");
+  __name(init123, "init");
 
   // src/content/features/profile/header/lastplayed.js
   init_friendslist();
@@ -161685,14 +162488,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initLastPlayed, "initLastPlayed");
-  function init122() {
+  function init124() {
     chrome.storage.local.get({ lastOnlineEnabled: !0 }, (data) => {
       data.lastOnlineEnabled && initLastOnline();
     }), chrome.storage.local.get({ lastPlayedTogetherEnabled: !0 }, (data) => {
       data.lastPlayedTogetherEnabled && initLastPlayed();
     });
   }
-  __name(init122, "init");
+  __name(init124, "init");
 
   // src/content/features/profile/header/profileViews.js
   init_idExtractor();
@@ -161776,10 +162579,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initProfileViews, "initProfileViews");
-  function init123() {
+  function init125() {
     initProfileViews();
   }
-  __name(init123, "init");
+  __name(init125, "init");
 
   // src/content/features/profile/header/pronouns.js
   init_idExtractor();
@@ -161891,10 +162694,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }
   }
   __name(initProfilePronouns, "initProfilePronouns");
-  function init124() {
+  function init126() {
     initProfilePronouns();
   }
-  __name(init124, "init");
+  __name(init126, "init");
 
   // src/content/features/profile/header/profileNotes.js
   init_idExtractor();
@@ -162099,10 +162902,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(startStorageListener, "startStorageListener");
-  function init125() {
+  function init127() {
     startStorageListener(), initProfileNotes();
   }
-  __name(init125, "init");
+  __name(init127, "init");
 
   // src/content/features/profile/header/currentlyPlayingSubplace.js
   init_idExtractor();
@@ -163127,7 +163930,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), scheduleProfileScans());
   }
   __name(registerProfileFallbackSubplaces, "registerProfileFallbackSubplaces");
-  async function init126() {
+  async function init128() {
     if (!await settings.currentlyPlayingSubplaceEnabled) {
       cleanupHomeSubplaceCards(), cleanupProfileSubplaceCards();
       return;
@@ -163145,7 +163948,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       multiple: !0
     }), await scheduleProfileScans();
   }
-  __name(init126, "init");
+  __name(init128, "init");
 
   // src/content/features/profile/header/idVerificationBadge.js
   init_api();
@@ -163251,7 +164054,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     userId && initProfileAboutDialogObserver(userId);
   }
   __name(run, "run");
-  function init127() {
+  function init129() {
     if (watcherSet) return;
     watcherSet = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
@@ -163259,7 +164062,125 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "handlePageChange");
     window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run();
   }
-  __name(init127, "init");
+  __name(init129, "init");
+
+  // src/content/features/profile/header/ageVerificationBadge.js
+  init_api();
+  init_idExtractor();
+  init_observer();
+  init_getSettings();
+  init_tooltip();
+  init_i18n();
+  var watcherSet2 = !1, lastUrl3 = window.location.href, profileDialogObserver2 = null, lastMoreButtonClickTime2 = 0, ageVerificationCache = /* @__PURE__ */ new Map(), AGE_VERIFICATION_ITEM_IDS = [
+    "119934643965525",
+    "121199209890990"
+  ];
+  document.addEventListener(
+    "click",
+    (event) => {
+      let button = event.target.closest("button.more-btn");
+      button && button.getAttribute("aria-label") === "more" && (lastMoreButtonClickTime2 = Date.now());
+    },
+    !0
+  );
+  function cleanup3() {
+    profileDialogObserver2 && (profileDialogObserver2.disconnect(), profileDialogObserver2 = null);
+  }
+  __name(cleanup3, "cleanup");
+  async function checkAgeVerificationItem(userId, itemId) {
+    try {
+      let isAgeVerified = await callRobloxApiJson({
+        subdomain: "inventory",
+        endpoint: `/v1/users/${userId}/items/0/${itemId}/is-owned`,
+        method: "GET"
+      });
+      return typeof isAgeVerified == "boolean" ? isAgeVerified : null;
+    } catch (error3) {
+      return console.warn("RoValra: Failed to check age verification status", error3), null;
+    }
+  }
+  __name(checkAgeVerificationItem, "checkAgeVerificationItem");
+  async function getAgeVerification(userId) {
+    if (ageVerificationCache.has(userId))
+      return ageVerificationCache.get(userId);
+    let results = await Promise.all(
+      AGE_VERIFICATION_ITEM_IDS.map(
+        (itemId) => checkAgeVerificationItem(userId, itemId)
+      )
+    ), isAgeVerified = results.some((result) => result === !0) ? !0 : results.some((result) => result === null) ? null : !1;
+    return isAgeVerified !== null && ageVerificationCache.set(userId, isAgeVerified), isAgeVerified;
+  }
+  __name(getAgeVerification, "getAgeVerification");
+  function findAboutStatsContainer2(dialog) {
+    let containers = Array.from(
+      dialog.querySelectorAll("div.gap-small.flex.flex-col")
+    );
+    return containers[containers.length - 1] || null;
+  }
+  __name(findAboutStatsContainer2, "findAboutStatsContainer");
+  async function injectAgeVerificationRow(dialog, isAgeVerified) {
+    let parent = findAboutStatsContainer2(dialog);
+    if (!parent || parent.querySelector(".rovalra-age-verification-row"))
+      return;
+    let row = document.createElement("div");
+    row.className = "items-center gap-xsmall flex rovalra-age-verification-row";
+    let sibling = parent.querySelector(".items-center.gap-xsmall.flex");
+    row.style.fontSize = window.getComputedStyle(
+      sibling?.querySelector(".text-body-medium") || sibling || parent
+    ).fontSize;
+    let iconSlot = document.createElement("span");
+    Object.assign(iconSlot.style, {
+      width: "var(--icon-size-xsmall)",
+      height: "var(--icon-size-xsmall)",
+      flex: "0 0 var(--icon-size-xsmall)",
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center"
+    });
+    let icon = Icon({
+      icon: isAgeVerified ? "photo-camera-face-lightning-bolt" : "photo-camera-slash",
+      size: "15px",
+      classes: "rovalra-age-verification-icon"
+    });
+    icon.setAttribute("aria-hidden", "true");
+    let label = document.createElement("span");
+    label.textContent = await t2(
+      isAgeVerified ? "rovalraBadges.userAgeVerified" : "rovalraBadges.userNotAgeVerified"
+    ), iconSlot.appendChild(icon), row.appendChild(iconSlot), row.appendChild(label), isAgeVerified || addTooltip(
+      row,
+      await t2("rovalraBadges.userAgeVerificationMayBeInaccurate")
+    ), parent.appendChild(row);
+  }
+  __name(injectAgeVerificationRow, "injectAgeVerificationRow");
+  function initProfileAboutDialogObserver2(userId) {
+    cleanup3(), profileDialogObserver2 = observeElement(
+      'div[role="dialog"]',
+      async (dialog) => {
+        let heading = dialog.querySelector("h2");
+        if (heading && heading.textContent === "About" && Date.now() - lastMoreButtonClickTime2 < 1500) {
+          let isAgeVerified = await getAgeVerification(userId);
+          isAgeVerified !== null && injectAgeVerificationRow(dialog, isAgeVerified);
+        }
+      },
+      { multiple: !0 }
+    );
+  }
+  __name(initProfileAboutDialogObserver2, "initProfileAboutDialogObserver");
+  async function run2() {
+    if (cleanup3(), !await settings.ageVerificationBadgeEnabled) return;
+    let userId = getUserIdFromUrl(window.location.href);
+    userId && initProfileAboutDialogObserver2(userId);
+  }
+  __name(run2, "run");
+  function init130() {
+    if (watcherSet2) return;
+    watcherSet2 = !0;
+    let handlePageChange = /* @__PURE__ */ __name(() => {
+      window.location.href !== lastUrl3 && (lastUrl3 = window.location.href, run2());
+    }, "handlePageChange");
+    window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run2();
+  }
+  __name(init130, "init");
 
   // src/content/features/profile/friends/friendsSince.js
   init_idExtractor();
@@ -163267,12 +164188,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_observer();
   init_friendslist();
   init_i18n();
-  var watcherSet2 = !1, lastUrl3 = window.location.href, profileDialogObserver2 = null, lastMoreButtonClickTime2 = 0, cardsObserver = null, containerObserver3 = null;
+  var watcherSet3 = !1, lastUrl4 = window.location.href, profileDialogObserver3 = null, lastMoreButtonClickTime3 = 0, cardsObserver = null, containerObserver3 = null;
   document.addEventListener(
     "click",
     (e) => {
       let btn = e.target.closest("button.more-btn");
-      btn && btn.getAttribute("aria-label") === "more" && (lastMoreButtonClickTime2 = Date.now());
+      btn && btn.getAttribute("aria-label") === "more" && (lastMoreButtonClickTime3 = Date.now());
     },
     !0
   );
@@ -163429,22 +164350,22 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(injectDialogStats, "injectDialogStats");
-  function initProfileAboutDialogObserver2(friendData, settings2) {
-    profileDialogObserver2 && (profileDialogObserver2.disconnect(), profileDialogObserver2 = null), profileDialogObserver2 = observeElement(
+  function initProfileAboutDialogObserver3(friendData, settings2) {
+    profileDialogObserver3 && (profileDialogObserver3.disconnect(), profileDialogObserver3 = null), profileDialogObserver3 = observeElement(
       'div[role="dialog"]',
       (dialog) => {
         let h2 = dialog.querySelector("h2");
-        h2 && h2.textContent === "About" && Date.now() - lastMoreButtonClickTime2 < 1500 && injectDialogStats(dialog, friendData, settings2);
+        h2 && h2.textContent === "About" && Date.now() - lastMoreButtonClickTime3 < 1500 && injectDialogStats(dialog, friendData, settings2);
       },
       { multiple: !0 }
     );
   }
-  __name(initProfileAboutDialogObserver2, "initProfileAboutDialogObserver");
-  function cleanup3() {
-    profileDialogObserver2 && (profileDialogObserver2.disconnect(), profileDialogObserver2 = null), cardsObserver && (cardsObserver.disconnect(), cardsObserver = null), containerObserver3 && (containerObserver3.disconnect(), containerObserver3 = null);
+  __name(initProfileAboutDialogObserver3, "initProfileAboutDialogObserver");
+  function cleanup4() {
+    profileDialogObserver3 && (profileDialogObserver3.disconnect(), profileDialogObserver3 = null), cardsObserver && (cardsObserver.disconnect(), cardsObserver = null), containerObserver3 && (containerObserver3.disconnect(), containerObserver3 = null);
   }
-  __name(cleanup3, "cleanup");
-  async function run2() {
+  __name(cleanup4, "cleanup");
+  async function run3() {
     let settings2 = await new Promise(
       (resolve) => chrome.storage.local.get(
         {
@@ -163455,7 +164376,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         resolve
       )
     );
-    if (cleanup3(), !settings2.friendsSinceEnabled) return;
+    if (cleanup4(), !settings2.friendsSinceEnabled) return;
     let friendsList = await getCachedFriendsList();
     if (!friendsList || friendsList.length === 0) return;
     let friendsMap2 = new Map(
@@ -163463,23 +164384,23 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), userId = getUserIdFromUrl(window.location.href);
     if (userId) {
       let friendData = friendsMap2.get(parseInt(userId, 10));
-      friendData && friendData.friendsSince && initProfileAboutDialogObserver2(friendData, settings2);
+      friendData && friendData.friendsSince && initProfileAboutDialogObserver3(friendData, settings2);
     }
     if (window.location.hash.includes("#!/friends") || window.location.pathname.includes("/friends")) {
       let urlUserId = await getUserIdFromFriendUrl(), authedUserId = await getAuthenticatedUserId();
-      urlUserId == null || String(urlUserId) === String(authedUserId) ? addFriendsSinceLabel(friendsMap2, settings2) : cleanup3();
+      urlUserId == null || String(urlUserId) === String(authedUserId) ? addFriendsSinceLabel(friendsMap2, settings2) : cleanup4();
     }
   }
-  __name(run2, "run");
-  async function init128() {
-    if (watcherSet2) return;
-    watcherSet2 = !0;
+  __name(run3, "run");
+  async function init131() {
+    if (watcherSet3) return;
+    watcherSet3 = !0;
     let handlePageChange = /* @__PURE__ */ __name(() => {
-      window.location.href !== lastUrl3 && (lastUrl3 = window.location.href, run2());
+      window.location.href !== lastUrl4 && (lastUrl4 = window.location.href, run3());
     }, "handlePageChange");
-    window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run2();
+    window.addEventListener("popstate", handlePageChange), observeElement("body", handlePageChange, { multiple: !1 }), run3();
   }
-  __name(init128, "init");
+  __name(init131, "init");
 
   // src/content/features/profile/friends/unfriend.js
   init_observer();
@@ -163779,7 +164700,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(initializeIfOnFriendsPage, "initializeIfOnFriendsPage");
-  async function init129() {
+  async function init132() {
     if (!(await chrome.storage.local.get("bulkUnfriendEnabled")).bulkUnfriendEnabled)
       return;
     let handlePageChange = /* @__PURE__ */ __name(async () => {
@@ -163791,16 +164712,197 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       initializeIfOnFriendsPage();
     }, "handlePageChange");
     handlePageChange();
-    let lastUrl4 = location.href;
+    let lastUrl5 = location.href;
     observeElement(
       "body",
       () => {
-        location.href !== lastUrl4 && (lastUrl4 = location.href, handlePageChange());
+        location.href !== lastUrl5 && (lastUrl5 = location.href, handlePageChange());
       },
       { multiple: !1 }
     ), window.addEventListener("popstate", handlePageChange);
   }
-  __name(init129, "init");
+  __name(init132, "init");
+
+  // src/content/features/profile/friends/unfriendDetector.js
+  init_overlay();
+  init_buttons();
+  init_thumbnails();
+  init_i18n();
+  init_user();
+  init_getSettings();
+  init_unfriendDetector();
+  init_api();
+  init_settingHandler();
+  init_avatarBorder();
+  var PENDING_UNFRIENDS_KEY2 = "rovalra_pending_unfriends", isShowingOverlay = !1, isHandlingQueue = !1, listenerAttached = !1;
+  async function resolveMissingNames(unfriendedUsers) {
+    let missing = unfriendedUsers.filter(
+      (u) => !u.displayName && !u.username
+    );
+    if (!missing.length) return unfriendedUsers;
+    let resolved = /* @__PURE__ */ new Map();
+    return await Promise.all(
+      missing.map(async (user) => {
+        try {
+          let accountData = await callRobloxApiJson({
+            subdomain: "users",
+            endpoint: `/v1/users/${user.id}`,
+            useBackground: !0
+          });
+          (accountData?.name || accountData?.displayName) && resolved.set(Number(user.id), {
+            username: accountData.name || null,
+            displayName: accountData.displayName || null
+          });
+        } catch (error3) {
+          console.error(
+            "RoValra: Failed to resolve missing unfriend detector name",
+            error3
+          );
+        }
+      })
+    ), resolved.size ? unfriendedUsers.map((u) => {
+      let found = resolved.get(Number(u.id));
+      return found ? {
+        ...u,
+        username: u.username || found.username,
+        displayName: u.displayName || found.displayName
+      } : u;
+    }) : unfriendedUsers;
+  }
+  __name(resolveMissingNames, "resolveMissingNames");
+  async function handlePendingQueue() {
+    if (!isHandlingQueue) {
+      isHandlingQueue = !0;
+      try {
+        if (!await settings.unfriendDetectorEnabled) return;
+        let userId = await getAuthenticatedUserId();
+        if (!userId) return;
+        let pending = await consumePendingUnfriends(userId);
+        pending.length && await showUnfriendDetectedOverlay(pending);
+      } finally {
+        isHandlingQueue = !1;
+      }
+    }
+  }
+  __name(handlePendingQueue, "handlePendingQueue");
+  async function consumePendingUnfriends(userId) {
+    let allPending = (await new Promise(
+      (resolve) => chrome.storage.local.get([PENDING_UNFRIENDS_KEY2], resolve)
+    ))[PENDING_UNFRIENDS_KEY2] || {}, pending = allPending[userId] || [];
+    return pending.length ? (delete allPending[userId], await new Promise(
+      (resolve) => chrome.storage.local.set(
+        { [PENDING_UNFRIENDS_KEY2]: allPending },
+        resolve
+      )
+    ), pending) : [];
+  }
+  __name(consumePendingUnfriends, "consumePendingUnfriends");
+  async function showUnfriendDetectedOverlay(unfriendedUsers) {
+    if (isShowingOverlay || !unfriendedUsers.length) return;
+    isShowingOverlay = !0, unfriendedUsers = await resolveMissingNames(unfriendedUsers);
+    let bodyContent = document.createElement("div");
+    bodyContent.style.padding = "16px 0";
+    let description = document.createElement("p");
+    description.textContent = unfriendedUsers.length === 1 ? ts2("unfriendDetector.descriptionSingle") : ts2("unfriendDetector.descriptionPlural", {
+      count: unfriendedUsers.length
+    }), description.style.marginBottom = "16px", bodyContent.appendChild(description);
+    let list = document.createElement("div");
+    list.style.display = "grid", list.style.gridTemplateColumns = "1fr 1fr", list.style.gap = "12px", list.style.maxHeight = "400px", list.style.overflowY = "auto";
+    let thumbnails = /* @__PURE__ */ new Map();
+    try {
+      thumbnails = await fetchThumbnails(
+        unfriendedUsers.map((u) => ({ id: u.id })),
+        "AvatarHeadshot",
+        "48x48",
+        !0
+      );
+    } catch (error3) {
+      console.error("RoValra: Failed to fetch unfriend detector thumbnails", error3);
+    }
+    let [gradientEnabled, borderEnabled] = await Promise.all([
+      settings.displayNameGradientEnabled,
+      settings.avatarBorderEnabled
+    ]), cosmeticTargets = [];
+    for (let user of unfriendedUsers) {
+      let displayName = user.displayName || user.username || `User ${user.id}`, item = document.createElement("a");
+      item.href = `/users/${user.id}/profile`, item.title = ts2("unfriendDetector.viewProfile", { name: displayName }), item.style.display = "flex", item.style.alignItems = "center", item.style.gap = "12px", item.style.padding = "12px", item.style.borderRadius = "8px", item.style.backgroundColor = "var(--rovalra-container-background-color)", item.style.textDecoration = "none", item.style.color = "inherit", item.style.cursor = "pointer", item.style.transition = "background-color 0.15s", item.addEventListener("mouseenter", () => {
+        item.style.backgroundColor = "var(--rovalra-hover-background-color, rgba(255, 255, 255, 0.08))";
+      }), item.addEventListener("mouseleave", () => {
+        item.style.backgroundColor = "var(--rovalra-container-background-color)";
+      });
+      let thumbHolder = null, thumbnail = thumbnails.get(Number(user.id));
+      if (thumbnail) {
+        let thumbElement = createThumbnailElement(
+          thumbnail,
+          displayName,
+          "",
+          {
+            width: "48px",
+            height: "48px",
+            borderRadius: "50%",
+            flexShrink: "0"
+          }
+        );
+        thumbHolder = document.createElement("div"), thumbHolder.style.position = "relative", thumbHolder.style.width = "48px", thumbHolder.style.height = "48px", thumbHolder.style.flexShrink = "0", thumbHolder.style.overflow = "visible", thumbHolder.appendChild(thumbElement), item.appendChild(thumbHolder);
+      }
+      let infoContainer = document.createElement("div");
+      infoContainer.style.display = "flex", infoContainer.style.flexDirection = "column", infoContainer.style.gap = "4px", infoContainer.style.minWidth = "0";
+      let nameText = document.createElement("span");
+      if (nameText.style.fontWeight = "500", nameText.style.lineHeight = "1.2", nameText.textContent = displayName, infoContainer.appendChild(nameText), user.username) {
+        let usernameText = document.createElement("span");
+        usernameText.style.opacity = "0.6", usernameText.style.fontSize = "12px", usernameText.style.lineHeight = "1.2", usernameText.textContent = `@${user.username}`, infoContainer.appendChild(usernameText);
+      }
+      cosmeticTargets.push({ user, item, thumbHolder, nameText }), item.appendChild(infoContainer), list.appendChild(item);
+    }
+    bodyContent.appendChild(list);
+    let dismissButton = createButton(
+      ts2("unfriendDetector.dismiss"),
+      "primary"
+    ), overlay = createOverlay({
+      title: unfriendedUsers.length === 1 ? ts2("unfriendDetector.titleSingle") : ts2("unfriendDetector.titlePlural"),
+      bodyContent,
+      actions: [dismissButton],
+      showLogo: !0,
+      onClose: /* @__PURE__ */ __name(() => {
+        isShowingOverlay = !1;
+      }, "onClose")
+    });
+    if (dismissButton.addEventListener("click", () => overlay.close()), gradientEnabled || borderEnabled)
+      for (let { user, item, thumbHolder, nameText } of cosmeticTargets)
+        borderEnabled && thumbHolder && getUserSettings(user.id).then((userSettings) => {
+          let borderUrl = userSettings?.border && userSettings.border !== "none" ? userSettings.border : null;
+          borderUrl && applyBorderToContainer(
+            thumbHolder,
+            borderUrl,
+            !0
+          );
+        }).catch((error3) => {
+          console.error(
+            "RoValra: Failed to resolve avatar border for unfriend detector",
+            error3
+          );
+        }), gradientEnabled && getUserSettings(user.id, { useDescription: !1 }).then((userSettings) => {
+          applyDisplayNameGradientToElement(
+            nameText,
+            userSettings,
+            { animate: !0, hoverHost: item }
+          );
+        }).catch((error3) => {
+          console.error(
+            "RoValra: Failed to resolve display name gradient for unfriend detector",
+            error3
+          );
+        });
+  }
+  __name(showUnfriendDetectedOverlay, "showUnfriendDetectedOverlay");
+  async function init133() {
+    await settings.unfriendDetectorEnabled && (setUnfriendDetectedListener((removedFriends) => {
+      showUnfriendDetectedOverlay(removedFriends);
+    }), await handlePendingQueue(), !listenerAttached && chrome.storage?.onChanged && (listenerAttached = !0, chrome.storage.onChanged.addListener((changes, areaName) => {
+      areaName === "local" && changes[PENDING_UNFRIENDS_KEY2] && handlePendingQueue();
+    })));
+  }
+  __name(init133, "init");
 
   // src/content/features/profile/header/avatarDownload.js
   init_observer();
@@ -163910,12 +165012,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     button.classList.replace("text-label-medium", "text-label-large"), button.classList.add(buttonIdentifier), toggleContainer.style.display = "flex", toggleContainer.style.gap = "10px", toggleContainer.prepend(button);
   }
   __name(addDownloadButton, "addDownloadButton");
-  async function init130() {
+  async function init134() {
     await settings.avatarDownloadEnabled && observeElement(".avatar-toggle-button", addDownloadButton, {
       multiple: !0
     });
   }
-  __name(init130, "init");
+  __name(init134, "init");
 
   // src/content/index.js
   init_avatarBorder();
@@ -163924,7 +165026,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
   init_observer();
   init_handlesettings();
   var PROFILE_AVATAR_SELECTOR = ".user-profile-header-details-avatar-container .avatar.avatar-card-fullbody", AVATAR_CLASS = "rovalra-improved-avatar-card";
-  async function init131() {
+  async function init135() {
     try {
       if (!(await loadSettings()).improvedAvatarCard) return;
       observeElement(
@@ -163936,7 +165038,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       console.error("RoValra: Improved avatar card init failed", error3);
     }
   }
-  __name(init131, "init");
+  __name(init135, "init");
 
   // src/content/core/catalog/purchasePromptItemId.js
   init_observer();
@@ -164211,7 +165313,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "tryProcess");
     tryProcess();
   }, "attachItemDataToPurchasePrompt");
-  function init132() {
+  function init136() {
     observeElement(
       ".modal-dialog .modal-content, .modal-content, .unified-purchase-dialog-content",
       (element) => {
@@ -164278,7 +165380,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       "color: #FF4500;"
     );
   }
-  __name(init132, "init");
+  __name(init136, "init");
 
   // src/content/features/profile/currencytransfer.js
   init_api();
@@ -164360,14 +165462,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     menuItems.length > 0 ? menuItems[0].insertAdjacentElement("afterend", button) : container.appendChild(button);
   }
   __name(addCurrencyTransferButton, "addCurrencyTransferButton");
-  function init133() {
+  function init137() {
     chrome.storage.local.get({ currencyTransferEnabled: !0 }, (settings2) => {
       settings2.currencyTransferEnabled && registerProfileContextMenuAction(addCurrencyTransferButton, () => {
         getCurrencyTransferStatus();
       });
     });
   }
-  __name(init133, "init");
+  __name(init137, "init");
 
   // src/content/features/profile/header/usernameColor.js
   init_observer();
@@ -164404,7 +165506,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     el2 && (el2.style.color = colors[value2]);
   }
   __name(addUsernameColor, "addUsernameColor");
-  async function init134() {
+  async function init138() {
     await settings.usernameColor && observeElement(
       ".stylistic-alts-username, .deleted-user-container .user-name",
       (el2) => {
@@ -164418,7 +165520,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init134, "init");
+  __name(init138, "init");
 
   // src/content/features/profile/header/chatEligibilityTooltip.js
   init_idExtractor();
@@ -164510,12 +165612,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(processPotentialChatOverlay, "processPotentialChatOverlay");
-  async function init135() {
+  async function init139() {
     observerRegistered2 || !getUserIdFromUrl() || !await settings.chatEligibilityTooltipEnabled || (observerRegistered2 = !0, observeElement(PRESENTATION_SELECTOR, processPotentialChatOverlay, {
       multiple: !0
     }));
   }
-  __name(init135, "init");
+  __name(init139, "init");
 
   // src/content/features/profile/profileCustomization.js
   init_api();
@@ -164658,9 +165760,9 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
         let visible = 0;
         for (let section of sections) {
           let show = value2 === "all" || value2 === section.value;
-          section.header.hidden = !show, section.grid.hidden = !show, show && (visible += 1);
+          section.header.style.display = show ? "" : "none", section.grid.style.display = show ? "grid" : "none", show && (visible += 1);
         }
-        emptyMessage.hidden = visible > 0;
+        emptyMessage.style.display = visible > 0 ? "none" : "";
       }, "applyCategory"), tabs = createPillToggle({
         options: [
           { text: ts2("profileCustomization.all"), value: "all" },
@@ -165177,10 +166279,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )));
   }
   __name(initProfileCustomization, "initProfileCustomization");
-  function init136() {
+  function init140() {
     initProfileCustomization();
   }
-  __name(init136, "init");
+  __name(init140, "init");
 
   // src/content/features/profile/socialLinks.js
   init_observer();
@@ -165247,7 +166349,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(renderAllSocialLinks, "renderAllSocialLinks");
-  async function init137() {
+  async function init141() {
     await settings.socialLinksEnabled && (window.addEventListener("rovalra-profile-platform-response", (event) => {
       event.detail?.components?.About && (profileSocialLinks = getSocialLinks(event.detail), renderAllSocialLinks());
     }), observeElement(
@@ -165260,7 +166362,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init137, "init");
+  __name(init141, "init");
 
   // src/content/features/settings/index.js
   init_assets();
@@ -169177,10 +170279,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init138() {
+  function init142() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init138, "init");
+  __name(init142, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -169377,7 +170479,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init139() {
+  function init143() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -169389,7 +170491,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init139, "init");
+  __name(init143, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -169447,7 +170549,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init140() {
+  async function init144() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -169458,7 +170560,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init140, "init");
+  __name(init144, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -169750,7 +170852,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init141() {
+  async function init145() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
@@ -169761,7 +170863,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init141, "init");
+  __name(init145, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -170345,7 +171447,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init142() {
+  async function init146() {
     if (!initialized17) {
       if (await settings.homeLayoutEnabled === !1) {
         initialized17 = !0, publishHomeLayoutState([], []);
@@ -170384,7 +171486,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init142, "init");
+  __name(init146, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
@@ -170465,14 +171567,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init143() {
+  function init147() {
     initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error3) => console.error("RoValra: Failed to open custom background settings.", error3)
       );
     }));
   }
-  __name(init143, "init");
+  __name(init147, "init");
 
   // src/content/features/home/friendLabels.js
   init_userCardElements();
@@ -170946,14 +172048,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init144() {
+  async function init148() {
     if (registerStorageListener(), enabled = await settings.friendLabelsEnabled === !0, !enabled) {
       removeFeatureUi();
       return;
     }
     friendLabels = await loadFriendLabels(), registerObservers(), refreshExistingCards(), attachActionsToExistingDropdowns();
   }
-  __name(init144, "init");
+  __name(init148, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -171232,7 +172334,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init145() {
+  async function init149() {
     initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
@@ -171247,7 +172349,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error3);
     }));
   }
-  __name(init145, "init");
+  __name(init149, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
@@ -171302,38 +172404,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener2, "registerStorageListener");
-  async function init146() {
+  async function init150() {
     if (registerStorageListener2(), enabled2 = await settings.HideAddFriendsButton === !0, !enabled2) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init146, "init");
-
-  // src/content/features/home/friendsSecondRow.js
-  init_getSettings();
-  var SETTING_NAME5 = "friendsSecondRowEnabled", storageListenerRegistered3 = !1;
-  function publishState(enabled3) {
-    document.dispatchEvent(
-      new CustomEvent("rovalra-friends-second-row", {
-        detail: { enabled: enabled3 }
-      })
-    );
-  }
-  __name(publishState, "publishState");
-  function registerStorageListener3() {
-    storageListenerRegistered3 || (storageListenerRegistered3 = !0, chrome.storage.onChanged.addListener((changes, namespace) => {
-      namespace !== "local" || !changes[SETTING_NAME5] || publishState(changes[SETTING_NAME5].newValue === !0);
-    }));
-  }
-  __name(registerStorageListener3, "registerStorageListener");
-  async function init147() {
-    registerStorageListener3();
-    let enabled3 = await settings.friendsSecondRowEnabled === !0;
-    publishState(enabled3);
-  }
-  __name(init147, "init");
+  __name(init150, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -171613,7 +172691,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init148() {
+  function init151() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -171628,7 +172706,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init148, "init");
+  __name(init151, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -174158,7 +175236,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init149() {
+  async function init152() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -174168,7 +175246,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init149, "init");
+  __name(init152, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -174179,7 +175257,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init138,
+        init142,
         init66,
         init7,
         init8,
@@ -174193,6 +175271,8 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init17,
         init18,
         initFriendsListTracking,
+        initUnfriendDetectorTracking,
+        init133,
         initTransactionsTracking,
         initBadgesTracking,
         initAvatarInventoryTracking,
@@ -174202,22 +175282,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init27,
         init28,
         init10,
-        init113,
+        init115,
         init30,
         init31,
         init24,
-        init115,
+        init117,
         init32,
         init34,
         init35,
-        init121,
+        init123,
         init33,
         init21,
         init49,
         init2,
         init29,
-        init132,
-        init126,
+        init136,
+        init128,
         init23,
         initializeModernIcons,
         init37,
@@ -174231,14 +175311,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init45,
         init47,
         init48,
-        init143,
+        init147,
         initNotificationCenter
       ]
     },
     // pretty much just the 40% method
     {
       paths: ["/catalog", "/bundles", "/game-pass", "/games"],
-      features: [init3, init60, init104]
+      features: [init3, init60, init106]
     },
     {
       paths: ["/developer-product/"],
@@ -174262,7 +175342,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init62,
         init63,
         init64,
-        init149
+        init152
       ]
     },
     // Avatar pages
@@ -174274,20 +175354,20 @@ ${locale4.suggestOnDiscord}`), subtitle;
     {
       paths: ["/communities/"],
       features: [
-        init93,
-        init94,
         init95,
         init96,
+        init97,
         init98,
-        init99,
         init100,
+        init101,
+        init102,
         init63
       ]
     },
     // Communities list page (My Communities) — matches /communities and /communities/...
     {
       paths: ["/communities"],
-      features: [init97]
+      features: [init99]
     },
     // Game pages
     {
@@ -174305,8 +175385,8 @@ ${locale4.suggestOnDiscord}`), subtitle;
         initRecentServers,
         init70,
         init81,
-        init112,
-        init149,
+        init114,
+        init152,
         init83
       ]
     },
@@ -174346,54 +175426,61 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // Roblox Plus Page
     {
       paths: ["/plus"],
-      features: [init101, init102]
+      features: [init103, init104]
     },
     // User profile pages
     {
       paths: ["/users/"],
       features: [
-        init104,
-        init131,
-        init117,
-        init103,
-        init105,
         init106,
-        init107,
-        init109,
-        init116,
-        init118,
-        init119,
-        init120,
-        init127,
-        init128,
-        init129,
-        init122,
-        init124,
-        init125,
-        init123,
-        init126,
-        init111,
-        init133,
-        init110,
-        init130,
         init135,
-        init136,
+        init119,
+        init105,
+        init107,
+        init108,
+        init109,
+        init111,
+        init118,
+        init120,
+        init121,
+        init122,
+        init129,
+        init130,
+        init131,
+        init132,
+        init124,
+        init126,
+        init127,
+        init125,
+        init128,
+        init113,
         init137,
+        init112,
+        init134,
+        init139,
+        init140,
+        init141,
         initProfileButton
       ]
     },
     {
       paths: ["/users/", "/banned-users/"],
-      features: [init114, init108, init134]
+      features: [init116, init110, init138]
     },
     {
       paths: ["/deleted-users/"],
-      features: [init134]
+      features: [init138]
     },
     // Transactions page
     {
       paths: ["/transactions"],
-      features: [init84, init85, init86]
+      features: [
+        init84,
+        init85,
+        init86,
+        init87,
+        init88
+      ]
     },
     {
       paths: ["/upgrades/paymentmethods"],
@@ -174403,12 +175490,12 @@ ${locale4.suggestOnDiscord}`), subtitle;
     {
       paths: ["/trades", "/trade", "/users"],
       features: [
-        init87,
-        init88,
         init89,
         init90,
         init91,
-        init92
+        init92,
+        init93,
+        init94
       ]
     },
     // API Docs
@@ -174424,22 +175511,21 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init148]
+      features: [init151]
     },
     {
       paths: ["/home"],
       features: [
-        init142,
-        init145,
-        init141,
         init146,
-        init144,
-        init147
+        init149,
+        init145,
+        init150,
+        init148
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init139, init140]
+      features: [init143, init144]
     },
     // Scam prevention
     {
@@ -174494,11 +175580,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init150) => {
-        if (!featuresRunThisPass.has(init150) && !(route.once && initializedPersistentFeatures.has(init150))) {
-          featuresRunThisPass.add(init150), route.once && initializedPersistentFeatures.add(init150);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init153) => {
+        if (!featuresRunThisPass.has(init153) && !(route.once && initializedPersistentFeatures.has(init153))) {
+          featuresRunThisPass.add(init153), route.once && initializedPersistentFeatures.add(init153);
           try {
-            init150();
+            init153();
           } catch (error3) {
             console.error("RoValra: Feature init failed", error3);
           }
