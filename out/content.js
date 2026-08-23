@@ -2603,7 +2603,9 @@ Never used outside your local device.`;
                 "Shows a small notice on experience pages when Roblox is reviewing the experience for all-ages eligibility."
               ],
               type: "checkbox",
-              default: !0
+              default: !0,
+              locked: "Roblox patched this feature.",
+              isPermanent: !0
             },
             botdataEnabled: {
               label: "Bot Data",
