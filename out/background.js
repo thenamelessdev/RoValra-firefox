@@ -1,5 +1,5 @@
 /*!
- * rovalra v2.6.7
+ * rovalra v2.6.7.1
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
@@ -2627,6 +2627,8 @@ Standards{linkEnd}.`,
           ],
           type: "checkbox",
           default: !0,
+          locked: "Temporarily disabled while the API Docs feature is being rebuilt.",
+          isPermanent: !1,
           contributors: ["4866259395", "447170745"],
           childSettings: {
             apiDocsSidebarLinkEnabled: {

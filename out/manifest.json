@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "RoValra - Firefox Edition",
-  "version": "2.6.7",
+  "version": "2.6.7.1",
   "description": "An unofficial Firefox version of RoValra (Roblox Improved)",
   "background": {
     "scripts": [
@@ -22,8 +22,8 @@
     "default_popup": "public/Assets/popup/popup.html",
     "default_icon": {
       "128": "public/Assets/icon-128.png",
-      "16": "public/Assets/icon-16.png",
-      "48": "public/Assets/icon-48.png"
+      "48": "public/Assets/icon-48.png",
+      "16": "public/Assets/icon-16.png"
     }
   },
   "permissions": [
@@ -98,10 +98,15 @@
     }
   },
   "icons": {
-    "48": "public/Assets/icon-48.png",
+    "128": "public/Assets/icon-128.png",
     "16": "public/Assets/icon-16.png",
-    "128": "public/Assets/icon-128.png"
+    "48": "public/Assets/icon-48.png"
   },
+  "optional_permissions": [
+    "webNavigation",
+    "menus",
+    "webRequestBlocking"
+  ],
   "declarative_net_request": {
     "rule_resources": [
       {
@@ -115,10 +120,5 @@
         "path": "public/Assets/Rules/beta-rules.json"
       }
     ]
-  },
-  "optional_permissions": [
-    "webNavigation",
-    "menus",
-    "webRequestBlocking"
-  ]
+  }
 }
