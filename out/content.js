@@ -3101,7 +3101,8 @@ Never used outside your local device.`;
                 'This is added to the "more" tab of the profile.'
               ],
               type: "checkbox",
-              default: !0
+              default: !0,
+              contributors: ["477516666", "447170745"]
             },
             ageVerificationBadgeEnabled: {
               label: "Age Checked Badge",
@@ -13209,8 +13210,10 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         // ceyexm
         "2830488781",
         //idhglua
-        "390309731"
+        "390309731",
         // AxnxDev 
+        "477516666"
+        //return_request :3
       ], TESTER_USER_IDS = [
         "1163412141"
         //Tino
@@ -18574,6 +18577,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
         return `${fromText} ${ts2("friendsSince.originPeopleYouMayKnow")}`;
       case 11:
         return `${fromText} ${ts2("friendsSince.originschoolmemberlist")}`;
+      case 12:
+        return `${fromText} ${ts2("friendsSince.originSocialTabsPage")}`;
       default:
         return `${fromText} ${ts2("friendsSince.originUnknown")}`;
     }

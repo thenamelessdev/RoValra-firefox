@@ -945,7 +945,8 @@
             'This is added to the "more" tab of the profile.'
           ],
           type: "checkbox",
-          default: !0
+          default: !0,
+          contributors: ["477516666", "447170745"]
         },
         ageVerificationBadgeEnabled: {
           label: "Age Checked Badge",
