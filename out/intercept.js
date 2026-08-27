@@ -1,11 +1,32 @@
 /*!
- * rovalra v2.6.7.1
+ * rovalra v2.6.7.3
  * License: GPL-3.0
  * Repository: https://github.com/NotValra/RoValra
  * This extension is provided AS-IS without warranty.
  */
 var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: !0 });
+const AccessoryAssetTypes = [
+  8,
+  41,
+  42,
+  43,
+  44,
+  45,
+  46,
+  47
+], LayeredAssetTypes = [
+  64,
+  65,
+  66,
+  67,
+  68,
+  69,
+  70,
+  71,
+  72,
+  41
+];
 (function() {
   "use strict";
   if (window.__ROVALRA_INTERCEPTOR_SETUP__)
@@ -551,7 +572,7 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
   };
   let multiAccessoryEnabled = !1;
   document.addEventListener("rovalra-multi-equip", (e) => {
-    e.detail && (typeof e.detail.enabled == "boolean" && (multiAccessoryEnabled = e.detail.enabled), Array.isArray(e.detail.accessories) && (ASSET_TYPE_ACCESSORIES = e.detail.accessories), Array.isArray(e.detail.layered) && (ASSET_TYPE_LAYERED = e.detail.layered));
+    e.detail && (typeof e.detail.enabled == "boolean" && (window.rovalraMultiEquipEnabled = e.detail.enabled, multiAccessoryEnabled = e.detail.enabled), Array.isArray(e.detail.accessories) && (ASSET_TYPE_ACCESSORIES = e.detail.accessories), Array.isArray(e.detail.layered) && (ASSET_TYPE_LAYERED = e.detail.layered));
   });
   const patchAvatarService = /* @__PURE__ */ __name((service) => {
     if (!service || service.__rovalra_patched) return;
@@ -607,6 +628,32 @@ var __name = (target, value) => __defProp(target, "name", { value, configurable:
         robloxObj = val, val && typeof val == "object" && defineServiceProperty(val);
       }, "set")
     });
+    const customEquipAsset = /* @__PURE__ */ __name((...args) => {
+      const [assetToAdd, assetArr] = args;
+      let accessoryCount = 0, layeredCount = 0;
+      const assetToAddIsAccessory = AccessoryAssetTypes.includes(assetToAdd.assetType.id), assetToAddIsLayered = LayeredAssetTypes.includes(assetToAdd.assetType.id), newAssetArr = [];
+      for (const asset of assetArr.toReversed()) {
+        let canAdd = !0;
+        AccessoryAssetTypes.includes(asset.assetType.id) && (accessoryCount++, accessoryCount >= 10 && assetToAddIsAccessory && (canAdd = !1)), LayeredAssetTypes.includes(asset.assetType.id) && (layeredCount++, layeredCount >= 10 && assetToAddIsLayered && (canAdd = !1)), !assetToAddIsAccessory && !assetToAddIsLayered && assetToAdd.assetType.id === asset.assetType.id && (canAdd = !1), canAdd && newAssetArr.push(asset);
+      }
+      return newAssetArr.reverse(), newAssetArr.push(assetToAdd), newAssetArr;
+    }, "customEquipAsset"), originalDefineProperty = Object.defineProperty;
+    Object.defineProperty = function(obj, prop, descriptor) {
+      return prop === "__esModule" && setTimeout(() => {
+        if (Object.keys(obj).includes("addAssetToAvatar")) {
+          const originalGetter = Object.getOwnPropertyDescriptor(obj, "addAssetToAvatar").get, originalAddAssetToAvatar = originalGetter();
+          Object.defineProperty(obj, "addAssetToAvatar", {
+            get() {
+              return (...args) => {
+                const [asset] = args, isAccessory = AccessoryAssetTypes.includes(asset.assetType.id), isLayered = LayeredAssetTypes.includes(asset.assetType.id), needsHijack = isAccessory || isLayered;
+                return window.rovalraMultiEquipEnabled && needsHijack ? customEquipAsset(...args) : originalAddAssetToAvatar(...args);
+              };
+            },
+            configurable: !0
+          });
+        }
+      }, 1), prop === "addAssetToAvatar" && (descriptor.configurable = !0), originalDefineProperty.call(Object, obj, prop, descriptor);
+    };
   }, "initializeHooks"))(), console.log(
     "RoValra: Privacy Spoofing and Multi-Accessory loaded successfully."
   );
