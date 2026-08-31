@@ -26,7 +26,7 @@ jobs:
 
             - name: clone rovalra and install deps
               run: |
-                    git clone https://github.com/notvalra/rovalra.git
+                    git clone https://github.com/notvalra/RoValra.git
                     cd RoValra
                     npm ci
             
