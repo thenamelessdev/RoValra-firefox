@@ -1,0 +1,55 @@
+name: Convert to Firefox
+
+on:
+    workflow_dispatch:
+    schedule:
+        - cron: '0 10 * * *'
+
+jobs:
+    convert:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: set up node
+              uses: actions/setup-node@v4
+              with:
+                node-version: 24
+                cache: "pnpm"
+
+            - name: set up pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                version: 11
+
+            - name: install deps
+              run: pnpm i
+
+            - name: clone rovalra and install deps
+              run: |
+                    git clone https://github.com/notvalra/rovalra.git
+                    cd RoValra
+                    npm ci
+            
+            - name: run convert script
+              run: pnpm start
+
+            - name: build RoValra and make zip file
+              run: |
+                    cd RoValra
+                    npm run build
+                    cd dist
+                    zip -r ../../extension.zip ./*
+
+            - name: push to repo
+              run: |
+                    git config user.name "github-actions[bot]"
+                    git config user.email "github-actions[bot]@users.noreply.github.com
+                    git add .
+                    if git diff --staged --quiet; then
+                        echo "no changes"
+                    else
+                        git commit -m "convert extension"
+                        git push
+                    fi
