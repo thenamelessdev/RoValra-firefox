@@ -1838,6 +1838,29 @@
             "rovalra_topbar_layout_hidden"
           ]
         },
+        moreRobuxDigitsEnabled: {
+          label: "More Robux Digits",
+          description: [
+            "Shows additional digits for abbreviated Robux balances such as 1M+ in the navigation bar."
+          ],
+          type: "checkbox",
+          default: !0,
+          childSettings: {
+            moreRobuxDigits: {
+              label: "Digits to Show",
+              description: [
+                "Choose how many digits to show after the decimal point in abbreviated Robux balances."
+              ],
+              type: "select",
+              options: [
+                { label: "1 digit", value: "1" },
+                { label: "2 digits", value: "2" },
+                { label: "All digits", value: "all" }
+              ],
+              default: "1"
+            }
+          }
+        },
         customRobloxBannerEnabled: {
           label: "Roblox Logo Customization",
           description: [

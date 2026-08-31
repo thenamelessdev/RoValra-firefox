@@ -654,11 +654,11 @@ else if (typeof exports === 'object')
               headers.set(key, value2);
           }
           this.cookie && headers.set("cookie", this.cookie);
-          let init151 = {
+          let init152 = {
             ...params,
             headers
           };
-          return this.onSite && (init151.credentials = "include"), (this._fetchFn ?? fetch)(url, init151);
+          return this.onSite && (init152.credentials = "include"), (this._fetchFn ?? fetch)(url, init152);
         }
         /**
          * Generate the base headers required given unsigned BAT data, it may empty if the keys could not be retrieved, or only include `x-bound-auth-token`.
@@ -1429,8 +1429,8 @@ Never used outside your local device.`;
                 return;
               }
               useApiKey && response2.status === 401 && invalidateApiKey();
-              let { body: body2, ...init151 } = response2;
-              resolve(new Response(body2, init151));
+              let { body: body2, ...init152 } = response2;
+              resolve(new Response(body2, init152));
             }
           );
         });
@@ -3993,6 +3993,29 @@ Never used outside your local device.`;
                 "rovalra_topbar_layout_order",
                 "rovalra_topbar_layout_hidden"
               ]
+            },
+            moreRobuxDigitsEnabled: {
+              label: "More Robux Digits",
+              description: [
+                "Shows additional digits for abbreviated Robux balances such as 1M+ in the navigation bar."
+              ],
+              type: "checkbox",
+              default: !0,
+              childSettings: {
+                moreRobuxDigits: {
+                  label: "Digits to Show",
+                  description: [
+                    "Choose how many digits to show after the decimal point in abbreviated Robux balances."
+                  ],
+                  type: "select",
+                  options: [
+                    { label: "1 digit", value: "1" },
+                    { label: "2 digits", value: "2" },
+                    { label: "All digits", value: "all" }
+                  ],
+                  default: "1"
+                }
+              }
             },
             customRobloxBannerEnabled: {
               label: "Roblox Logo Customization",
@@ -17222,7 +17245,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
       );
     }, 750);
   }
-  function applyDisabledState(settingName, parentElement, isDisabled, isPermissionRelated = !1) {
+  function applyDisabledState(settingName, parentElement, isDisabled2, isPermissionRelated = !1) {
     let inputElement = parentElement.querySelector(
       `[data-setting-name="${settingName}"]`
     );
@@ -17232,11 +17255,11 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     let toggleSwitch = wrapper.querySelector(
       ".setting-controls > .toggle-switch"
     );
-    isDisabled && isPermissionRelated ? (toggleSwitch && (toggleSwitch.style.opacity = "0.5", toggleSwitch.style.setProperty(
+    isDisabled2 && isPermissionRelated ? (toggleSwitch && (toggleSwitch.style.opacity = "0.5", toggleSwitch.style.setProperty(
       "pointer-events",
       "none",
       "important"
-    )), inputElement.type === "checkbox" && (inputElement.disabled = !0)) : isDisabled ? (wrapper.classList.add("disabled-setting"), wrapper.style.opacity = "0.5", wrapper.style.setProperty("pointer-events", "none", "important"), wrapper.querySelectorAll("input, select, button").forEach((el2) => {
+    )), inputElement.type === "checkbox" && (inputElement.disabled = !0)) : isDisabled2 ? (wrapper.classList.add("disabled-setting"), wrapper.style.opacity = "0.5", wrapper.style.setProperty("pointer-events", "none", "important"), wrapper.querySelectorAll("input, select, button").forEach((el2) => {
       el2.disabled = !0;
     })) : (wrapper.classList.remove("disabled-setting"), wrapper.style.opacity = "1", wrapper.classList.contains("setting-locked") || wrapper.style.setProperty("pointer-events", "auto"), wrapper.querySelectorAll("input, select, button").forEach((el2) => {
       wrapper.classList.contains("setting-locked") || (el2.disabled = !1);
@@ -17272,8 +17295,8 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
     ).forEach((toggle) => {
       let controlledSettingName = toggle.dataset.controlsSetting, numberInputContainer = settingsContent.querySelector(`#${controlledSettingName}`)?.closest(".rovalra-number-input-container");
       if (numberInputContainer) {
-        let isDisabled = !toggle.checked;
-        numberInputContainer.style.opacity = isDisabled ? "0.5" : "1", numberInputContainer.style.pointerEvents = isDisabled ? "none" : "auto", numberInputContainer.querySelectorAll("input, button").forEach((el2) => el2.disabled = isDisabled);
+        let isDisabled2 = !toggle.checked;
+        numberInputContainer.style.opacity = isDisabled2 ? "0.5" : "1", numberInputContainer.style.pointerEvents = isDisabled2 ? "none" : "auto", numberInputContainer.querySelectorAll("input, button").forEach((el2) => el2.disabled = isDisabled2);
       }
     });
   }
@@ -20500,7 +20523,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
   init_tooltip();
   function createNavbarButton({ id, iconSvgData, tooltipText, onClick: onClick2 }) {
     return new Promise((resolve) => {
-      let init151 = /* @__PURE__ */ __name(() => {
+      let init152 = /* @__PURE__ */ __name(() => {
         observeElement(".nav.navbar-right.rbx-navbar-icon-group", (navbar) => {
           if (document.getElementById(id)) {
             resolve(document.getElementById(id).querySelector("button"));
@@ -20526,7 +20549,7 @@ ${detailMsg}`), showLoadingOverlayResult(displayMessage, {
           searchIcon ? navbar.insertBefore(li, searchIcon.nextSibling) : navbar.insertBefore(li, navbar.firstChild), resolve(button);
         });
       }, "init");
-      document.readyState === "complete" ? init151() : window.addEventListener("load", init151, { once: !0 });
+      document.readyState === "complete" ? init152() : window.addEventListener("load", init152, { once: !0 });
     });
   }
   __name(createNavbarButton, "createNavbarButton");
@@ -23791,7 +23814,7 @@ function run() {
     tab.id = `tab-${id}`, tab.className = `rbx-tab tab-${id}`, tab.innerHTML = safeHtml`<a class="rbx-tab-heading"><span class="text-lead">${label}</span></a>`;
     let contentPane = document.createElement("div");
     contentPane.className = ["tab-pane", ...classes].join(" "), contentPane.id = `${id}-content-pane`;
-    let init151 = /* @__PURE__ */ __name(() => {
+    let init152 = /* @__PURE__ */ __name(() => {
       container.appendChild(tab), contentContainer.appendChild(contentPane);
       let otherPanes = contentContainer.querySelectorAll(".tab-pane");
       Array.from(otherPanes).some((pane) => {
@@ -23808,7 +23831,7 @@ function run() {
         e.preventDefault(), document.querySelectorAll(".rbx-tab.active, .tab-pane.active").forEach((el2) => el2.classList.remove("active")), tab.classList.add("active"), contentPane.classList.add("active"), hash && window.location.hash !== hash && (window.location.hash = hash);
       }), hash && window.location.hash === hash && setTimeout(() => tab.click(), 200);
     }, "init");
-    return document.readyState === "complete" ? init151() : window.addEventListener("load", init151, { once: !0 }), { tab, contentPane };
+    return document.readyState === "complete" ? init152() : window.addEventListener("load", init152, { once: !0 }), { tab, contentPane };
   }
   __name(createTab, "createTab");
 
@@ -47613,10 +47636,10 @@ Program Info Log: ` + programLog + `
   __name(reversePainterSortStable, "reversePainterSortStable");
   function WebGLRenderList() {
     let renderItems2 = [], renderItemsIndex = 0, opaque = [], transmissive = [], transparent = [];
-    function init151() {
+    function init152() {
       renderItemsIndex = 0, opaque.length = 0, transmissive.length = 0, transparent.length = 0;
     }
-    __name(init151, "init");
+    __name(init152, "init");
     function materialVariant(object) {
       let variant = 0;
       return object.isInstancedMesh && (variant += 2), object.isSkinnedMesh && (variant += 1), variant;
@@ -47662,7 +47685,7 @@ Program Info Log: ` + programLog + `
       opaque,
       transmissive,
       transparent,
-      init: init151,
+      init: init152,
       push,
       unshift,
       finish,
@@ -47907,10 +47930,10 @@ Program Info Log: ` + programLog + `
   __name(WebGLLights, "WebGLLights");
   function WebGLRenderState(extensions) {
     let lights = new WebGLLights(extensions), lightsArray = [], shadowsArray = [], lightProbeGridArray = [];
-    function init151(camera) {
+    function init152(camera) {
       state4.camera = camera, lightsArray.length = 0, shadowsArray.length = 0, lightProbeGridArray.length = 0;
     }
-    __name(init151, "init");
+    __name(init152, "init");
     function pushLight(light) {
       lightsArray.push(light);
     }
@@ -47941,7 +47964,7 @@ Program Info Log: ` + programLog + `
       textureUnits: 0
     };
     return {
-      init: init151,
+      init: init152,
       state: state4,
       setupLights,
       setupLightsView,
@@ -72045,12 +72068,14 @@ Bundled Items:
   init_user();
   init_playerCount();
   init_dompurify();
+  init_dompurify();
   init_settingHandler();
   init_preferredregion();
   init_review();
   init_launcher();
   init_assets();
   init_tooltip();
+  init_shimmer();
   init_pill();
   init_regions();
   init_confirmationPrompt();
@@ -72408,12 +72433,16 @@ Bundled Items:
   __name(init28, "init");
 
   // src/content/features/navigation/search/quicksearch.js
-  var lastSearchedQuery = "", userSearchAbortController = null, gameSearchAbortController = null, userCache = /* @__PURE__ */ new Map(), assets = getAssets(), STORAGE_KEY6 = "rovalra_search_history", MAX_HISTORY = 50, quickSearchCosmeticsPromises = /* @__PURE__ */ new Map(), initialSearchValue = "", searchHistoryRenderVersion = 0, selectedIndex = 0, activeQuickSearchRequest = null, latestCommittedQuickSearchRequest = null, debounce = /* @__PURE__ */ __name((func, delay) => {
+  var lastSearchedQuery = "", userSearchAbortController = null, gameSearchAbortController = null, assets = getAssets(), STORAGE_KEY6 = "rovalra_search_history", MAX_HISTORY = 50, quickSearchCosmeticsPromises = /* @__PURE__ */ new Map(), initialSearchValue = "", searchHistoryRenderVersion = 0, selectedIndex = 0, activeQuickSearchRequest = null, latestCommittedQuickSearchRequest = null, debounce = /* @__PURE__ */ __name((func, delay) => {
     let timeout;
     return function(...args) {
       clearTimeout(timeout), timeout = setTimeout(() => func.apply(this, args), delay);
     };
-  }, "debounce"), cachedFriendsData = null, friendsFetchPromise = null, cachedUserId = null;
+  }, "debounce");
+  function escapeHtml(value2) {
+    return String(value2 ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  __name(escapeHtml, "escapeHtml");
   function createQuickSearchRequest(query) {
     return {
       query,
@@ -72450,17 +72479,14 @@ Bundled Items:
     return request[key];
   }
   __name(getSearchResult, "getSearchResult");
-  function filterFriendResults(request, userId) {
-    let friendResults = getSearchResult(request, "friendResults");
-    friendResults && setSearchResult(
-      request,
-      "friendResults",
-      friendResults.filter((el2) => el2.dataset.userId != userId)
-    );
-  }
-  __name(filterFriendResults, "filterFriendResults");
   function commitQuickSearchRequest(request) {
-    !request || activeQuickSearchRequest !== request || !request.userDone || !request.gameDone || (latestCommittedQuickSearchRequest = request, activeQuickSearchRequest = null, request.committed = !0, window._lastRoValraUserResult = request.userResult, window._lastRoValraGameResult = request.gameResult, window._lastRoValraFriendResults = request.friendResults, selectedIndex = 0, injectIntoMenu(!0));
+    if (!(!request || activeQuickSearchRequest !== request && latestCommittedQuickSearchRequest !== request)) {
+      if (request.committed) {
+        injectIntoMenu();
+        return;
+      }
+      !request.userDone || !request.gameDone || (latestCommittedQuickSearchRequest = request, activeQuickSearchRequest = null, request.committed = !0, window._lastRoValraUserResult = request.userResult, window._lastRoValraGameResult = request.gameResult, window._lastRoValraFriendResults = request.friendResults, selectedIndex = 0, injectIntoMenu(!0));
+    }
   }
   __name(commitQuickSearchRequest, "commitQuickSearchRequest");
   function hasExternalSearchItems() {
@@ -72623,95 +72649,80 @@ Bundled Items:
     userSearchAbortController && userSearchAbortController.abort(), userSearchAbortController = new AbortController();
     let signal = userSearchAbortController.signal;
     try {
-      let authedUserId = await getAuthenticatedUserId();
+      let userSearchData = searchSettings.userSearchEnabled && query.length >= 2 ? await fetchWithRetry2(
+        {
+          subdomain: "users",
+          endpoint: "/v1/usernames/users",
+          method: "POST",
+          body: {
+            usernames: [query],
+            excludeBannedUsers: !1
+          }
+        },
+        3,
+        signal
+      ) : null;
       if (!isCurrentSearchRequest(request, signal)) return;
-      let promises = [];
-      searchSettings.userSearchEnabled && query.length >= 2 ? promises.push(
-        fetchWithRetry2(
-          {
-            subdomain: "users",
-            endpoint: "/v1/usernames/users",
-            method: "POST",
-            body: {
-              usernames: [query],
-              excludeBannedUsers: !1
-            }
-          },
-          3,
-          signal
-        )
-      ) : promises.push(Promise.resolve(null));
-      let localFriendsPromise = new Promise((resolve) => {
-        chrome.storage.local.get(["rovalra_friends_data"], (result) => {
-          if (!searchSettings.friendSearchEnabled) {
-            resolve([]);
-            return;
-          }
-          let friendsData = result.rovalra_friends_data?.[authedUserId];
-          if (!friendsData?.friendsList) {
-            resolve([]);
-            return;
-          }
-          let lowerQuery = query.toLowerCase(), matches = friendsData.friendsList.filter(
-            (f) => f.username && f.username.toLowerCase().includes(lowerQuery) || f.displayName && f.displayName.toLowerCase().includes(lowerQuery) || f.combinedName && f.combinedName.toLowerCase().includes(lowerQuery)
-          );
-          resolve(matches.slice(0, 5));
-        });
-      });
-      promises.push(localFriendsPromise), localFriendsPromise.then(async (localFriends2) => {
-        if (isCurrentSearchRequest(request, signal)) {
-          if (localFriends2.length > 0) {
-            let validUsers = localFriends2.map((f) => ({
-              id: f.id,
-              name: f.username,
-              displayName: f.combinedName,
-              hasVerifiedBadge: f.isVerified,
-              isBanned: f.isDeleted,
-              isTrusted: f.isTrusted
-            })), thumbnailMap = await fetchThumbnails(
-              validUsers.map((u) => ({ id: u.id })),
-              "AvatarHeadshot",
-              "48x48",
-              !1,
-              signal
+      let userResult = userSearchData?.data?.[0];
+      if (userResult) {
+        let userDetails = {
+          id: userResult.id,
+          name: userResult.name,
+          displayName: userResult.displayName,
+          hasVerifiedBadge: userResult.hasVerifiedBadge,
+          isBanned: !1
+        };
+        setSearchResult(
+          request,
+          "userResult",
+          createUserResultHtml(userDetails, null, null)
+        );
+      } else
+        setSearchResult(request, "userResult", null);
+      request.userDone = !0, commitQuickSearchRequest(request), setTimeout(
+        () => getAuthenticatedUserId().then(
+          (authedUserId) => new Promise((resolve) => {
+            chrome.storage.local.get(
+              ["rovalra_friends_data"],
+              (result) => {
+                if (!searchSettings.friendSearchEnabled) {
+                  resolve([]);
+                  return;
+                }
+                let friendsData = result.rovalra_friends_data?.[authedUserId], lowerQuery = query.toLowerCase();
+                resolve(
+                  (friendsData?.friendsList || []).filter(
+                    (f) => f.username?.toLowerCase().includes(
+                      lowerQuery
+                    ) || f.displayName?.toLowerCase().includes(
+                      lowerQuery
+                    ) || f.combinedName?.toLowerCase().includes(
+                      lowerQuery
+                    )
+                  ).slice(0, 5)
+                );
+              }
             );
-            if (!isCurrentSearchRequest(request, signal)) return;
-            setSearchResult(
-              request,
-              "friendResults",
-              validUsers.map((friendUser) => {
-                let userResult2 = getSearchResult(
-                  request,
-                  "userResult"
-                );
-                if (userResult2 && userResult2.dataset.userId == friendUser.id)
-                  return null;
-                let thumbData = thumbnailMap.get(
-                  friendUser.id
-                );
-                return createUserResultHtml(
-                  friendUser,
-                  thumbData,
-                  null,
-                  !0,
-                  friendUser.isTrusted
-                );
-              }).filter((el2) => el2 !== null)
-            ), fetchWithRetry2(
-              {
-                subdomain: "presence",
-                endpoint: "/v1/presence/users",
-                method: "POST",
-                body: { userIds: validUsers.map((u) => u.id) }
-              },
-              3,
-              signal
-            ).then((presenceData) => {
+          })
+        ).then(async (localFriends) => {
+          if (isCurrentSearchRequest(request, signal)) {
+            if (localFriends.length > 0) {
+              let validUsers = localFriends.map((f) => ({
+                id: f.id,
+                name: f.username,
+                displayName: f.combinedName,
+                hasVerifiedBadge: f.isVerified,
+                isBanned: f.isDeleted,
+                isTrusted: f.isTrusted
+              })), thumbnailMap = await fetchThumbnails(
+                validUsers.map((u) => ({ id: u.id })),
+                "AvatarHeadshot",
+                "48x48",
+                !1,
+                signal
+              );
               if (!isCurrentSearchRequest(request, signal))
                 return;
-              let presences = presenceData?.userPresences || [], presenceMap = new Map(
-                presences.map((p2) => [p2.userId, p2])
-              );
               setSearchResult(
                 request,
                 "friendResults",
@@ -72724,106 +72735,105 @@ Bundled Items:
                     return null;
                   let thumbData = thumbnailMap.get(
                     friendUser.id
-                  ), presence = presenceMap.get(
-                    friendUser.id
                   );
                   return createUserResultHtml(
                     friendUser,
                     thumbData,
-                    presence,
+                    null,
                     !0,
                     friendUser.isTrusted
                   );
                 }).filter((el2) => el2 !== null)
-              ), request.committed && injectIntoMenu();
-            }).catch(() => {
-            });
-          } else
-            setSearchResult(request, "friendResults", []);
-          request.committed && injectIntoMenu();
-        }
-      }).catch((e) => {
-        e.name !== "AbortError" && console.error(ts2("quickSearch.friendSearchError"), e);
-      });
-      let [userSearchData, localFriends] = await Promise.all(promises);
-      if (!isCurrentSearchRequest(request, signal)) return;
-      let userResult = userSearchData?.data?.[0], friendIdsFromSearch = localFriends.map((f) => f.id), userResultIsFriend = !1, userResultFriendData = null;
-      if (userResult && (userResultIsFriend = friendIdsFromSearch.includes(userResult.id), userResultIsFriend && (userResultFriendData = localFriends.find(
-        (f) => f.id === userResult.id
-      ))), userResult) {
-        if (!isCurrentSearchRequest(request, signal)) return;
-        let promises2 = [
+              ), fetchWithRetry2(
+                {
+                  subdomain: "presence",
+                  endpoint: "/v1/presence/users",
+                  method: "POST",
+                  body: {
+                    userIds: validUsers.map((u) => u.id)
+                  }
+                },
+                3,
+                signal
+              ).then((presenceData) => {
+                if (!isCurrentSearchRequest(request, signal))
+                  return;
+                let presences = presenceData?.userPresences || [], presenceMap = new Map(
+                  presences.map((p2) => [p2.userId, p2])
+                );
+                setSearchResult(
+                  request,
+                  "friendResults",
+                  validUsers.map((friendUser) => {
+                    let userResult2 = getSearchResult(
+                      request,
+                      "userResult"
+                    );
+                    if (userResult2 && userResult2.dataset.userId == friendUser.id)
+                      return null;
+                    let thumbData = thumbnailMap.get(
+                      friendUser.id
+                    ), presence = presenceMap.get(
+                      friendUser.id
+                    );
+                    return createUserResultHtml(
+                      friendUser,
+                      thumbData,
+                      presence,
+                      !0,
+                      friendUser.isTrusted
+                    );
+                  }).filter((el2) => el2 !== null)
+                ), request.committed && injectIntoMenu();
+              }).catch(() => {
+              });
+            } else
+              setSearchResult(request, "friendResults", []);
+            request.committed && injectIntoMenu();
+          }
+        }).catch((e) => {
+          e.name !== "AbortError" && console.error(
+            ts2("quickSearch.friendSearchError"),
+            e
+          );
+        }),
+        0
+      ), userResult && setTimeout(
+        () => Promise.all([
           fetchThumbnails(
             [{ id: userResult.id }],
             "AvatarHeadshot",
-            "48x48"
-          )
-        ];
-        userResultIsFriend ? promises2.push(Promise.resolve(null)) : promises2.push(
-          userCache.has(userResult.id) ? Promise.resolve(userCache.get(userResult.id)) : fetchWithRetry2(
+            "48x48",
+            !1,
+            signal
+          ),
+          fetchWithRetry2(
             {
-              subdomain: "users",
-              endpoint: `/v1/users/${userResult.id}`
+              subdomain: "presence",
+              endpoint: "/v1/presence/users",
+              method: "POST",
+              body: { userIds: [userResult.id] }
             },
             3,
             signal
-          ).then((userData) => (userData && userCache.set(userResult.id, userData), userData))
-        );
-        let [userThumbnailMap, fetchedUserDetails] = await Promise.all(promises2);
-        if (!isCurrentSearchRequest(request, signal)) return;
-        let userDetails = fetchedUserDetails, isTrusted = !1;
-        userResultIsFriend && userResultFriendData ? (userDetails = {
-          id: userResultFriendData.id,
-          name: userResultFriendData.username,
-          displayName: userResultFriendData.combinedName,
-          hasVerifiedBadge: userResultFriendData.isVerified,
-          isBanned: userResultFriendData.isDeleted
-        }, isTrusted = userResultFriendData.isTrusted) : !userDetails && userResult && (userDetails = {
-          id: userResult.id,
-          name: userResult.name,
-          displayName: userResult.displayName,
-          hasVerifiedBadge: userResult.hasVerifiedBadge,
-          isBanned: !1
-        });
-        let userThumbData = userThumbnailMap.get(userResult.id);
-        setSearchResult(
-          request,
-          "userResult",
-          createUserResultHtml(
-            userDetails,
-            userThumbData,
-            null,
-            userResultIsFriend,
-            isTrusted
           )
-        ), fetchWithRetry2(
-          {
-            subdomain: "presence",
-            endpoint: "/v1/presence/users",
-            method: "POST",
-            body: { userIds: [userResult.id] }
-          },
-          3,
-          signal
-        ).then((presenceData) => {
-          if (!isCurrentSearchRequest(request, signal)) return;
+        ]).then(([userThumbnailMap, presenceData]) => {
+          if (!isCurrentSearchRequest(request, signal))
+            return;
           let userPresence = presenceData?.userPresences?.[0];
           setSearchResult(
             request,
             "userResult",
             createUserResultHtml(
-              userDetails,
-              userThumbData,
-              userPresence,
-              userResultIsFriend,
-              isTrusted
+              userResult,
+              userThumbnailMap.get(userResult.id),
+              userPresence
             )
-          ), filterFriendResults(request, userResult.id), request.committed && injectIntoMenu();
+          ), request.committed && injectIntoMenu();
         }).catch(() => {
-        }), filterFriendResults(request, userResult.id);
-      } else
-        setSearchResult(request, "userResult", null);
-      request.userDone = !0, commitQuickSearchRequest(request);
+        }),
+        0
+      );
     } catch (e) {
       e.name !== "AbortError" && (console.error(ts2("quickSearch.userSearchError"), e), isCurrentSearchRequest(request, signal) && (request.userDone = !0, commitQuickSearchRequest(request)));
     }
@@ -72839,93 +72849,72 @@ Bundled Items:
     try {
       let authedUserId = await getAuthenticatedUserId();
       if (!isCurrentSearchRequest(request, signal)) return;
-      cachedUserId !== authedUserId && (cachedFriendsData = null, friendsFetchPromise = null, cachedUserId = authedUserId);
-      let friendsPromise;
-      cachedFriendsData ? friendsPromise = Promise.resolve(cachedFriendsData) : (friendsFetchPromise || (friendsFetchPromise = fetchWithRetry2({
-        subdomain: "friends",
-        endpoint: `/v1/users/${authedUserId}/friends/online`,
+      let gameSearchData = await fetchWithRetry2(
+        {
+          subdomain: "apis",
+          endpoint: `/search-api/omni-search?searchQuery=${encodeURIComponent(query)}&sessionid=${authedUserId}&pageType=Game`
+        },
+        3,
         signal
-      }).then((data) => (cachedFriendsData = data, data)).catch((e) => {
-        if (friendsFetchPromise = null, e.name === "AbortError") throw e;
-        return { data: [] };
-      })), friendsPromise = friendsFetchPromise);
-      let [gameSearchData, settings2, friendsData] = await Promise.all([
-        fetchWithRetry2(
-          {
-            subdomain: "apis",
-            endpoint: `/search-api/omni-search?searchQuery=${encodeURIComponent(query)}&sessionid=${authedUserId}&pageType=Game`
-          },
-          3,
-          signal
-        ),
-        new Promise(
-          (resolve) => chrome.storage.local.get(["PreferredRegionEnabled"], resolve)
-        ),
-        friendsPromise
-      ]);
+      );
       if (!isCurrentSearchRequest(request, signal)) return;
       let gameResult = gameSearchData?.searchResults?.find(
         (r) => r.contentGroupType === "Game" && r.contents?.length > 0
       );
       if (gameResult) {
-        let game = gameResult.contents[0], friendsPlaying = friendsData?.data?.filter(
-          (f) => f.userPresence?.universeId === game.universeId
-        ) || [];
-        if (!isCurrentSearchRequest(request, signal)) return;
-        let promises = [
-          fetchThumbnails([{ id: game.universeId }], "GameIcon", "50x50"),
-          fetchWithRetry2(
-            {
-              subdomain: "games",
-              endpoint: `/v1/games/votes?universeIds=${game.universeId}`
-            },
-            3,
-            signal
-          )
-        ];
-        friendsPlaying.length > 0 && promises.push(
-          fetchThumbnails(
-            friendsPlaying.map((f) => ({ id: f.id })),
-            "AvatarHeadshot",
-            "48x48"
-          )
-        );
-        let results = await Promise.all(promises), thumbnailMap = results[0], votesData = results[1];
-        if (!isCurrentSearchRequest(request, signal)) return;
-        let voteInfo = votesData.data && votesData.data[0] ? votesData.data[0] : { upVotes: 0, downVotes: 0 }, totalVotes = voteInfo.upVotes + voteInfo.downVotes, voteRatio = totalVotes > 0 ? Math.floor(voteInfo.upVotes / totalVotes * 100) : 0, thumbData = thumbnailMap.get(game.universeId), thumbnailUrl = thumbData?.state === "Completed" ? thumbData.imageUrl : "", playerCount = formatPlayerCount(game.playerCount || 0), friendsInfo = [];
-        if (friendsPlaying.length > 0 && results[2]) {
-          let friendThumbMap = results[2];
-          friendsInfo = friendsPlaying.map((f) => {
-            let fThumb = friendThumbMap.get(f.id);
-            return fThumb && fThumb.state === "Completed" ? {
-              id: f.id,
-              userId: f.id,
-              name: f.displayName || f.name,
-              displayName: f.displayName,
-              combinedName: `${f.displayName || f.name} (@${f.name})`,
-              username: f.name,
-              thumbnailUrl: fThumb.imageUrl,
-              rootPlaceId: f.userPresence.rootPlaceId,
-              gameInstanceId: f.userPresence.gameId
-            } : null;
-          }).filter((f) => f !== null);
-        }
+        let game = gameResult.contents[0];
         setSearchResult(
           request,
           "gameResult",
-          createResultHtml(
-            game,
-            thumbnailUrl,
-            playerCount,
-            voteRatio,
-            totalVotes,
-            settings2,
-            friendsInfo
-          )
+          createResultHtml(game, null, null, null, null, null)
+        ), request.gameDone = !0, commitQuickSearchRequest(request), setTimeout(
+          () => Promise.all([
+            fetchThumbnails(
+              [{ id: game.universeId }],
+              "GameIcon",
+              "50x50"
+            ),
+            fetchWithRetry2(
+              {
+                subdomain: "games",
+                endpoint: `/v1/games/votes?universeIds=${game.universeId}`
+              },
+              3,
+              signal
+            ),
+            new Promise(
+              (resolve) => chrome.storage.local.get(
+                ["PreferredRegionEnabled"],
+                resolve
+              )
+            )
+          ]).then(([thumbnailMap, votesData, settings2]) => {
+            if (!isCurrentSearchRequest(request, signal))
+              return;
+            let voteInfo = votesData?.data?.[0] || {
+              upVotes: 0,
+              downVotes: 0
+            }, totalVotes = voteInfo.upVotes + voteInfo.downVotes, voteRatio = totalVotes > 0 ? Math.floor(
+              voteInfo.upVotes / totalVotes * 100
+            ) : 0, thumbData = thumbnailMap.get(game.universeId), thumbnailUrl = thumbData?.state === "Completed" ? thumbData.imageUrl : "";
+            setSearchResult(
+              request,
+              "gameResult",
+              createResultHtml(
+                game,
+                thumbnailUrl,
+                formatPlayerCount(game.playerCount || 0),
+                voteRatio,
+                totalVotes,
+                settings2
+              )
+            ), request.committed && injectIntoMenu();
+          }).catch(() => {
+          }),
+          0
         );
       } else
-        setSearchResult(request, "gameResult", null);
-      request.gameDone = !0, commitQuickSearchRequest(request);
+        setSearchResult(request, "gameResult", null), request.gameDone = !0, commitQuickSearchRequest(request);
     } catch (e) {
       e.name !== "AbortError" && (console.error(ts2("quickSearch.gameSearchError"), e), isCurrentSearchRequest(request, signal) && (request.gameDone = !0, commitQuickSearchRequest(request)));
     }
@@ -72968,7 +72957,7 @@ Bundled Items:
       flexShrink: "0",
       overflow: "visible"
     });
-    let thumbEl = createThumbnailElement(
+    let thumbEl = thumbData ? createThumbnailElement(
       thumbData,
       user.displayName,
       "avatar-card-image",
@@ -72977,7 +72966,12 @@ Bundled Items:
         width: "100%",
         borderRadius: "50%"
       }
-    );
+    ) : createShimmerBlock({
+      width: "100%",
+      height: "100%",
+      borderRadius: "50%",
+      className: "avatar-card-image"
+    });
     if (thumbContainer.appendChild(thumbEl), presence) {
       let presenceClass = "", presenceColor = "";
       if (presence.userPresenceType === 1 ? (presenceClass = "online", presenceColor = "rgb(0, 162, 255)") : presence.userPresenceType === 2 ? (presenceClass = "ingame", presenceColor = "rgb(2, 183, 87)") : presence.userPresenceType === 3 && (presenceClass = "ingame", presenceColor = "rgb(246, 136, 2)"), presenceClass) {
@@ -73030,11 +73024,16 @@ Bundled Items:
     let statusText = `@${user.name}`;
     if (presence && presence.userPresenceType === 2 && presence.lastLocation ? statusText = ts2("quickSearch.playing", {
       gameName: presence.lastLocation
-    }) : isFriend && (statusText = isTrusted ? ts2("quickSearch.trustedConnection") : ts2("quickSearch.connection")), secondaryInfoDiv.textContent = statusText, infoDiv.appendChild(displayNameDiv), infoDiv.appendChild(secondaryInfoDiv), link.appendChild(thumbContainer), link.appendChild(infoDiv), applyUserCosmetics(user.id, thumbContainer, displayNameSpan, link), user.hasVerifiedBadge && displayNameDiv) {
-      let badge = document.createElement("span");
-      badge.innerHTML = `
-                <icon filled size="medium" class="grow-0 shrink-0 basis-auto content-system-emphasis">verified-backplate</icon>
-                <icon filled size="medium" class="grow-0 shrink-0 basis-auto absolute" style="color: white;">verified-check</icon>`, badge.alt = ts2("quickSearch.verifiedBadge"), badge.title = ts2("quickSearch.verified"), Object.assign(badge.style, {
+    }) : isFriend && (statusText = isTrusted ? ts2("quickSearch.trustedConnection") : ts2("quickSearch.connection")), secondaryInfoDiv.textContent = statusText, infoDiv.appendChild(displayNameDiv), infoDiv.appendChild(secondaryInfoDiv), link.appendChild(thumbContainer), link.appendChild(infoDiv), setTimeout(
+      () => applyUserCosmetics(user.id, thumbContainer, displayNameSpan, link),
+      0
+    ), user.hasVerifiedBadge && displayNameDiv) {
+      let badge = document.createElement("span"), badgeImage = document.createElement("img");
+      badgeImage.src = assets.verifiedBadge, badgeImage.alt = ts2("quickSearch.verifiedBadge"), badgeImage.title = ts2("quickSearch.verified"), Object.assign(badgeImage.style, {
+        width: "16px",
+        height: "16px",
+        display: "inline-block"
+      }), badge.appendChild(badgeImage), badge.alt = ts2("quickSearch.verifiedBadge"), badge.title = ts2("quickSearch.verified"), Object.assign(badge.style, {
         display: "inline-flex",
         verticalAlign: "middle",
         marginLeft: "5px",
@@ -73067,7 +73066,7 @@ Bundled Items:
         paddingRight: "12px"
       });
       let playBtn = document.createElement("button");
-      playBtn.innerHTML = '<span class="icon-common-play" style="width: 30px; height: 30px; display: inline-block;"></span>', Object.assign(playBtn.style, {
+      playBtn.innerHTML = safeHtml`<span class="icon-common-play" style="width: 30px; height: 30px; display: inline-block;"></span>`, Object.assign(playBtn.style, {
         backgroundColor: "var(--rovalra-playbutton-color)",
         border: "none",
         borderRadius: "8px",
@@ -73092,7 +73091,7 @@ Bundled Items:
     return li.appendChild(container), li;
   }
   __name(createUserResultHtml, "createUserResultHtml");
-  function createResultHtml(game, thumbnailUrl, playerCount, voteRatio, totalVotes, settings2, friendsInfo) {
+  function createResultHtml(game, thumbnailUrl, playerCount, voteRatio, totalVotes, settings2) {
     let li = document.createElement("li");
     li.className = "navbar-search-option rbx-clickable-li improved-search rovalra-quick-search-result";
     let container = document.createElement("div");
@@ -73121,22 +73120,28 @@ Bundled Items:
         thumbnail: thumbnailUrl
       });
     });
-    let votePercentageClass = totalVotes > 0 ? "" : "hidden", noVoteClass = totalVotes === 0 ? "" : "hidden";
-    link.innerHTML = safeHtml`
-        <span class="thumbnail-2d-container" style="height: 48px; width: 48px; border-radius: 8px; flex-shrink: 0;">
-            <img src="${thumbnailUrl}" style="height: 100%; width: 100%; border-radius: 8px;">
-        </span>
-        <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden; width: 100%;">
-            <div class="game-card-name" title="${game.name}" style="font-size: 16px; font-weight: 500; color: var(--rovalra-main-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${game.name}</div>
-            <div class="game-card-info" style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; color: var(--rovalra-secondary-text-color);">
+    let votePercentageClass = totalVotes > 0 ? "" : "hidden", noVoteClass = totalVotes === 0 ? "" : "hidden", thumbnailMarkup = thumbnailUrl ? `<img src="${thumbnailUrl}" style="height: 100%; width: 100%; border-radius: 8px;">` : '<span class="thumbnail-2d-container shimmer" style="display: block; height: 100%; width: 100%; border-radius: 8px;"></span>', statsMarkup = totalVotes === null || playerCount === null ? '<span class="thumbnail-2d-container shimmer" style="display: block; width: 115px; height: 12px; border-radius: 4px;"></span>' : `
                 <span class="info-label icon-votes-gray"></span>
                 <span class="info-label vote-percentage-label ${votePercentageClass}">${voteRatio}%</span>
                 <span class="info-label no-vote ${noVoteClass}"></span>
                 <span class="info-label icon-playing-counts-gray" style="margin-left: 8px;"></span>
-                <span class="info-label playing-counts-label">${playerCount}</span>
+                <span class="info-label playing-counts-label">${playerCount}</span>`;
+    link.innerHTML = dompurify_default.sanitize(
+      `
+        <span class="thumbnail-2d-container" style="height: 48px; width: 48px; border-radius: 8px; flex-shrink: 0;">
+            ${thumbnailMarkup}
+        </span>
+        <div style="display: flex; flex-direction: column; justify-content: center; overflow: hidden; width: 100%;">
+            <div class="game-card-name" title="${escapeHtml(game.name)}" style="font-size: 16px; font-weight: 500; color: var(--rovalra-main-text-color); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${escapeHtml(game.name)}</div>
+            <div class="game-card-info" style="display: flex; align-items: center; gap: 4px; margin-top: 4px; font-size: 12px; color: var(--rovalra-secondary-text-color);">
+                ${statsMarkup}
             </div>
         </div>
-    `;
+    `,
+      {
+        ADD_ATTR: ["style", "class", "href", "title"]
+      }
+    );
     let buttonsContainer = document.createElement("div");
     if (Object.assign(buttonsContainer.style, {
       display: "flex",
@@ -73146,7 +73151,7 @@ Bundled Items:
       paddingRight: "12px"
     }), settings2 && settings2.PreferredRegionEnabled) {
       let regionBtn = document.createElement("button");
-      regionBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.3 16.9c.4-.7.7-1.5.7-2.4 0-2.5-2-4.5-4.5-4.5S11 12 11 14.5s2 4.5 4.5 4.5c.9 0 1.7-.3 2.4-.7l3.2 3.2 1.4-1.4zm-3.8.1c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5M12 20v2C6.48 22 2 17.52 2 12S6.48 2 12 2c4.84 0 8.87 3.44 9.8 8h-2.07c-.64-2.46-2.4-4.47-4.73-5.41V5c0 1.1-.9 2-2 2h-2v2c0 .55-.45 1-1 1H8v2h2v3H9l-4.79-4.79C4.08 10.79 4 11.38 4 12c0 4.41 3.59 8 8 8"></path></svg>', Object.assign(regionBtn.style, {
+      regionBtn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M19.3 16.9c.4-.7.7-1.5.7-2.4 0-2.5-2-4.5-4.5-4.5S11 12 11 14.5s2 4.5 4.5 4.5c.9 0 1.7-.3 2.4-.7l3.2 3.2 1.4-1.4zm-3.8.1c-1.4 0-2.5-1.1-2.5-2.5s1.1-2.5 2.5-2.5 2.5 1.1 2.5 2.5-1.1 2.5-2.5 2.5M12 20v2C6.48 22 2 17.52 2 12S6.48 2 12 2c4.84 0 8.87 3.44 9.8 8h-2.07c-.64-2.46-2.4-4.47-4.73-5.41V5c0 1.1-.9 2-2 2h-2v2c0 .55-.45 1-1 1H8v2h2v3H9l-4.79-4.79C4.08 10.79 4 11.38 4 12c0 4.41 3.59 8 8 8"></path></svg>', regionBtn.innerHTML = dompurify_default.sanitize(regionBtn.innerHTML), Object.assign(regionBtn.style, {
         backgroundColor: "var(--rovalra-playbutton-color)",
         border: "none",
         borderRadius: "8px",
@@ -73191,7 +73196,7 @@ Bundled Items:
       }, buttonsContainer.appendChild(regionBtn);
     }
     let playBtn = document.createElement("button");
-    return playBtn.innerHTML = '<span class="icon-common-play" style="width: 30px; height: 30px; display: inline-block;"></span>', Object.assign(playBtn.style, {
+    return playBtn.innerHTML = safeHtml`<span class="icon-common-play" style="width: 30px; height: 30px; display: inline-block;"></span>`, Object.assign(playBtn.style, {
       backgroundColor: "var(--rovalra-playbutton-color)",
       border: "none",
       borderRadius: "8px",
@@ -73616,7 +73621,7 @@ Bundled Items:
   init_currency();
   init_user();
   init_users();
-  var CACHE_KEY2 = "rovalra-group-funds-data", CACHE_DURATION = 300 * 1e3, NAVBAR_SELECTORS = "#nav-robux-amount, #nav-robux-balance", NAVBAR_BALANCE_UPDATED_EVENT2 = "rovalra:navbar-balance-updated", state = {
+  var CACHE_KEY2 = "rovalra-group-funds-data", NAVBAR_SELECTORS = "#nav-robux-amount, #nav-robux-balance", NAVBAR_BALANCE_UPDATED_EVENT2 = "rovalra:navbar-balance-updated", state = {
     initialized: !1,
     groupFundsEnabled: !1,
     navbarTotalEnabled: !1,
@@ -73655,10 +73660,6 @@ Bundled Items:
     chrome.storage.local.set({ [CACHE_KEY2]: cache });
   }
   __name(setCache2, "setCache");
-  function isCacheFresh(entry) {
-    return entry && Number.isFinite(Number(entry.timestamp)) && Date.now() - entry.timestamp < CACHE_DURATION;
-  }
-  __name(isCacheFresh, "isCacheFresh");
   async function fetchAndCacheGroupData(groupId) {
     if (activeGroupRequests.has(groupId))
       return activeGroupRequests.get(groupId);
@@ -73700,15 +73701,6 @@ Bundled Items:
     return activeGroupRequests.set(groupId, request), request;
   }
   __name(fetchAndCacheGroupData, "fetchAndCacheGroupData");
-  async function ensureFreshDataForConfiguredGroups() {
-    if (!state.groupFundsEnabled || state.groupIds.length === 0) return;
-    let cache = await getCache2();
-    state.groupIds.forEach((groupId) => {
-      isCacheFresh(cache[groupId]) || fetchAndCacheGroupData(groupId).catch(() => {
-      });
-    });
-  }
-  __name(ensureFreshDataForConfiguredGroups, "ensureFreshDataForConfiguredGroups");
   function clearNavbarOverride() {
     document.querySelectorAll(NAVBAR_SELECTORS).forEach((element) => {
       delete element.dataset.rovalraNavbarRobuxAmount, delete element.dataset.rovalraGroupFundsOverride;
@@ -73853,7 +73845,7 @@ Bundled Items:
   __name(renderNavbarTotal, "renderNavbarTotal");
   async function syncSettingsAndRender() {
     let settings2 = await getSettings();
-    state.groupFundsEnabled = settings2.GroupFundsEnabled === !0, state.navbarTotalEnabled = settings2.GroupFundsNavbarTotalEnabled === !0, state.groupIds = sanitizeGroupIds(settings2.GroupFundsIds), state.hideRobux = settings2.streamermode && settings2.hideRobux === !0, state.groupFundsEnabled && state.groupIds.length > 0 && await ensureFreshDataForConfiguredGroups(), shouldWarmPersonalRowData() && warmPersonalRowData().catch(() => {
+    state.groupFundsEnabled = settings2.GroupFundsEnabled === !0, state.navbarTotalEnabled = settings2.GroupFundsNavbarTotalEnabled === !0, state.groupIds = sanitizeGroupIds(settings2.GroupFundsIds), state.hideRobux = settings2.streamermode && settings2.hideRobux === !0, shouldWarmPersonalRowData() && warmPersonalRowData().catch(() => {
     }), await renderNavbarTotal();
   }
   __name(syncSettingsAndRender, "syncSettingsAndRender");
@@ -73932,8 +73924,7 @@ Bundled Items:
         amountSpan.textContent = ts2("groupFunds.loading"), allCachedDataPromise.then(async (allCachedData) => {
           if (state.renderVersion !== myVersion) return;
           let cachedData = allCachedData[groupId];
-          if (cachedData && updateFromData(cachedData), cachedData && isCacheFresh(cachedData))
-            return;
+          cachedData && updateFromData(cachedData);
           let freshData = await fetchAndCacheGroupData(groupId);
           if (state.renderVersion === myVersion) {
             if (freshData) {
@@ -73950,15 +73941,22 @@ Bundled Items:
     }, "renderSection");
     syncSettingsAndRender().catch((error3) => {
       console.error("RoValra: Failed to initialize group funds", error3);
-    }), observeElement(
+    });
+    let popoverOpenState = /* @__PURE__ */ new WeakMap(), isPopoverOpen = /* @__PURE__ */ __name((popover) => popover instanceof HTMLElement && getComputedStyle(popover).display !== "none", "isPopoverOpen"), handlePopoverState = /* @__PURE__ */ __name((popover) => {
+      let isOpen = isPopoverOpen(popover), wasOpen = popoverOpenState.get(popover) === !0;
+      popoverOpenState.set(popover, isOpen), isOpen && !wasOpen && renderSection(popover);
+    }, "handlePopoverState");
+    observeElement(
       "#buy-robux-popover",
       (popover) => {
-        let menu = popover.querySelector(".dropdown-menu");
-        menu && menu.querySelector(".rovalra-group-funds-section") || renderSection(popover);
+        handlePopoverState(popover), observeAttributes(popover, () => handlePopoverState(popover), [
+          "class",
+          "style"
+        ]);
       },
       {
         onRemove: /* @__PURE__ */ __name(() => {
-          state.renderVersion++, document.querySelectorAll(".rovalra-group-funds-section").forEach((el2) => el2.remove());
+          state.renderVersion++;
         }, "onRemove")
       }
     ), observeElement(
@@ -112959,6 +112957,20 @@ Markdown test
   init_observer();
   init_idExtractor();
   var PAGING_COOLDOWN = 100, activeSearches = /* @__PURE__ */ new WeakMap(), searchButtons = /* @__PURE__ */ new WeakMap();
+  function getNextPageButton(panel) {
+    return panel.querySelector(
+      '.trade-inventory-pager button[aria-label="Next"]'
+    );
+  }
+  __name(getNextPageButton, "getNextPageButton");
+  function isDisabled(button) {
+    return !button || button.disabled || button.hasAttribute("disabled") || button.classList.contains("disabled");
+  }
+  __name(isDisabled, "isDisabled");
+  function normalizeSearchValue(value2) {
+    return String(value2 || "").trim().toLowerCase();
+  }
+  __name(normalizeSearchValue, "normalizeSearchValue");
   function init91() {
     chrome.storage.local.get({ tradeSearchEnabled: !0 }, (settings2) => {
       if (!settings2.tradeSearchEnabled) return;
@@ -112982,18 +112994,18 @@ Markdown test
     });
     container.classList.add("rovalra-trade-search-wrapper"), container.style.display = "inline-block", container.style.width = "140px", container.style.marginRight = "8px", container.style.verticalAlign = "middle", container.style.float = "right";
     let continueSearchButton = document.createElement("button");
-    continueSearchButton.textContent = "Continue Search", continueSearchButton.className = "btn-primary-md", continueSearchButton.style.display = "none", continueSearchButton.style.marginLeft = "8px", continueSearchButton.style.marginTop = "4px", continueSearchButton.style.verticalAlign = "middle", continueSearchButton.style.float = "right", continueSearchButton.style.height = "36px", continueSearchButton.style.lineHeight = "36px", continueSearchButton.style.padding = "0 12px";
+    continueSearchButton.textContent = "Continue Search", continueSearchButton.className = "btn-primary-md", continueSearchButton.style.display = "none", continueSearchButton.style.marginLeft = "8px", continueSearchButton.style.marginTop = "0px", continueSearchButton.style.verticalAlign = "middle", continueSearchButton.style.float = "right", continueSearchButton.style.height = "36px", continueSearchButton.style.lineHeight = "36px", continueSearchButton.style.padding = "0 12px";
     let panel = dropdown.closest(".trade-inventory-panel");
     if (!panel || panel.querySelector(".rovalra-trade-search-wrapper"))
       return;
     searchButtons.set(panel, continueSearchButton);
     let inventoryLabel = panel.querySelector(".inventory-label");
-    inventoryLabel ? (container.style.float = "none", container.style.width = "100%", container.style.marginTop = "18px", container.style.display = "block", continueSearchButton.style.float = "none", continueSearchButton.style.width = "100%", continueSearchButton.style.marginLeft = "0", continueSearchButton.style.marginTop = "8px", inventoryLabel.parentElement.appendChild(container), inventoryLabel.parentElement.appendChild(continueSearchButton)) : (dropdown.parentElement.insertBefore(container, dropdown.nextSibling), dropdown.parentElement.insertBefore(
+    inventoryLabel ? (container.style.float = "none", container.style.width = "100%", container.style.marginTop = "0px", container.style.display = "block", continueSearchButton.style.float = "none", continueSearchButton.style.width = "100%", continueSearchButton.style.marginLeft = "0", continueSearchButton.style.marginTop = "8px", inventoryLabel.parentElement.appendChild(container), inventoryLabel.parentElement.appendChild(continueSearchButton)) : (dropdown.parentElement.insertBefore(container, dropdown.nextSibling), dropdown.parentElement.insertBefore(
       continueSearchButton,
       container.nextSibling
     ));
     let debounceTimeout2, observerDisconnect = null, currentSearchQuery = "", handleSearch2 = /* @__PURE__ */ __name(() => {
-      let query = input.value.trim().toLowerCase();
+      let query = normalizeSearchValue(input.value);
       if (currentSearchQuery = query, !query) {
         observerDisconnect && (observerDisconnect(), observerDisconnect = null), resetToFirstPage(dropdown), processItems(panel, "", !1), continueSearchButton && (continueSearchButton.style.display = "none");
         return;
@@ -113009,11 +113021,13 @@ Markdown test
     input.addEventListener("input", () => {
       debounceTimeout2 && clearTimeout(debounceTimeout2), debounceTimeout2 = setTimeout(handleSearch2, 300);
     }), continueSearchButton && continueSearchButton.addEventListener("click", () => {
-      let nextButton = panel.querySelector(".pager-next .btn-generic-right-sm") || panel.querySelector('.btn-generic-right-sm[ng-click*="next"]');
-      nextButton && !nextButton.hasAttribute("disabled") && !nextButton.classList.contains("disabled") && (continueSearchButton && (continueSearchButton.style.display = "none"), nextButton.click(), setTimeout(
+      let nextButton = getNextPageButton(panel);
+      isDisabled(nextButton) || (continueSearchButton && (continueSearchButton.style.display = "none"), nextButton.click(), setTimeout(
         () => processItems(panel, currentSearchQuery, !0),
         PAGING_COOLDOWN + 50
       ));
+    }), document.addEventListener("rovalra-rolimons-data-update", () => {
+      currentSearchQuery && panel.isConnected && processItems(panel, currentSearchQuery, !0);
     });
   }
   __name(injectSearchInput, "injectSearchInput");
@@ -113029,8 +113043,8 @@ Markdown test
   }
   __name(resetToFirstPage, "resetToFirstPage");
   async function processItems(panel, query, allowPaging) {
-    let items = Array.from(panel.querySelectorAll(".item-card"));
-    if (!panel.querySelector(".item-cards") || items.length === 0) return;
+    let items = Array.from(panel.querySelectorAll(".item-card")), list = panel.querySelector(".item-cards"), continueSearchButton = searchButtons.get(panel);
+    if (!list || items.length === 0) return;
     if (!query) {
       continueSearchButton && (continueSearchButton.style.display = "none"), panel.querySelectorAll(".item-card-thumb-container").forEach((el2) => {
         el2.style.boxShadow = "", el2.style.border = "";
@@ -113045,16 +113059,19 @@ Markdown test
         link && (assetId = getPlaceIdFromUrl(link.href));
       }
       let nameEl = item.querySelector(".item-card-name");
-      if ((nameEl ? nameEl.textContent.toLowerCase() : "").includes(query) && (isMatch = !0), !isMatch && assetId) {
+      if (normalizeSearchValue(nameEl?.textContent).includes(query) && (isMatch = !0), !isMatch && assetId) {
         let rolimons = getCachedRolimonsItem(assetId);
-        rolimons ? (rolimons.acronym && rolimons.acronym.toLowerCase().includes(query) && (isMatch = !0), query === "rare" && rolimons.is_rare && (isMatch = !0), query === "projected" && rolimons.is_projected && (isMatch = !0)) : idsToFetch.push(assetId);
+        rolimons != null ? (normalizeSearchValue(rolimons.acronym).includes(query) && (isMatch = !0), query === "rare" && rolimons.is_rare && (isMatch = !0), query === "projected" && rolimons.is_projected && (isMatch = !0)) : rolimons === void 0 && idsToFetch.push(assetId);
       }
       isMatch && (foundMatchOnPage = !0);
       let thumbContainer = item.querySelector(".item-card-thumb-container");
       thumbContainer && (isMatch ? (thumbContainer.style.boxShadow = "0 0 10px 2px var(--rovalra-playbutton-color)", thumbContainer.style.border = "1px solid var(--rovalra-playbutton-color)") : (thumbContainer.style.boxShadow = "", thumbContainer.style.border = ""));
     }
-    idsToFetch.length > 0 && queueRolimonsFetch(idsToFetch);
-    let nextButton = panel.querySelector(".pager-next .btn-generic-right-sm") || panel.querySelector('.btn-generic-right-sm[ng-click*="next"]'), hasNextPage = nextButton && !nextButton.hasAttribute("disabled") && !nextButton.classList.contains("disabled"), continueSearchButton = searchButtons.get(panel);
+    if (idsToFetch.length > 0) {
+      await queueRolimonsFetch(idsToFetch), panel.isConnected && query && await processItems(panel, query, allowPaging);
+      return;
+    }
+    let nextButton = getNextPageButton(panel), hasNextPage = !isDisabled(nextButton);
     if (continueSearchButton)
       if (!foundMatchOnPage && allowPaging && hasNextPage) {
         let lastPageTime = activeSearches.get(panel) || 0, now = Date.now(), timeSinceLast = now - lastPageTime;
@@ -126095,8 +126112,8 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       btn.style.backgroundColor = isSelected ? "var(--rovalra-playbutton-color)" : "", btn.style.color = isSelected ? "#ffffff" : "", btn.style.fontWeight = isSelected ? "600" : "";
     }
     __name(paintSizeButton, "paintSizeButton");
-    function paintDisabled(btn, isDisabled) {
-      btn.disabled = isDisabled, btn.style.opacity = isDisabled ? "0.5" : "", btn.style.cursor = isDisabled ? "not-allowed" : "";
+    function paintDisabled(btn, isDisabled2) {
+      btn.disabled = isDisabled2, btn.style.opacity = isDisabled2 ? "0.5" : "", btn.style.cursor = isDisabled2 ? "not-allowed" : "";
     }
     __name(paintDisabled, "paintDisabled");
     function refreshActionAvailability() {
@@ -126182,6 +126199,124 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(init133, "init");
+
+  // src/content/features/sitewide/moreRobuxDigits.js
+  init_observer();
+  init_getSettings();
+  var NAVBAR_AMOUNT_SELECTOR = "#nav-robux-amount, #nav-robux-balance", NAVBAR_AMOUNT_DATA_KEYS = [
+    "rovalraNavbarRobuxAmount",
+    "rovalraUsdAmount"
+  ], initialized16 = !1;
+  function getPrimaryText(element) {
+    return Array.from(element.childNodes).filter((node) => node.nodeType === Node.TEXT_NODE).map((node) => node.textContent || "").join("").trim();
+  }
+  __name(getPrimaryText, "getPrimaryText");
+  function getCompactParts(text2) {
+    let match = text2.match(/^([\d,.]+)\s*([A-Za-z]+\+)$/);
+    return match ? { suffix: match[2], number: match[1] } : null;
+  }
+  __name(getCompactParts, "getCompactParts");
+  function getRobuxAmount(element) {
+    for (let key of NAVBAR_AMOUNT_DATA_KEYS) {
+      let amount = Number(element.dataset[key]);
+      if (Number.isFinite(amount) && amount > 0) return amount;
+    }
+    return null;
+  }
+  __name(getRobuxAmount, "getRobuxAmount");
+  function formatCompactNumber(amount, maximumFractionDigits, minimumFractionDigits = 0, truncate = !1) {
+    let match = new Intl.NumberFormat("en-US", {
+      notation: "compact",
+      maximumSignificantDigits: 20
+    }).format(amount).match(/^([\d,.]+)\s*([A-Za-z]+)?$/);
+    if (!match) return null;
+    let number = Number(match[1].replace(/,/g, ""));
+    if (truncate) {
+      let factor = 10 ** maximumFractionDigits;
+      number = Math.trunc(number * factor) / factor;
+    }
+    return {
+      number: number.toLocaleString("en-US", {
+        minimumFractionDigits,
+        maximumFractionDigits
+      }),
+      suffix: match[2] || ""
+    };
+  }
+  __name(formatCompactNumber, "formatCompactNumber");
+  async function renderMoreDigits(element, amount = getRobuxAmount(element)) {
+    if (!(element instanceof HTMLElement)) return;
+    if (!await settings.moreRobuxDigitsEnabled) {
+      let originalText2 = element.dataset.rovalraMoreRobuxDigitsOriginal;
+      if (originalText2) {
+        let textNode2 = Array.from(element.childNodes).find(
+          (node) => node.nodeType === Node.TEXT_NODE
+        );
+        textNode2 && (textNode2.textContent = originalText2), delete element.dataset.rovalraMoreRobuxDigitsOriginal;
+      }
+      return;
+    }
+    if (!amount) return;
+    let configuredDigits = await settings.moreRobuxDigits, currentText = getPrimaryText(element), compactParts = getCompactParts(currentText), originalText = element.dataset.rovalraMoreRobuxDigitsOriginal;
+    if (!compactParts && originalText) {
+      let textNode2 = Array.from(element.childNodes).find(
+        (node) => node.nodeType === Node.TEXT_NODE
+      );
+      textNode2 && (textNode2.textContent = originalText), delete element.dataset.rovalraMoreRobuxDigitsOriginal, currentText = originalText, compactParts = getCompactParts(currentText);
+    }
+    if (!compactParts) return;
+    if (configuredDigits === "all") {
+      let nextText2 = Number(amount).toLocaleString("en-US", {
+        maximumFractionDigits: 0
+      });
+      if (currentText === nextText2) return;
+      element.dataset.rovalraMoreRobuxDigitsOriginal === void 0 && (element.dataset.rovalraMoreRobuxDigitsOriginal = currentText);
+      let textNode2 = Array.from(element.childNodes).find(
+        (node) => node.nodeType === Node.TEXT_NODE
+      );
+      textNode2 ? textNode2.textContent = nextText2 : element.insertBefore(
+        document.createTextNode(nextText2),
+        element.firstChild
+      );
+      return;
+    }
+    let maximumFractionDigits = Number(configuredDigits) || 1, formatted = formatCompactNumber(
+      amount,
+      maximumFractionDigits,
+      configuredDigits === "2" ? 2 : 0,
+      configuredDigits === "2"
+    );
+    if (!formatted || formatted.suffix.toLowerCase() !== compactParts.suffix.slice(0, -1).toLowerCase())
+      return;
+    let nextText = `${formatted.number}${compactParts.suffix}`;
+    if (currentText === nextText) return;
+    element.dataset.rovalraMoreRobuxDigitsOriginal === void 0 && (element.dataset.rovalraMoreRobuxDigitsOriginal = currentText);
+    let textNode = Array.from(element.childNodes).find(
+      (node) => node.nodeType === Node.TEXT_NODE
+    );
+    textNode ? textNode.textContent = nextText : element.insertBefore(
+      document.createTextNode(nextText),
+      element.firstChild
+    );
+  }
+  __name(renderMoreDigits, "renderMoreDigits");
+  function refreshNavbarAmount(element) {
+    renderMoreDigits(element, getRobuxAmount(element));
+  }
+  __name(refreshNavbarAmount, "refreshNavbarAmount");
+  function watchNavbarAmount(element) {
+    let refresh = /* @__PURE__ */ __name(() => refreshNavbarAmount(element), "refresh");
+    refresh(), observeChildren(element, refresh), observeAttributes(element, refresh, NAVBAR_AMOUNT_DATA_KEYS);
+  }
+  __name(watchNavbarAmount, "watchNavbarAmount");
+  function init134() {
+    initialized16 || (initialized16 = !0, observeElement(NAVBAR_AMOUNT_SELECTOR, watchNavbarAmount, {
+      multiple: !0
+    }), document.addEventListener("rovalra:settingSaved", () => {
+      document.querySelectorAll(NAVBAR_AMOUNT_SELECTOR).forEach(refreshNavbarAmount);
+    }));
+  }
+  __name(init134, "init");
 
   // src/content/core/catalog/purchasePromptItemId.js
   init_observer();
@@ -126456,7 +126591,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }, "tryProcess");
     tryProcess();
   }, "attachItemDataToPurchasePrompt");
-  function init134() {
+  function init135() {
     observeElement(
       ".modal-dialog .modal-content, .modal-content, .unified-purchase-dialog-content",
       (element) => {
@@ -126523,7 +126658,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       "color: #FF4500;"
     );
   }
-  __name(init134, "init");
+  __name(init135, "init");
 
   // src/content/features/profile/currencytransfer.js
   init_api();
@@ -126605,14 +126740,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     menuItems.length > 0 ? menuItems[0].insertAdjacentElement("afterend", button) : container.appendChild(button);
   }
   __name(addCurrencyTransferButton, "addCurrencyTransferButton");
-  function init135() {
+  function init136() {
     chrome.storage.local.get({ currencyTransferEnabled: !0 }, (settings2) => {
       settings2.currencyTransferEnabled && registerProfileContextMenuAction(addCurrencyTransferButton, () => {
         getCurrencyTransferStatus();
       });
     });
   }
-  __name(init135, "init");
+  __name(init136, "init");
 
   // src/content/features/profile/header/usernameColor.js
   init_observer();
@@ -126649,7 +126784,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     el2 && (el2.style.color = colors[value2]);
   }
   __name(addUsernameColor, "addUsernameColor");
-  async function init136() {
+  async function init137() {
     await settings.usernameColor && observeElement(
       ".stylistic-alts-username, .deleted-user-container .user-name",
       (el2) => {
@@ -126663,7 +126798,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     );
   }
-  __name(init136, "init");
+  __name(init137, "init");
 
   // src/content/features/profile/header/chatEligibilityTooltip.js
   init_idExtractor();
@@ -126755,12 +126890,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(processPotentialChatOverlay, "processPotentialChatOverlay");
-  async function init137() {
+  async function init138() {
     observerRegistered2 || !getUserIdFromUrl() || !await settings.chatEligibilityTooltipEnabled || (observerRegistered2 = !0, observeElement(PRESENTATION_SELECTOR, processPotentialChatOverlay, {
       multiple: !0
     }));
   }
-  __name(init137, "init");
+  __name(init138, "init");
 
   // src/content/features/profile/profileCustomization.js
   init_api();
@@ -127422,10 +127557,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     )));
   }
   __name(initProfileCustomization, "initProfileCustomization");
-  function init138() {
+  function init139() {
     initProfileCustomization();
   }
-  __name(init138, "init");
+  __name(init139, "init");
 
   // src/content/features/profile/socialLinks.js
   init_observer();
@@ -127492,7 +127627,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(renderAllSocialLinks, "renderAllSocialLinks");
-  async function init139() {
+  async function init140() {
     await settings.socialLinksEnabled && (window.addEventListener("rovalra-profile-platform-response", (event) => {
       event.detail?.components?.About && (profileSocialLinks = getSocialLinks(event.detail), renderAllSocialLinks());
     }), observeElement(
@@ -127505,7 +127640,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init139, "init");
+  __name(init140, "init");
 
   // src/content/features/settings/index.js
   init_assets();
@@ -131624,10 +131759,10 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ), await checkRoValraPage();
   }
   __name(initializeExtension, "initializeExtension");
-  function init140() {
+  function init141() {
     document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", initializeExtension) : initializeExtension();
   }
-  __name(init140, "init");
+  __name(init141, "init");
   window.addEventListener("beforeunload", () => {
     document.removeEventListener("roblox-dom-changed", handleGlobalDomChange);
   });
@@ -131788,12 +131923,12 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       try {
         let userId = await getAuthenticatedUserId();
         if (!userId) return;
-        let userCache2 = ((await getLocalStorage([STORAGE_KEY9]))[STORAGE_KEY9] || {})[userId], now = Date.now();
-        if (userCache2 && now - userCache2.timestamp < ONE_HOUR_MS) {
+        let userCache = ((await getLocalStorage([STORAGE_KEY9]))[STORAGE_KEY9] || {})[userId], now = Date.now();
+        if (userCache && now - userCache.timestamp < ONE_HOUR_MS) {
           insertFirstAccountElement(
             section,
-            userCache2.isOriginalUser,
-            userCache2.originalAccountCreationTimestampMs
+            userCache.isOriginalUser,
+            userCache.originalAccountCreationTimestampMs
           );
           return;
         }
@@ -131824,7 +131959,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }
   }
   __name(loadFirstAccountInfo, "loadFirstAccountInfo");
-  function init141() {
+  function init142() {
     isAccountSettingsPage() && chrome.storage.local.get({ firstAccountEnabled: !0 }, (result) => {
       result.firstAccountEnabled && observeElement(
         "#account-change-password, #fido-registration-container, .passkey-upsell-banner",
@@ -131836,7 +131971,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       );
     });
   }
-  __name(init141, "init");
+  __name(init142, "init");
 
   // src/content/features/settings/roblox/legacyThemeSwitcher.js
   init_observer();
@@ -131894,7 +132029,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     return dropdown.element.classList.add("col-xs-12", "col-sm-6"), container.append(label, dropdown.element), container;
   }
   __name(createThemeDropdown, "createThemeDropdown");
-  async function init142() {
+  async function init143() {
     window.location.pathname.startsWith("/my/account") && chrome.storage.local.get({ legacyThemeSwitcherEnabled: !0 }, (result) => {
       result.legacyThemeSwitcherEnabled && observeElement("h2.setting-section-header", async (header) => {
         if (header.textContent.trim() !== "Personal") return;
@@ -131905,7 +132040,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       }, { multiple: !0 });
     });
   }
-  __name(init142, "init");
+  __name(init143, "init");
 
   // src/content/features/home/accurateContinue.js
   init_api();
@@ -131914,7 +132049,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     ".game-sort-carousel-wrapper",
     '[data-testid="game-carousel"]',
     ".game-carousel"
-  ].join(","), GAME_CARD_LINK_SELECTOR2 = "a.game-card-link[href]", initialized16 = !1, accurateContinueEnabled = !1, autoRefreshEnabled = !0, recentlyVisitedGames = [], recentlyVisitedTopic = "Continue", refreshPromise = null, lastRefreshAt = 0, launchRefreshGeneration = 0, domSyncGeneration = 0, continueCarousel = null;
+  ].join(","), GAME_CARD_LINK_SELECTOR2 = "a.game-card-link[href]", initialized17 = !1, accurateContinueEnabled = !1, autoRefreshEnabled = !0, recentlyVisitedGames = [], recentlyVisitedTopic = "Continue", refreshPromise = null, lastRefreshAt = 0, launchRefreshGeneration = 0, domSyncGeneration = 0, continueCarousel = null;
   function isHomePage() {
     return window.location.pathname.toLowerCase().replace(/^\/[a-z]{2}(?:-[a-z]{2})?\//, "/").startsWith("/home");
   }
@@ -132197,18 +132332,18 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(initializeAutoRefreshListeners, "initializeAutoRefreshListeners");
-  async function init143() {
+  async function init144() {
     let storedSettings = await chrome.storage.local.get({
       [ACCURATE_CONTINUE_SETTING]: !1,
       [AUTO_REFRESH_SETTING]: !0
     });
-    if (accurateContinueEnabled = storedSettings[ACCURATE_CONTINUE_SETTING] === !0, autoRefreshEnabled = storedSettings[AUTO_REFRESH_SETTING] !== !1, initialized16 || (initialized16 = !0, initializeAutoRefreshListeners()), !accurateContinueEnabled) {
+    if (accurateContinueEnabled = storedSettings[ACCURATE_CONTINUE_SETTING] === !0, autoRefreshEnabled = storedSettings[AUTO_REFRESH_SETTING] !== !1, initialized17 || (initialized17 = !0, initializeAutoRefreshListeners()), !accurateContinueEnabled) {
       publishAccurateContinue([], !1);
       return;
     }
     await refreshAccurateContinue({ force: !0 });
   }
-  __name(init143, "init");
+  __name(init144, "init");
 
   // src/content/features/home/homeLayout.js
   init_observer();
@@ -132235,7 +132370,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     disable: "Disable",
     show: "Show",
     hide: "Hide"
-  }, categories = [], savedOrder3 = [], hiddenCategoryKeys = [], initialized17 = !1, observersInitialized3 = !1, homeLayoutButtonEnabled = !0, locale3 = { ...DEFAULT_LOCALE3 }, dropIndicator2 = null, dragState2 = {
+  }, categories = [], savedOrder3 = [], hiddenCategoryKeys = [], initialized18 = !1, observersInitialized3 = !1, homeLayoutButtonEnabled = !0, locale3 = { ...DEFAULT_LOCALE3 }, dropIndicator2 = null, dragState2 = {
     active: !1,
     element: null,
     list: null,
@@ -132792,13 +132927,13 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     );
   }
   __name(hydrateFromStorage, "hydrateFromStorage");
-  async function init144() {
-    if (!initialized17) {
+  async function init145() {
+    if (!initialized18) {
       if (await settings.homeLayoutEnabled === !1) {
-        initialized17 = !0, publishHomeLayoutState([], []);
+        initialized18 = !0, publishHomeLayoutState([], []);
         return;
       }
-      initialized17 = !0, await loadLocale3(), homeLayoutButtonEnabled = await settings.homeLayoutButtonEnabled !== !1, hydrateFromStorage(), document.addEventListener("rovalra-home-layout-categories", (event) => {
+      initialized18 = !0, await loadLocale3(), homeLayoutButtonEnabled = await settings.homeLayoutButtonEnabled !== !1, hydrateFromStorage(), document.addEventListener("rovalra-home-layout-categories", (event) => {
         replaceCategories(event.detail?.categories);
       }), chrome.storage.onChanged.addListener((changes, namespace) => {
         namespace === "local" && (changes[ORDER_STORAGE_KEY3] && publishHomeLayoutState(changes[ORDER_STORAGE_KEY3].newValue), changes[HIDDEN_STORAGE_KEY3] && publishHomeLayoutState(
@@ -132831,14 +132966,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
       { multiple: !0 }
     ));
   }
-  __name(init144, "init");
+  __name(init145, "init");
 
   // src/content/features/home/customThemeEditor.js
   init_buttons();
   init_overlay();
   init_handlesettings();
   init_backgroundImage();
-  var EDITOR_SESSION_KEY = "rovalra_custom_theme_background_editor_active", SUPPORTED_HOSTS = /* @__PURE__ */ new Set(["www.roblox.com", "roblox.com"]), initialized18 = !1, editorHandle = null;
+  var EDITOR_SESSION_KEY = "rovalra_custom_theme_background_editor_active", SUPPORTED_HOSTS = /* @__PURE__ */ new Set(["www.roblox.com", "roblox.com"]), initialized19 = !1, editorHandle = null;
   function inputRow(labelText, input) {
     let row = document.createElement("label");
     row.className = "rovalra-custom-theme-background-row";
@@ -132912,14 +133047,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     });
   }
   __name(openBackgroundEditor, "openBackgroundEditor");
-  function init145() {
-    initialized18 || (initialized18 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
+  function init146() {
+    initialized19 || (initialized19 = !0, document.addEventListener("rovalra:openCustomThemeBackground", () => {
       sessionStorage.setItem(EDITOR_SESSION_KEY, "true"), openBackgroundEditor().catch(
         (error3) => console.error("RoValra: Failed to open custom background settings.", error3)
       );
     }));
   }
-  __name(init145, "init");
+  __name(init146, "init");
 
   // src/content/features/home/friendLabels.js
   init_userCardElements();
@@ -133393,14 +133528,14 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     }));
   }
   __name(registerStorageListener, "registerStorageListener");
-  async function init146() {
+  async function init147() {
     if (registerStorageListener(), enabled = await settings.friendLabelsEnabled === !0, !enabled) {
       removeFeatureUi();
       return;
     }
     friendLabels = await loadFriendLabels(), registerObservers(), refreshExistingCards(), attachActionsToExistingDropdowns();
   }
-  __name(init146, "init");
+  __name(init147, "init");
 
   // src/content/features/home/underratedGames.js
   init_api();
@@ -133414,7 +133549,7 @@ ${await t2("antiBots.processFailed", { failedCount: failedMembers.length })}`), 
     rotates: "Rotates",
     suggestOnDiscord: `Suggest underrated games on ${DISCORD_MARKER}`,
     ageRestrictionWarning: "Some of these games may be locked to 16+ because of Roblox's 250 HEP requirement."
-  }, ROTATION_MARKER = "__ROVALRA_UNDERRATED_GAMES_ROTATION__", initialized19 = !1, rotationExpiresAt = null, underratedGamesByUniverseId = /* @__PURE__ */ new Map(), maturitySummaryPromises = /* @__PURE__ */ new Map();
+  }, ROTATION_MARKER = "__ROVALRA_UNDERRATED_GAMES_ROTATION__", initialized20 = !1, rotationExpiresAt = null, underratedGamesByUniverseId = /* @__PURE__ */ new Map(), maturitySummaryPromises = /* @__PURE__ */ new Map();
   async function getUnderratedGamesLocale() {
     let [is13Plus, showAgeRestrictionWarning] = await Promise.all([
       isAuthenticatedUser13PlusAndAgeChecked(),
@@ -133679,8 +133814,8 @@ ${locale4.suggestOnDiscord}`), subtitle;
     return rotationExpiresAt = Number.isNaN(rotationDate.getTime()) ? null : rotationDate.toISOString(), createUnderratedGamesSort(games, await getUnderratedGamesLocale());
   }
   __name(loadUnderratedGames, "loadUnderratedGames");
-  async function init147() {
-    initialized19 || (initialized19 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
+  async function init148() {
+    initialized20 || (initialized20 = !0, await settings.underratedGamesEnabled !== !1 && loadUnderratedGames().then((sort) => {
       sort && (publishUnderratedGamesSort(sort), document.body && replaceRotationMarker(document.body), observeElement(
         'a[data-testid="section-header-title-subtitle-container"], .game-sort-carousel-wrapper, .container-header, .game-sort-header-container',
         replaceRotationMarker,
@@ -133694,7 +133829,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       console.warn("RoValra: underrated games failed to load", error3);
     }));
   }
-  __name(init147, "init");
+  __name(init148, "init");
 
   // src/content/features/home/hideAddFriendsButton.js
   init_observer();
@@ -133749,14 +133884,14 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }));
   }
   __name(registerStorageListener2, "registerStorageListener");
-  async function init148() {
+  async function init149() {
     if (registerStorageListener2(), enabled2 = await settings.HideAddFriendsButton === !0, !enabled2) {
       removeHiddenButtonClasses();
       return;
     }
     registerObserver(), applyExistingAddFriendsButtons();
   }
-  __name(init148, "init");
+  __name(init149, "init");
 
   // src/content/features/create.roblox.com/download.js
   init_idExtractor();
@@ -134036,7 +134171,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     targetContainer.prepend(downloadButton), delete buttonContainer.dataset.rovalraDownloadButtonPending;
   }
   __name(addButton, "addButton");
-  function init149() {
+  function init150() {
     window.location.href.includes("/store/asset/") && chrome.storage.local.get({ DownloadCreateEnabled: !0 }, (result) => {
       result.DownloadCreateEnabled && (observeElement(
         '[data-testid="assetButtonsDeprecatedTestId"]',
@@ -134051,7 +134186,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       ));
     });
   }
-  __name(init149, "init");
+  __name(init150, "init");
 
   // src/content/features/catalog/explorer.js
   init_idExtractor();
@@ -136581,7 +136716,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
     }
   }
   __name(addGameButton, "addGameButton");
-  async function init150() {
+  async function init151() {
     let path = window.location.pathname, onCatalog = /\/catalog\//.test(path), onBundle = /\/bundles\//.test(path), onGame = /\/games\//.test(path);
     !onCatalog && !onBundle && !onGame || await settings.ExplorerEnabled && (onCatalog && observeElement(
       ".item-details-info-header .right",
@@ -136591,7 +136726,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       (el2) => addBundleButton(el2)
     ), onGame && observeElement("#game-context-menu", (el2) => addGameButton(el2)));
   }
-  __name(init150, "init");
+  __name(init151, "init");
 
   // src/content/index.js
   init_handlesettings();
@@ -136602,7 +136737,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
       paths: ["*"],
       once: !0,
       features: [
-        init140,
+        init141,
         init64,
         init7,
         init8,
@@ -136637,10 +136772,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init121,
         init32,
         init20,
+        init134,
         init47,
         init2,
         init28,
-        init134,
+        init135,
         init126,
         init22,
         initializeModernIcons,
@@ -136655,7 +136791,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init43,
         init45,
         init46,
-        init145,
+        init146,
         initNotificationCenter
       ]
     },
@@ -136686,7 +136822,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init60,
         init61,
         init62,
-        init150
+        init151
       ]
     },
     // Avatar pages
@@ -136730,7 +136866,7 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init68,
         init79,
         init112,
-        init150,
+        init151,
         init81
       ]
     },
@@ -136798,22 +136934,22 @@ ${locale4.suggestOnDiscord}`), subtitle;
         init123,
         init126,
         init111,
-        init135,
+        init136,
         init110,
         init132,
-        init137,
         init138,
         init139,
+        init140,
         initProfileButton
       ]
     },
     {
       paths: ["/users/", "/banned-users/"],
-      features: [init114, init108, init136]
+      features: [init114, init108, init137]
     },
     {
       paths: ["/deleted-users/"],
-      features: [init136]
+      features: [init137]
     },
     // Transactions page
     {
@@ -136850,21 +136986,21 @@ ${locale4.suggestOnDiscord}`), subtitle;
     // create
     {
       paths: ["/store/asset"],
-      features: [init149]
+      features: [init150]
     },
     {
       paths: ["/home"],
       features: [
-        init144,
-        init147,
-        init143,
+        init145,
         init148,
-        init146
+        init144,
+        init149,
+        init147
       ]
     },
     {
       paths: ["/my/account"],
-      features: [init141, init142]
+      features: [init142, init143]
     },
     // Scam prevention
     {
@@ -136919,11 +137055,11 @@ ${locale4.suggestOnDiscord}`), subtitle;
       route.paths.some((p2) => {
         let lowerP = p2.toLowerCase();
         return lowerP === "*" || path.startsWith(lowerP) || normalizedPath.startsWith(lowerP);
-      }) && route.features && Array.isArray(route.features) && route.features.forEach((init151) => {
-        if (!featuresRunThisPass.has(init151) && !(route.once && initializedPersistentFeatures.has(init151))) {
-          featuresRunThisPass.add(init151), route.once && initializedPersistentFeatures.add(init151);
+      }) && route.features && Array.isArray(route.features) && route.features.forEach((init152) => {
+        if (!featuresRunThisPass.has(init152) && !(route.once && initializedPersistentFeatures.has(init152))) {
+          featuresRunThisPass.add(init152), route.once && initializedPersistentFeatures.add(init152);
           try {
-            init151();
+            init152();
           } catch (error3) {
             console.error("RoValra: Feature init failed", error3);
           }
