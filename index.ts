@@ -21,7 +21,7 @@ const manifestPath = path.join(roValraPath, "manifest.json");
 
 let manifestFile = JSON.parse(await fs.readFile(manifestPath, "utf-8"));
 
-manifestFile.optional_permissions = manifestFile.optional_permissions.fix((p: string) => p !== "contextMenus" && p !== "menus")
+manifestFile.optional_permissions = manifestFile.optional_permissions.filter((p: string) => p !== "contextMenus" && p !== "menus")
 
 manifestFile.background = {"scripts": ["background.js"]}
 
