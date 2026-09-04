@@ -24,10 +24,11 @@ jobs:
             - name: install deps
               run: pnpm i
 
+            - name: setup pnpm
+              run: pnpm setup
+
             - name: install terser
-              run: |
-                  pnpm setup
-                  pnpm i -g terser
+              run: pnpm i -g terser
 
             - name: clone rovalra and install deps
               run: |
