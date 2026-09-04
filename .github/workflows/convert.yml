@@ -38,6 +38,7 @@ jobs:
                     cd RoValra
                     npm run build
                     cd dist
+                    pnpm compress
                     zip -r ../../extension.zip ./*
 
             - name: push to repo
