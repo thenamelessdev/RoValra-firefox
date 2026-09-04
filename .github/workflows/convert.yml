@@ -25,7 +25,7 @@ jobs:
               run: pnpm i
 
             - name: setup pnpm
-              run: pnpm setup
+              run: pnpm setup && echo "/home/runner/setup-pnpm/node_modules/.bin" >> $GITHUB_PATH
 
             - name: install terser
               run: pnpm i -g terser
