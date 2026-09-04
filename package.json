@@ -4,8 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsx index.ts",
-    "compress": "terser content.js -o content.js --compress --mangle"
+    "start": "tsx index.ts"
   },
   "keywords": [],
   "author": "",
