@@ -24,12 +24,6 @@ jobs:
             - name: install deps
               run: pnpm i
 
-            - name: setup pnpm
-              run: pnpm setup && echo "/home/runner/setup-pnpm/node_modules/.bin" >> $GITHUB_PATH
-
-            - name: install terser
-              run: pnpm i -g terser
-
             - name: clone rovalra and install deps
               run: |
                     git clone https://github.com/notvalra/RoValra.git
@@ -43,8 +37,9 @@ jobs:
               run: |
                     cd RoValra
                     npm run build
-                    cd dist
-                    terser content.js -o content.min.js --compress --mangle
+                    cd ..
+                    pnpm compress
+                    cd RoValra/dist
                     zip -r ../../extension.zip ./*
 
             - name: push to repo
