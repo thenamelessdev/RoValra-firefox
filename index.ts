@@ -27,7 +27,10 @@ manifestFile.background = {"scripts": ["background.js"]}
 manifestFile.browser_specific_settings = {
     "gecko": {
         "id": "rovalra@thenamelessdev.com",
-        "strict_min_version": "109.0"
+        "strict_min_version": "109.0",
+        "data_collection_permissions": {
+            "required": ["none"]
+        }
     }
 }
 
