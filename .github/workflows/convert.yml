@@ -25,7 +25,9 @@ jobs:
               run: pnpm i
 
             - name: install terser
-              run: pnpm i -g terser
+              run: |
+                  pnpm setup
+                  pnpm i -g terser
 
             - name: clone rovalra and install deps
               run: |
