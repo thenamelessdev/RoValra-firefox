@@ -135,10 +135,41 @@ await Promise.all(fonts.map(font => new Promise<void>((resolve, reject) => {
     }).on("error", reject)
 })))
 
-const scssPath = path.join(roValraPath, "src", "css", "components", "builder_icons.scss")
-let scss = await fs.readFile(scssPath, "utf-8")
-scss = scss.replaceAll(
-    `url('https://www.rovalra.com/static/fonts/`,
-    `url('../public/fonts/`
-)
-await fs.writeFile(scssPath, scss)
+const fontInject = `
+(function() {
+    const base = browser.runtime.getURL('public/fonts/');
+    const style = document.createElement('style');
+    style.textContent = \`
+        @font-face {
+            font-family: 'Builder Icons Outlined';
+            src: local('BuilderIcons-Regular'),
+                 url('\${base}BuilderIcons-Regular.woff2') format('woff2'),
+                 url('\${base}BuilderIcons-Regular.ttf') format('truetype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'Builder Icons Filled';
+            src: local('BuilderIcons-Filled'),
+                 url('\${base}BuilderIcons-Filled.woff2') format('woff2'),
+                 url('\${base}BuilderIcons-Filled.ttf') format('truetype');
+            font-display: swap;
+        }
+        @font-face {
+            font-family: 'RoValra Icons';
+            src: local('RoValra Icons'),
+                 url('\${base}RoValraIcons.woff2') format('woff2'),
+                 url('\${base}RoValraIcons.ttf') format('truetype');
+            font-display: swap;
+        }
+    \`;
+    document.documentElement.appendChild(style);
+})();
+`
+
+const contentIndexPath = path.join(roValraPath, "src", "content", "index.js")
+let contentIndex = await fs.readFile(contentIndexPath, "utf-8")
+contentIndex = fontInject + contentIndex
+await fs.writeFile(contentIndexPath, contentIndex)
+
+manifestFile.web_accessible_resources[0].resources.push("public/fonts/*")
+await fs.writeFile(manifestPath, JSON.stringify(manifestFile))
