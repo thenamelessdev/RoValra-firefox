@@ -17,6 +17,37 @@ exec(`sed -i 's/chrome\./browser\./g' ${path.join(roValraPath, "src/**/*.js")}`,
     }
 })
 
+const shim = `
+const _fetch = window.fetch.bind(window);
+window.fetch = async (url, options) => {
+  if (typeof url === "string" && url.includes("apis.rovalra.com")) {
+    return browser.runtime.sendMessage({ type: "fetch", url, options });
+  }
+  return _fetch(url, options);
+};
+`
+
+const contentJsPath = path.join(roValraPath, "src", "content", "index.js")
+const contentJs = await fs.readFile(contentJsPath, "utf-8")
+await fs.writeFile(contentJsPath, shim + contentJs)
+
+const bgListener = `
+browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "fetch") {
+    fetch(message.url, message.options || {})
+      .then(r => r.json())
+      .then(data => sendResponse({ ok: true, data }))
+      .catch(err => sendResponse({ ok: false, error: err.message }))
+    return true
+  }
+})
+`
+
+const bgPath = path.join(roValraPath, "src", "background", "background.js")
+const bg = await fs.readFile(bgPath, "utf-8")
+await fs.writeFile(bgPath, bg + bgListener)
+
+
 const manifestPath = path.join(roValraPath, "manifest.json");
 
 let manifestFile = JSON.parse(await fs.readFile(manifestPath, "utf-8"));
