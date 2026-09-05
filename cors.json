@@ -12,7 +12,7 @@
     },
     "condition": {
       "urlFilter": "apis.rovalra.com",
-      "resourceTypes": ["xmlhttprequest", "fetch"]
+      "resourceTypes": ["xmlhttprequest"]
     }
   }
 ]
