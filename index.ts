@@ -50,8 +50,20 @@ let apiJs = await fs.readFile(apiJsPath, "utf-8")
 apiJs = apiJs.replace(
     `lastResponse = await fetch(fullUrl, fetchOptions);`,
     `lastResponse = await new Promise((resolve) => {
+        const serializedHeaders = {};
+        normalizedHeaders.forEach((val, key) => { serializedHeaders[key] = val; });
         browser.runtime.sendMessage(
-            { action: 'fetchRovalraApi', url: fullUrl, options: { method: fetchOptions.method, headers: Object.fromEntries(new Headers(fetchOptions.headers ?? {}).entries()), body: fetchOptions.body, credentials: fetchOptions.credentials, cache: fetchOptions.cache } },
+            {
+                action: 'fetchRovalraApi',
+                url: fullUrl,
+                options: {
+                    method: fetchOptions.method,
+                    headers: serializedHeaders,
+                    body: fetchOptions.body ?? null,
+                    credentials: fetchOptions.credentials,
+                    cache: fetchOptions.cache,
+                }
+            },
             (response) => {
                 if (browser.runtime.lastError || !response) { resolve(Response.error()); return; }
                 const { body, ...init } = response;
