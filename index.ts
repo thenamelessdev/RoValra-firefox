@@ -33,5 +33,6 @@ manifestFile.browser_specific_settings = {
         }
     }
 }
+manifestFile.host_permissions.push("https://*.rovalra.com/*")
 
 await fs.writeFile(manifestPath, JSON.stringify(manifestFile))
