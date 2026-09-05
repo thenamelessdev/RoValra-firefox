@@ -18,13 +18,30 @@ exec(`sed -i 's/chrome\./browser\./g' ${path.join(roValraPath, "src/**/*.js")}`,
 })
 
 const shim = `
-const _fetch = window.fetch.bind(window);
-window.fetch = async (url, options) => {
-  if (typeof url === "string" && url.includes("apis.rovalra.com")) {
-    return browser.runtime.sendMessage({ type: "fetch", url, options });
-  }
-  return _fetch(url, options);
-};
+(function() {
+  const _fetch = window.fetch.bind(window);
+  window.fetch = async function(url, options) {
+    const urlStr = typeof url === 'string' ? url : url?.url ?? '';
+    if (urlStr.includes('apis.rovalra.com')) {
+      return new Promise((resolve, reject) => {
+        browser.runtime.sendMessage({ type: '__rovalra_fetch__', url: urlStr, options: options ? {
+          method: options.method,
+          headers: options.headers ? Object.fromEntries(new Headers(options.headers).entries()) : undefined,
+          body: options.body,
+          credentials: options.credentials,
+          cache: options.cache,
+        } : undefined }).then(res => {
+          if (res.ok) {
+            resolve(new Response(JSON.stringify(res.data), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+          } else {
+            reject(new Error(res.error));
+          }
+        }).catch(reject);
+      });
+    }
+    return _fetch(url, options);
+  };
+})();
 `
 
 const contentJsPath = path.join(roValraPath, "src", "content", "index.js")
@@ -33,14 +50,18 @@ await fs.writeFile(contentJsPath, shim + contentJs)
 
 const bgListener = `
 browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "fetch") {
+  if (message.type === '__rovalra_fetch__') {
     fetch(message.url, message.options || {})
-      .then(r => r.json())
-      .then(data => sendResponse({ ok: true, data }))
-      .catch(err => sendResponse({ ok: false, error: err.message }))
-    return true
+      .then(async r => {
+        const text = await r.text();
+        let data;
+        try { data = JSON.parse(text); } catch(e) { data = text; }
+        sendResponse({ ok: true, data });
+      })
+      .catch(err => sendResponse({ ok: false, error: err.message }));
+    return true;
   }
-})
+});
 `
 
 const bgPath = path.join(roValraPath, "src", "background", "background.js")
