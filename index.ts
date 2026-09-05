@@ -17,57 +17,6 @@ exec(`sed -i 's/chrome\./browser\./g' ${path.join(roValraPath, "src/**/*.js")}`,
     }
 })
 
-const shim = `
-(function() {
-  const _fetch = window.fetch.bind(window);
-  window.fetch = async function(url, options) {
-    const urlStr = typeof url === 'string' ? url : url?.url ?? '';
-    if (urlStr.includes('apis.rovalra.com')) {
-      return new Promise((resolve, reject) => {
-        browser.runtime.sendMessage({ type: '__rovalra_fetch__', url: urlStr, options: options ? {
-          method: options.method,
-          headers: options.headers ? Object.fromEntries(new Headers(options.headers).entries()) : undefined,
-          body: options.body,
-          credentials: options.credentials,
-          cache: options.cache,
-        } : undefined }).then(res => {
-          if (res.ok) {
-            resolve(new Response(JSON.stringify(res.data), { status: 200, headers: { 'Content-Type': 'application/json' } }));
-          } else {
-            reject(new Error(res.error));
-          }
-        }).catch(reject);
-      });
-    }
-    return _fetch(url, options);
-  };
-})();
-`
-
-const contentJsPath = path.join(roValraPath, "src", "content", "index.js")
-const contentJs = await fs.readFile(contentJsPath, "utf-8")
-await fs.writeFile(contentJsPath, shim + contentJs)
-
-const bgListener = `
-browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === '__rovalra_fetch__') {
-    fetch(message.url, message.options || {})
-      .then(async r => {
-        const text = await r.text();
-        let data;
-        try { data = JSON.parse(text); } catch(e) { data = text; }
-        sendResponse({ ok: true, data });
-      })
-      .catch(err => sendResponse({ ok: false, error: err.message }));
-    return true;
-  }
-});
-`
-
-const bgPath = path.join(roValraPath, "src", "background", "background.js")
-const bg = await fs.readFile(bgPath, "utf-8")
-await fs.writeFile(bgPath, bg + bgListener)
-
 
 const manifestPath = path.join(roValraPath, "manifest.json");
 
@@ -86,5 +35,67 @@ manifestFile.browser_specific_settings = {
     }
 }
 manifestFile.host_permissions.push("https://*.rovalra.com/*")
+manifestFile.declarative_net_request.rule_resources.push({
+    "id": "cors_fix",
+    "enabled": true,
+    "path": "public/Assets/Rules/cors.json"
+})
 
 await fs.writeFile(manifestPath, JSON.stringify(manifestFile))
+
+
+
+const apiJsPath = path.join(roValraPath, "src", "content", "core", "api.js")
+let apiJs = await fs.readFile(apiJsPath, "utf-8")
+apiJs = apiJs.replace(
+    `lastResponse = await fetch(fullUrl, fetchOptions);`,
+    `lastResponse = await new Promise((resolve) => {
+        browser.runtime.sendMessage(
+            { action: 'fetchRovalraApi', url: fullUrl, options: { method: fetchOptions.method, headers: Object.fromEntries(new Headers(fetchOptions.headers ?? {}).entries()), body: fetchOptions.body, credentials: fetchOptions.credentials, cache: fetchOptions.cache } },
+            (response) => {
+                if (browser.runtime.lastError || !response) { resolve(Response.error()); return; }
+                const { body, ...init } = response;
+                resolve(new Response(body, init));
+            }
+        );
+    });`
+)
+await fs.writeFile(apiJsPath, apiJs)
+
+const bgPath = path.join(roValraPath, "src", "background", "background.js")
+const bgListener = `
+        case 'fetchRovalraApi':
+            fetch(request.url, request.options || {})
+                .then(async (res) => {
+                    const body = await res.text();
+                    sendResponse({ body, status: res.status, statusText: res.statusText, headers: Object.fromEntries(res.headers.entries()) });
+                })
+                .catch((err) => sendResponse({ body: '', status: 0, statusText: err.message }));
+            return true;
+`
+let bg = await fs.readFile(bgPath, "utf-8")
+bg = bg.replace(
+    `case 'fetchJson':`,
+    bgListener + `\n        case 'fetchJson':`
+)
+await fs.writeFile(bgPath, bg)
+
+const corsRule = JSON.stringify([
+    {
+        "id": 1,
+        "priority": 1,
+        "action": {
+            "type": "modifyHeaders",
+            "responseHeaders": [
+                { "header": "Access-Control-Allow-Origin", "operation": "set", "value": "*" },
+                { "header": "Access-Control-Allow-Methods", "operation": "set", "value": "GET, POST, OPTIONS" },
+                { "header": "Access-Control-Allow-Headers", "operation": "set", "value": "*" }
+            ]
+        },
+        "condition": {
+            "urlFilter": "apis.rovalra.com",
+            "resourceTypes": ["xmlhttprequest"]
+        }
+    }
+], null, 2)
+await fs.writeFile(path.join(roValraPath, "public", "Assets", "Rules", "cors.json"), corsRule)
