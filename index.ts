@@ -4,6 +4,7 @@
 import path from "path"
 import fs from "fs/promises"
 import {exec} from "child_process"
+import https from "https"
 
 const roValraPath = path.join(process.cwd(), "RoValra")
 
@@ -40,6 +41,7 @@ manifestFile.declarative_net_request.rule_resources.push({
     "enabled": true,
     "path": "public/Assets/Rules/cors.json"
 })
+manifestFile.web_accessible_resources[0].resources.push("fonts/*")
 
 await fs.writeFile(manifestPath, JSON.stringify(manifestFile))
 
@@ -111,3 +113,32 @@ const corsRule = JSON.stringify([
     }
 ], null, 2)
 await fs.writeFile(path.join(roValraPath, "public", "Assets", "Rules", "cors.json"), corsRule)
+
+const fonts = [
+    "BuilderIcons-Regular.woff2",
+    "BuilderIcons-Regular.ttf",
+    "BuilderIcons-Filled.woff2",
+    "BuilderIcons-Filled.ttf",
+    "RoValraIcons.woff2",
+    "RoValraIcons.ttf",
+]
+
+const fontsDir = path.join(roValraPath, "fonts")
+await fs.mkdir(fontsDir, { recursive: true })
+
+await Promise.all(fonts.map(font => new Promise<void>((resolve, reject) => {
+    https.get(`https://www.rovalra.com/static/fonts/${font}`, res => {
+        const chunks: Buffer[] = []
+        res.on("data", chunk => chunks.push(chunk))
+        res.on("end", () => fs.writeFile(path.join(fontsDir, font), Buffer.concat(chunks)).then(resolve))
+        res.on("error", reject)
+    })
+})))
+
+const cssPath = path.join(roValraPath, "css", "rovalra.css")
+let css = await fs.readFile(cssPath, "utf-8")
+css = css.replaceAll(
+    `url("https://www.rovalra.com/static/fonts/`,
+    `url("../fonts/`
+)
+await fs.writeFile(cssPath, css)
