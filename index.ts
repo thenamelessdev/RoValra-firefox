@@ -41,7 +41,7 @@ manifestFile.declarative_net_request.rule_resources.push({
     "enabled": true,
     "path": "public/Assets/Rules/cors.json"
 })
-manifestFile.web_accessible_resources[0].resources.push("fonts/*")
+manifestFile.web_accessible_resources[0].resources.push("public/fonts/*")
 
 await fs.writeFile(manifestPath, JSON.stringify(manifestFile))
 
@@ -123,22 +123,22 @@ const fonts = [
     "RoValraIcons.ttf",
 ]
 
-const fontsDir = path.join(roValraPath, "fonts")
+const fontsDir = path.join(roValraPath, "public", "fonts")
 await fs.mkdir(fontsDir, { recursive: true })
 
 await Promise.all(fonts.map(font => new Promise<void>((resolve, reject) => {
     https.get(`https://www.rovalra.com/static/fonts/${font}`, res => {
         const chunks: Buffer[] = []
-        res.on("data", chunk => chunks.push(chunk))
-        res.on("end", () => fs.writeFile(path.join(fontsDir, font), Buffer.concat(chunks)).then(resolve))
+        res.on("data", (chunk: Buffer) => chunks.push(chunk))
+        res.on("end", () => fs.writeFile(path.join(fontsDir, font), Buffer.concat(chunks)).then(resolve).catch(reject))
         res.on("error", reject)
-    })
+    }).on("error", reject)
 })))
 
-const cssPath = path.join(roValraPath, "css", "rovalra.css")
-let css = await fs.readFile(cssPath, "utf-8")
-css = css.replaceAll(
-    `url("https://www.rovalra.com/static/fonts/`,
-    `url("../fonts/`
+const scssPath = path.join(roValraPath, "src", "css", "components", "builder_icons.scss")
+let scss = await fs.readFile(scssPath, "utf-8")
+scss = scss.replaceAll(
+    `url('https://www.rovalra.com/static/fonts/`,
+    `url('../public/fonts/`
 )
-await fs.writeFile(cssPath, css)
+await fs.writeFile(scssPath, scss)
