@@ -44,6 +44,6 @@ manifestFile.declarative_net_request.rule_resources.push({
 const corsFilePath = path.join(process.cwd(), "cors.json")
 const corsFile = await fs.readFile(corsFilePath)
 
-await fs.writeFile(path.join(roValraPath, "src", "public", "Assets", "Rules", "cors.json"), corsFile)
+await fs.writeFile(path.join(roValraPath, "public", "Assets", "Rules", "cors.json"), corsFile)
 
 await fs.writeFile(manifestPath, JSON.stringify(manifestFile))
