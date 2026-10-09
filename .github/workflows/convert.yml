@@ -2,8 +2,6 @@ name: Convert to Firefox
 
 on:
     workflow_dispatch:
-    schedule:
-        - cron: '0 10 * * *'
 
 jobs:
     convert:
